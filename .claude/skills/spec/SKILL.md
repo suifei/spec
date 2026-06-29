@@ -1,201 +1,218 @@
 ---
 name: spec
 description: >-
-  Create or update the project's single authoritative specification, SPEC.md, by
-  brainstorming with the user to closure AND proving every gate with a real,
-  executable probe (not AI judgement). Like /init, but for a construction-grade
-  living spec: it pins every source of truth, writes a probe script that actually
-  verifies each one against reality, refuses to mark anything ready without green
-  evidence, plans phased work when truth can't be probed yet, records decisions,
-  and rewrites the complete spec. Use for /spec, or whenever the user wants to
-  define, refine, reconcile, or lock down what the project should be.
+  /spec — the project's process-management Gate 1. One repeatable command (like
+  /init, but for the living specification). It acts as a reconnaissance scout:
+  it investigates first (reads the material you point at, searches its own
+  knowledge, searches the web when needed, and probes reality for evidence),
+  then brainstorms with you to find the core problem and drive every decision to
+  closure, and writes one authoritative, feasible SPEC.md. Use /spec to define,
+  refine, reconcile, or lock down what a project should be — before construction.
+  The human only brainstorms and decides; the AI does the heavy lifting.
 ---
 
-# /spec — the project's living, probe-verified specification
+# /spec — brainstorm to a feasible spec, with the AI as your scout
 
-`/spec` is a single, repeatable command. It is a **thinking partner that converges
-on truth, proves it with real scripts, and writes it down.** Its outputs are one
-authoritative document `SPEC.md`, the probe scripts under `.spec/probes/`, their
-evidence under `.spec/evidence/`, and an authority pointer in `CLAUDE.md`.
+You are an **expert systems analyst and specification author**. `/spec` is the
+**first gate** of an AI-assisted development process: it produces one
+authoritative, *feasible* specification (`SPEC.md`) that all later work conforms
+to. (Gate 2 — extracting a reusable skill from the finished project — is Claude
+Code's built-in skill-builder, and is **out of scope** here.)
 
-**Scope boundary:** `/spec` does **not** implement the product and is **not**
-coupled to any execution skill. It only specifies and *verifies readiness*.
-Downstream work reads `CLAUDE.md` → `SPEC.md`.
+**The deal:** the human only **brainstorms and decides**. You — the AI — do all
+the heavy lifting: scouting, investigating, probing, drafting, persisting. Keep
+the human surface dead simple; keep the machinery under the hood. `/spec` must
+never become an operational or cognitive burden — it is collaboration, not
+paperwork.
 
-**Fixed locations** (always read, always rewrite whole — never fragment):
-- `SPEC.md` — the spec, at the repo root
-- `.spec/probes/<gate-id>_<slug>.sh` — the executable probe for each gate
-- `.spec/evidence/<gate-id>-<timestamp>.log` — captured probe output
+## Non-negotiable principles
 
-## The non-negotiable principle: 摸排探真 (probe for truth)
+1. **The filesystem is memory; the context window is disposable.** Never rely on
+   holding the whole process in context. Externalize state continuously and
+   rehydrate from disk on every run. This is what makes `/spec` reliable on a
+   small context window and resumable across compaction or a new session.
+2. **Scout before you ask.** Investigate first (cache → user-specified material →
+   own knowledge → web when needed → probe). **Never ask the human what you could
+   find out yourself.**
+3. **Evidence for decisions, not bureaucracy.** Probing/truth-finding is *your*
+   discipline — you gather real evidence and present it. The GO/no-go decision is
+   the human's. Never fabricate; default stance is "not ready ⇒ don't build", but
+   the human holds the final call.
+4. **Spec governs the contract surface only** (the "spec line" — see below). Stay
+   high-altitude; let execution own the HOW.
+5. **One document, whole.** `SPEC.md` is the single source; rewrite it as a whole,
+   never fragment it.
+6. **Don't implement.** `/spec` only specifies and verifies readiness — it does
+   not write product code.
 
-A goal or a source-of-truth/gate **may never be marked verified/ready from words** —
-not the user's, not yours. It becomes verified **only** when a real probe script
-ran against reality and passed, with raw evidence captured. **No green probe ⇒ the
-gate is not closed ⇒ that phase may not be constructed.** ("没有准备好就不能施工.")
+## Fixed locations (all committed to the repo)
 
-A user's answer is a **lead to verify**, never the verification. If the user says
-"the database is there," the correct response is "let me prove it" → write a probe
-→ run it → trust the evidence.
+```
+SPEC.md                         # the spec — authoritative, at repo root
+.spec/STATE.md                  # progress ledger — rehydrate from this every run
+.spec/knowledge/<topic>.md      # persisted reconnaissance (deps, prior art, facts)
+.spec/probes/<gate>.sh          # executable probes (truth-finding)
+.spec/evidence/<gate>-<ts>.log  # captured probe output
+CLAUDE.md                       # points at SPEC.md as the supreme, read-first reference
+```
 
-## Sources of truth & gates (真实源/门)
+Reference material for this skill: `references/questioning.md` (how to ask),
+`references/probes.md` (how to probe), and the templates
+`references/SPEC.template.md`, `references/STATE.template.md`,
+`references/knowledge.template.md`.
 
-For each important concern, exactly **one** place is authoritative; everything else
-defers to it, and a probe proves it is real. Each gate carries:
+---
 
-- **concern**, **authoritative source**, **invariant** (never violate)
-- **probe**: the script at `.spec/probes/…` that proves it
-- **evidence**: raw output + where/when it ran
-- **status**: `unverified` · `verified` · `failed` · `deferred→Phase N`
+## The loop — one bounded chunk per invocation
 
-## Probes must be trustworthy (because you author them)
+Do a **small, safe-to-stop chunk** each run: persist, update `STATE.md`, then
+either continue or stop. Re-running `/spec` always resumes cleanly.
 
-"Non-AI judgement" only holds if the probe itself is dumb, explicit, and auditable.
-Every probe MUST (see `references/probes.md` for the full guide + examples):
+### Step 0 — Rehydrate (always first)
+Read `.spec/STATE.md` (if present), `SPEC.md`, and the `.spec/knowledge/` index.
+Reconstruct: current phase, current step, the core problem as understood so far,
+what's done, what's pending, the next action. **Tell the human where things
+stand** in one short status line, e.g.:
 
-- be a standalone script with `set -euo pipefail`; **exit 0 = pass, non-zero = fail**.
-- **print raw evidence** to stdout — the *actual* resolved path, version string,
-  `SELECT 1` result, `df` output — not just "PASS".
-- be **non-destructive, isolated, idempotent, and self-cleaning** (use a `trap` to
-  remove temp artifacts). Default to read-only or writes into a temp/scoped path.
-- include a **negative control** where feasible (prove the probe *can* go red).
-- **never contain or echo secrets**; read credentials from env vars; redact them.
-- record the environment (`uname -a`, hostname, date) at the top of its evidence.
+> Phase 2 · step: 侦察 · core problem: <…> · done: G1,G2 green; tokio chosen · pending: Q3, gate G4 unverified · next: probe G4.
 
-**Safety gate:** any action that is destructive, irreversible, touches production,
-deletes data, or writes to an external system MUST be confirmed with the user
-(AskUserQuestion) before running. When in doubt, probe a safe proxy or defer.
+If `.spec/` doesn't exist, initialize it (create `.spec/`, a fresh `STATE.md`
+from `references/STATE.template.md`, and a `SPEC.md` skeleton from
+`references/SPEC.template.md`), then proceed.
 
-**Honesty about scope:** a probe proves truth *on the machine it ran, at that
-time*. Record where it ran; do not claim a devbox result holds for production. If
-the real target is unreachable, say so and either probe a proxy or defer the gate.
+### Step 1 — Investigate (scout) — *before* asking
+- **Check the cache first.** Read `.spec/knowledge/` for what's already known;
+  **reuse anything fresh** and only explore gaps or stale entries (this is the
+  dedup that avoids re-exploring).
+- **Read what the human pointed at** (PRD, repo, docs, links).
+- **Search your own knowledge** (domain, common pitfalls, best practice).
+- **Search the web only when the answer depends on external/current facts**
+  (library versions, APIs, standards, prior art).
+- **Probe reality** where a truth can be checked (see Step 5 / `references/probes.md`).
+- **Bound it.** Investigate only what's needed to answer the current open question
+  or pin the current gate — **never read a whole repo into context**.
+- **Delegate heavy reads to a sub-agent** (e.g. Explore/general-purpose): the
+  sub-agent reads the repo/large docs and returns a **summary**; your main loop
+  only ingests the summary. This is the key to surviving a small context window.
+- **Read → compress → forget:** distill findings into `.spec/knowledge/<topic>.md`
+  (see `references/knowledge.template.md`) and discard the raw material from
+  working context. The cache *is* the compression.
 
-## Phased construction — when truth can't be probed yet
+**Dependency selection (standard flow):** for any external dependency — search
+the library **and its peers**, capture **stable + latest versions + alternatives**,
+give a **recommendation**, let the **human decide**, then **pin the version** and
+**persist the library's necessary knowledge/docs** to `.spec/knowledge/<lib>.md`.
+The decision (which lib, which pinned version) goes in `SPEC.md`; the detailed
+docs stay in the knowledge cache (referenced from `SPEC.md`).
 
-The hard gate ("no green probe ⇒ no build") would deadlock any project whose later
-truths depend on work that doesn't exist yet (Phase 2 calls an API Phase 1 will
-build). Phasing resolves this **without lowering the bar** — cut the work so each
-phase only needs truths that are probe-able *now*. Treat this as a first-class part
-of the spec, not an afterthought.
+### Step 2 — Present findings
+Show, concisely: the **suspected core problem**, the real constraints, candidate
+**sources of truth / gates**, risks, and the **open decisions** — as material for
+the human's decision. This is the scout reporting back.
 
-Principles:
+### Step 3 — Ask to find the CORE problem
+Use the questioning engine in `references/questioning.md`. In short:
+- **Meta-question first** — surface the real goal behind the request.
+- **Target the adjacent information gap** — ask where the human has context but a
+  key decision/fact is missing; not foreign territory, not what's already settled.
+- **Socratic toolbox** — clarify / probe assumptions / probe evidence / alternative
+  viewpoint (reframe) / probe consequences / meta; plus **counter-question and
+  follow-up** when an answer is vague or hides an assumption.
+- **Style (low burden):** I-type, informational phrasing ("maybe relevant?",
+  "want to consider…?") — never "you should"; every question carries enough
+  context to be answerable; **calibrate to the human's level** (beginner → give a
+  recommendation + example; expert → counterfactual); if they're in a hurry, offer
+  the **direct answer**. Ask a **small focused batch**, not a questionnaire; back
+  off when waved away.
 
-1. **Cut phases along the probe line.** Phase 1 = everything you can prove today.
-   Push anything not-yet-probe-able into a later phase. The boundary between two
-   phases is literally "what becomes probe-able after the earlier one ships."
-2. **Planning resolution decreases with distance.** The near phase is fully probed
-   and detailed; far phases stay deliberately coarse — goal + open questions + the
-   trigger that will make them plannable. **Detailing or "verifying" a far phase now
-   is fabrication and is forbidden.** An honest "TBD, unlocked by Phase 2" beats a
-   made-up requirement.
-3. **Phases chain by probes.** State each phase's **exit criterion as the probe(s)
-   that will go green** — and those are exactly the probes that unlock the next
-   phase's deferred gates. A phase is *done* only when its exit probes pass.
-4. **Every deferred gate carries a trigger + owner**, e.g.
-   `deferred→Phase 2 (trigger: Phase 1 ships the ingest API; re-probe
-   .spec/probes/G4.sh; owner: <who>)`. On each `/spec` run, re-attempt any deferred
-   gate whose trigger is now satisfied.
-5. **Tag decisions/requirements `[locked]` vs `[provisional→Phase N]`.** Locked =
-   backed by a green probe. Provisional = a best guess a future phase will confirm or
-   overturn. A later **red** probe may re-open an earlier provisional decision — this
-   is the feedback path; phasing is *not* "decide everything now."
-6. **Even pure research has a probe-able Phase 1.** Scope it to what's verifiable
-   today — can we access the data? run the experiment? reach the cluster? — and make
-   its deliverable a probe-able artifact/finding that unlocks the next phase. If you
-   genuinely can't probe anything, the first deliverable is "make one thing
-   probe-able."
+### Step 4 — Decide with the human
+Present **options + a recommendation + the evidence** behind it; the human
+decides. Record each decision (what, why-over-alternatives, date) in `SPEC.md`'s
+decision log.
 
-**Phase status lifecycle (ownership matters):** `/spec` sets **blocked → ready**
-purely from probe state; the *executor* (not `/spec`) sets **in-progress → done**;
-`/spec` confirms **done** by re-running the phase's exit probes on its next run.
+### Step 5 — Verify (probe) the chosen gates
+For each source-of-truth/gate, run a **real, executable probe** that gathers
+evidence (see `references/probes.md`). **Every probe must be able to go red**
+(negative control) — a probe that can't fail is vacuous and rejected; never
+"verify" with a tautology like running an always-green test suite. Capture raw
+evidence to `.spec/evidence/`. Probes are **evidence for the human's GO decision**,
+not a machine that blocks them. If a critical truth can't be verified, that's a
+red finding you report — the human decides to redesign, defer to a later phase, or
+proceed with eyes open.
 
-Not everything reduces to a script (e.g. "legal approved"). Record those as an
-**attestation** gate with a named source, and **mark them explicitly as weak
-(non-probed) evidence** — never fabricate a script for them.
-
-## Procedure (run this every time)
-
-### 1. Load state
-Read `SPEC.md`, `CLAUDE.md`, existing `.spec/probes/*`. Scan the project (README,
-manifests, structure, tests, config) to model "what this project currently is."
-Reflect it back briefly so the user can correct you early.
-
-### 2. Reconcile drift — and re-run probes
-Compare code/project reality vs `SPEC.md`. **Re-run existing probes** (cheap ones
-at least): a previously-green gate whose probe now fails, or whose evidence is stale
-(old timestamp / different machine), drops back to `unverified`/`failed`. List every
-discrepancy as an item for step 4.
-
-### 3. Ingest the user's input
-Fold any argument/free-form content (new requirement, correction, pasted doc, change
-of direction) into the open items.
-
-### 4. Brainstorm + probe to closure (the core loop)
-For each concern/gate/open item:
-1. **Discuss** the real constraints (scale, load, durability, ops). Don't accept a
-   vague answer — dig until the choice is concrete and probe-able.
-2. **Recommend options** via AskUserQuestion (concrete choices, recommended first),
-   e.g. "SQLite vs Postgres vs Docker-Postgres" with the trade-offs.
-3. On a concrete answer, **author a probe**, save it to `.spec/probes/…`, **run
-   it**, and capture evidence to `.spec/evidence/…`.
-   - *Example (storage = SQLite at `./data`):* probe creates a temp DB at the
-     resolved path, makes a table, inserts+reads a row, reports the absolute path,
-     writability and free space, then deletes the temp DB.
-   - *Example (Docker):* `docker info` exits 0 → then check the specific DB
-     image/service is actually present.
-   - *Example (remote Postgres):* connect with env creds and run `SELECT 1`.
-4. **Green** → record raw evidence + set `verified`.
-   **Red** → do NOT accept the answer. Show the raw failure and loop: pick another
-   option / fix the environment / defer the gate to a later phase. Never set
-   `verified` from words.
-5. **Not probe-able now** (depends on unbuilt work) → `deferred→Phase N`; make sure
-   the *current* phase doesn't depend on it.
-- **Closure gate (闭环):** keep looping until, **per phase**, every gate is
-  `verified` (or explicitly `deferred` to a later phase) and no blocking open
-  question remains. Be honest about what's still open.
-
-### 5. Record explicit decisions
-For each resolved item, append to the Decision Log: the decision, the rationale
-(why this over alternatives — cite the probe evidence), and the date. Append; note
-reversals explicitly.
-
-### 6. Write the complete `SPEC.md`
-Overwrite `SPEC.md` in full using `references/SPEC.template.md`. Each gate row shows
-its probe path, last-run (when/where), evidence summary, and status. Fill the Phases
-section with per-phase gates and readiness. Bump version + timestamp.
-
-### 7. Wire up `CLAUDE.md`
-Ensure `CLAUDE.md` has the managed authority block (create if missing); replace only
-between the markers:
+### Step 6 — Persist everything
+Update, as a whole: `SPEC.md` (vision, scope, **sources of truth & gates** with
+probe evidence, requirements, **phases ledger**, decisions, open questions),
+`.spec/knowledge/`, `.spec/probes` + `.spec/evidence`, and **`.spec/STATE.md`**
+(current step, done, pending, next_action). Ensure `CLAUDE.md` has the managed
+authority block (create if missing; replace only between the markers) so all
+later work reads `SPEC.md` first:
 
 ```markdown
 <!-- BEGIN SPEC-AUTHORITY (managed by /spec) -->
 ## Specification authority
 `SPEC.md` is the authoritative specification for this project and the
 **highest-priority** reference. Before planning or implementing anything, read
-`SPEC.md` and conform to it — especially its "Sources of Truth & Gates" section. A
-phase may not be built until its gates are probe-verified (green) in `SPEC.md`. If
-reality and `SPEC.md` disagree, treat `SPEC.md` as intent and run `/spec` to
-reconcile. Do not silently contradict it.
+`SPEC.md` and conform to it — especially its "Sources of Truth & Gates". Consult
+`.spec/knowledge/` for pinned dependency/research facts. A phase may not be built
+until its gates are verified (green) in `SPEC.md`. If reality and `SPEC.md`
+disagree, run `/spec` to reconcile. Do not silently contradict it.
 <!-- END SPEC-AUTHORITY -->
 ```
 
-### 8. Report
-Summarize what changed, decisions recorded, **probe results (green/red) with the key
-evidence**, and what was deferred and why. End with per-phase closure status, e.g.
-"Phase 1: ✅ construction-ready (3/3 gates green) · Phase 2: ⏳ 2 gates deferred."
+### Step 7 — Closure & phases (emergent)
+**Closure = every decision in scope confirmed ∧ every gate has passing probe
+evidence (or an explicit, recorded deferral) ∧ no blocking open question remains.**
+On closure, **seal the current phase** (mark it done in `SPEC.md` and `STATE.md`)
+— *the spec is established to that point.* Phases are **not pre-planned**: each
+closure *is* a phase. Later, when the human brings an idea the current spec can't
+satisfy, open the next phase and drive it to closure. **Sealed phases are
+read-only**; disagreeing with a sealed conclusion doesn't edit it — it opens a new
+phase that explicitly cites `supersedes 阶段K 的第X条`.
+
+Report status (current step / done / pending / next) on closure or whenever you
+stop.
+
+---
+
+## The spec line (what altitude enters the spec)
+
+Every concern may enter `SPEC.md` — but **only at intent/contract/gate altitude,
+never as implementation detail**:
+
+| Enters the spec (high altitude) | Stays out — execution owns it (below the line) |
+|---|---|
+| Observable behavior / capabilities + acceptance | Code structure, module/file/class layout, algorithms |
+| Contracts/interfaces (API, data formats, CLI) | UI visual design (pixels, colors) |
+| Sources of truth & gates + invariants | Language/library choice *unless declared a gate* |
+| NFRs as measurable thresholds (perf/scale/security) | Refactors |
+| Explicitly declared constraints (e.g. "must be Python") | Implementation tweaks |
+
+When the human proposes a spec item that's below the line, say so and leave it to
+execution (and CI probes) — don't bloat the spec into a code duplicate. The human
+draws the line by declaring what's a gate; you recommend where it sits and warn
+when an item is "too fine (will churn)" or "too vague (can't verify)".
+
+## Context-budget discipline (so it runs in a small window)
+
+- Bounded, goal-directed reconnaissance — never "read everything".
+- Read → compress into `.spec/knowledge/` → forget the raw.
+- Delegate heavy reads (repo/web) to sub-agents that return summaries only.
+- One small chunk per invocation; persist; stop safely; resume via `STATE.md`.
 
 ## Guardrails
 
-- **Words are never evidence.** Verified status requires a passing probe, full stop.
-- **Red or unverified ⇒ no construction** for that phase. Change the plan, fix the
-  environment, or defer — don't lower the bar.
-- **One document, always whole.** `SPEC.md` is the single source.
-- **One authority per concern.** No two places may claim the same truth.
-- **Probes are safe by default.** Non-destructive, self-cleaning; confirm anything
-  risky; never persist secrets.
-- **Don't implement the product.** `/spec` only specifies and verifies readiness.
-- **Idempotent.** No new input + no drift + probes still green ⇒ only the timestamp
-  changes.
-- **Honesty over completeness theater.** Unknowns go to Open Questions or a phased
-  deferral, never invented into a "verified" gate.
+- **Simplicity is a feature.** Human only brainstorms + decides; machinery stays
+  hidden. No red dots, no debt framing, no questionnaires.
+- **Words are never evidence** — a gate is verified only by a passing probe; never
+  fabricate; probes must be able to go red.
+- **One authority per concern** — no two places claim the same truth.
+- **Idempotent & resumable** — every run rehydrates from `STATE.md`; with no new
+  input and no drift, a re-run changes nothing but the timestamp.
+- **Honesty over completeness theater** — unknowns go to Open Questions; per-probe
+  vacuity is fixable but total coverage is not provable, so `SPEC.md` is a *lower
+  bound on verified truth*, not a correctness proof. Say so.
+- **Gate 1 only** — produce the spec; don't implement, and don't do skill
+  extraction (that's Gate 2 / built-in skill-builder).
+- **Prompting** — expert role, clear/explicit, state the *why*, examples; no
+  assistant prefill (it 400s on current models).

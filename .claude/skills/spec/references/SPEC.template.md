@@ -1,111 +1,68 @@
 <!--
 Fixed structure for SPEC.md (repo root). /spec rewrites this file as a whole.
-Keep every section. Requirements are numbered and verifiable. Gates are
-probe-verified: a gate is only "verified" when its probe script ran and passed,
-with raw evidence. A phase is construction-ready only when all its gates are green.
+Keep every section (write "None yet" if empty). Stay at contract-surface altitude
+(behavior, contracts, sources-of-truth/gates, NFRs, declared constraints) — never
+implementation detail. Phases are a ledger: emergent, append-only, sealed phases
+are read-only.
 -->
 
 # <Project Name> — Specification
 
-> **Version:** v<N>  ·  **Last updated:** <YYYY-MM-DD>
-> **Closure:** <Phase 1: ✅ ready (3/3 gates) · Phase 2: ⏳ 2 gates deferred>
+> **Version:** v<N> · **Updated:** <YYYY-MM-DD>
+> **Closure:** <Phase 1 ✅ sealed (gates green) · Phase 2 ⏳ open>
 >
-> Authoritative specification and highest-priority reference. Maintained by `/spec`.
-> Gates below are verified by real probe scripts (`.spec/probes/`), not assertions.
+> Authoritative, highest-priority reference. Maintained by `/spec`. Gates are
+> verified by probes in `.spec/`; pinned dependency/research facts live in
+> `.spec/knowledge/`. A lower bound on verified truth, not a correctness proof.
 
 ## 1. Vision & Problem
-
-<Why this project exists, for whom, and what success looks like. 1–3 paragraphs.>
+<The core problem (not surface symptoms), for whom, what success looks like.>
 
 ## 2. Scope
-
-**In scope**
-- <what this project will do>
-
-**Out of scope (explicitly not doing)**
-- <deliberate exclusions>
+**In scope** — <what this project will do>
+**Out of scope (explicitly not doing)** — <deliberate exclusions>
 
 ## 3. Sources of Truth & Gates
+One authority per concern; each proven by a probe. Status ∈ {unverified, ✅ verified, ❌ failed, ⤳ deferred→Phase N}.
 
-One authority per concern; each proven by a probe. Status ∈
-{unverified, ✅ verified, ❌ failed, ⤳ deferred→Phase N}.
+| Gate | Concern | Authoritative source | Invariant | Probe | Last run (when/where) | Status |
+|------|---------|----------------------|-----------|-------|-----------------------|--------|
+| G1 | <e.g. storage> | <`./data` / SQLite 3.45> | <writes only via this path> | `.spec/probes/G1.sh` | <2026-06-29 / devbox> | ✅ verified |
 
-| Gate | Concern | Authoritative source | Invariant | Probe | Last run (when / where) | Status |
-|------|---------|----------------------|-----------|-------|-------------------------|--------|
-| G1 | <e.g. storage> | <`./data/app.db`> | <writes only via this path> | `.spec/probes/G1_storage.sh` | <2026-06-29 / devbox> | ✅ verified |
-
-### Gate detail
-
-#### G1 — <short title>
-- **Concern:** <…>   **Authoritative source:** <…>   **Invariant:** <…>
-- **Probe:** `.spec/probes/G1_storage.sh`
-- **Evidence (raw, from `.spec/evidence/…`):**
-  ```
-  resolved path: /abs/.../data/app.db
-  write+read: OK (1 row round-tripped)
-  free space: 12G
-  ```
-- **Status:** ✅ verified — ran 2026-06-29T09:00 on devbox (`uname`: Linux …)
-- **Phase:** Phase 1
-
-<!-- Attestation gates (cannot be scripted, e.g. "legal approved"): mark clearly. -->
-<!-- #### G9 — Legal sign-off   **Type:** attestation (WEAK, non-probed)
-     **Source:** <name/email + date>   **Status:** attested (not probe-verified) -->
+### Gate detail (one block per gate)
+#### G1 — <title>
+- **Source / Invariant:** <…>  · **Probe:** `.spec/probes/G1.sh`
+- **Evidence (raw):** `resolved /abs/data · free 12G · write+read OK`
+- **Status:** ✅ verified — 2026-06-29, devbox
+- (Attestation gates that can't be scripted — e.g. "legal approved" — mark **WEAK (non-probed)** with a named source.)
 
 ## 4. Requirements
+Numbered, verifiable. Use SHALL/MUST. Tag `[locked]` (probe-backed) or `[provisional→Phase N]`.
+- **R1.** `[locked]` The system SHALL <…>. *Acceptance:* <observable check / probe>
+- **R2.** `[provisional→Phase 2]` The system SHALL <…>. *Unlocked by:* <trigger>
 
-Numbered, verifiable. Use SHALL/MUST. Tag each `[locked]` (backed by a green probe)
-or `[provisional→Phase N]` (a future phase will confirm or overturn it).
+## 5. Dependencies (chosen tech)
+Decisions only; details/pinned docs in `.spec/knowledge/<lib>.md`.
 
-- **R1.** `[locked]` The system SHALL <…>.  *Acceptance:* <observable check / Given–When–Then>
-- **R2.** `[provisional→Phase 2]` The system SHALL <…>.  *Unlocked by:* <trigger>
+| Concern | Chosen (pinned) | Considered | Why | Knowledge |
+|---------|-----------------|------------|-----|-----------|
+| <async runtime> | <tokio 1.40> | <async-std 1.13> | <maintenance, ecosystem> | `.spec/knowledge/rust-async.md` |
 
-## 5. Phases
+## 6. Phases (ledger — emergent from closure)
+A phase is **sealed** when all its decisions are confirmed and its gates are
+green (or explicitly deferred) with no blocking open question. Sealed = read-only.
 
-Execution plan, **cut along the probe line**. The near phase is detailed; far phases
-stay coarse (goal + trigger) until unlocked — do not over-detail them, that's
-fabrication. A phase may be **built** only when its entry gates are ✅; it is **done**
-only when its exit probes are ✅.
+### Phase 1 — <name> · status: <open|sealed YYYY-MM-DD>
+- **Goal:** <what this closure establishes>
+- **Gates:** G1, G2  · **Key decisions:** <…>
+- **Supersedes:** <none | "阶段K 的第X条 — 因 …">
 
-Dependency flow:  `Phase 1 ──unlocks──▶ Phase 2 ──unlocks──▶ Phase 3`
-
-### Phase 1 — <name>   ·   status: <blocked|ready|in-progress|done>   ·   resolution: detailed
-- **Depends on:** — (none)
-- **Goal:** <what this phase delivers>
-- **Entry gates (must be ✅ to start):** G1, G2
-- **Exit = probes that go green:** <e.g. `.spec/probes/G4.sh` becomes runnable and passes>
-- **Unlocks:** Phase 2 gates (G4, G5)
-- **Owner:** <who builds it>
-
-### Phase 2 — <name>   ·   status: blocked   ·   resolution: coarse (unlocked by Phase 1)
-- **Depends on:** Phase 1 (its API / output)
-- **Goal:** <coarse goal — do NOT over-detail until unlocked>
-- **Deferred gates:** G4 ⤳ deferred→Phase 2 (trigger: Phase 1 ships API; re-probe `.spec/probes/G4.sh`; owner: <who>)
-- **Open questions to resolve when unlocked:** Q3, Q4
-
-## 6. Architecture & Key Decisions
-
-<Components, boundaries, data flow. Diagrams welcome. Explain the "why".>
-
-### Decision Log
-Append-only; record reversals explicitly.
-
-| Date | Decision | Rationale (why this over alternatives; cite probe evidence) |
-|------|----------|-------------------------------------------------------------|
-| <YYYY-MM-DD> | <chose SQLite over Postgres> | <single-node scale; G1 probe: write OK, 12G free> |
-
-## 7. Open Questions
-
-Closure gate. Each item is being driven to a decision or explicitly deferred. The
-spec is "Closed" for a phase only when that phase's gates are green and no blocking
-question remains.
-
-| # | Question | Status (open / deferred) | Owner / trigger | Notes |
-|---|----------|--------------------------|-----------------|-------|
-| Q1 | <question> | open | <who/when resolves it> | <context> |
+## 7. Open Questions (the closure gate)
+| # | Question | Status (open/deferred) | Owner/trigger | Notes |
+|---|----------|------------------------|---------------|-------|
+| Q1 | <…> | open | <who/when> | <context> |
 
 ## 8. Glossary
-
 | Term | Meaning |
 |------|---------|
 | <term> | <definition> |

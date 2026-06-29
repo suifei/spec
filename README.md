@@ -1,96 +1,90 @@
 # /spec
 
 A single, repeatable Claude Code command that turns conversation into one
-authoritative specification — and **proves every critical assumption with a real
-script before it lets you build.**
+authoritative, *feasible* specification — with the AI working as your
+**reconnaissance scout**.
 
-Think of it like `/init`, but for a construction-grade living spec. You run
-`/spec`, it brainstorms with you until **every open question is closed** and
-**every source of truth is pinned**, then it **writes an executable probe for each
-gate and actually runs it** to confirm the truth is real (not assumed). It records
-the decisions and writes the complete spec to a fixed file — **`SPEC.md`** at the
-repo root — and points `CLAUDE.md` at it as the highest-priority reference. Run it
-again any time: it reconciles `SPEC.md` with reality, re-runs the probes, folds in
-new input, and rewrites the latest spec.
+Think of it like `/init`, but for the living spec. You run `/spec`; it
+**investigates first** (reads what you point at, checks its own knowledge cache,
+searches the web when the answer depends on external facts, and probes reality for
+evidence), then **brainstorms with you** to find the *core problem* and drive every
+decision to closure, and writes the result to a fixed file: **`SPEC.md`**. Run it
+again any time — it **resumes** from where it left off.
 
-Everything else is decoupled: downstream work just reads `CLAUDE.md` → `SPEC.md`.
+It is **Gate 1** of an AI-assisted development process. (Gate 2 — extracting a
+reusable skill from the finished project — is Claude Code's built-in
+skill-builder, and is out of scope here.)
 
-## The core idea: 摸排探真 (probe for truth)
+**The deal:** you only **brainstorm and decide**. The AI does the heavy lifting —
+scouting, probing, drafting, persisting. `/spec` is collaboration, not paperwork:
+no forms, no burden.
 
-A goal or gate is **never** marked verified from words — not yours, not the AI's. It
-is verified **only** when a probe script ran against the real environment and
-passed, with raw evidence captured. **No green probe ⇒ the gate isn't closed ⇒ that
-phase isn't built.** ("没有准备好就不能施工.")
-
-> Example: the project needs a database. `/spec` discusses scale with you, recommends
-> options, you pick SQLite at `./data` — then it writes a probe that *actually*
-> creates a DB there, round-trips a row, and reports the resolved path and free
-> space. If you'd picked Docker, it runs `docker info` and checks the real service.
-> A vague or made-up answer can't pass, because the script has to.
-
-When a truth genuinely can't be probed yet (it depends on work that doesn't exist),
-`/spec` doesn't fake it — it **phases** the work: each gate belongs to a phase, and
-a phase is construction-ready only when all its gates are green. Research/spike
-phases exit by "producing something that can now be probed."
-
-## What it does
+## How it works
 
 ```
-/spec ──▶ load SPEC.md + scan project ──▶ reconcile drift, RE-RUN probes
-      ──▶ fold in your input ──▶ brainstorm + PROBE each gate to green (闭环)
-      ──▶ record decisions ──▶ rewrite SPEC.md ──▶ point CLAUDE.md at it
+/spec ─▶ rehydrate (.spec/STATE.md)         # know exactly where it left off
+      ─▶ SCOUT FIRST: cache → your material → own knowledge → web (if needed) → probe
+      ─▶ present findings (core problem, constraints, candidate gates, risks)
+      ─▶ ask only what needs you (aim at the core problem; low-burden, calibrated)
+      ─▶ you decide (options + recommendation + evidence)
+      ─▶ verify gates with real probes (must be able to go red)
+      ─▶ persist everything + update CLAUDE.md ─▶ closure seals a phase
 ```
 
-- **Closure gate:** won't finish while a blocking question is open or a gate is red.
-- **Probe-verified gates:** every concern ends with one named authority + a passing
-  probe script + raw evidence (where/when it ran).
-- **Phased construction:** a phase can't be built until its gates are green.
-- **Safe probes:** non-destructive, self-cleaning; anything risky needs your OK; no
-  secrets are persisted.
-- **Idempotent:** no new input + no drift + probes still green ⇒ only the timestamp
-  changes.
-- **Decoupled from execution:** `/spec` only specifies and verifies readiness — it
-  never writes the product code.
+### Principles
+
+- **Scout before asking.** It never asks you what it could find out itself.
+- **Evidence, not bureaucracy.** Truth-finding (probing, never fabricating) is the
+  AI's discipline; the GO/no-go is yours.
+- **The filesystem is memory.** State lives on disk, not in the context window —
+  so it runs reliably in a small window and **resumes** across resets/compaction.
+- **Reconnaissance is persisted** (`.spec/knowledge/`) so it isn't re-explored;
+  e.g. for a dependency it captures stable + latest + alternatives, you pick, and
+  it pins the version and saves the docs.
+- **The spec line.** The spec governs the *contract surface* (behavior, contracts,
+  sources of truth & gates, NFRs, declared constraints) — never implementation
+  detail. Code stays free below the line.
+- **Phases emerge from closure**, they aren't pre-planned; sealed phases are
+  read-only (corrections open a new, superseding phase).
+- **Honest limit.** `SPEC.md` is a *lower bound on verified truth*, not a
+  correctness proof.
 
 ## Usage
 
 ```
-/spec                                  # create or reconcile the spec, run probes
-/spec needs a postgres + redis         # fold a requirement in; /spec will probe both
-/spec <paste a doc / a change / notes> # absorb arbitrary input, then converge
+/spec                                  # create, or resume where it left off
+/spec add multi-tenant support         # fold in an idea, then converge
+/spec read ./legacy-service and spec the rewrite   # point it at material to scout
 ```
 
-`SPEC.md` and `.spec/` are generated on first run, so they aren't in the repo yet.
+`SPEC.md` and `.spec/` are generated on first run.
 
-## The SPEC.md structure (fixed)
-
-```
-SPEC.md
-├─ 0. Meta             version · last updated · per-phase closure status
-├─ 1. Vision & Problem
-├─ 2. Scope            In / Out
-├─ 3. Sources of Truth & Gates   ← each gate: authority + probe + evidence + status
-├─ 4. Requirements     numbered, verifiable
-├─ 5. Phases           gated by probes; a phase builds only when its gates are green
-├─ 6. Architecture & Key Decisions   (+ append-only decision log)
-├─ 7. Open Questions   ← the closure gate
-└─ 8. Glossary
-```
-
-## Layout
+## Files
 
 ```
 .claude/
 ├── skills/spec/
-│   ├── SKILL.md                       # the /spec procedure & guardrails
+│   ├── SKILL.md                       # the /spec procedure (scout → ask → decide → probe → persist → resume)
 │   └── references/
-│       ├── SPEC.template.md            # fixed structure of SPEC.md
-│       └── probes.md                   # how to write trustworthy probes + library
-└── commands/spec.md                   # /spec slash-command wrapper
-CLAUDE.md                              # declares SPEC.md as the supreme reference
+│       ├── questioning.md              # how to ask (Socratic, info-gap, low-burden, calibrated)
+│       ├── probes.md                   # how to probe (evidence + mandatory negative control)
+│       ├── SPEC.template.md            # structure of SPEC.md
+│       ├── STATE.template.md           # the .spec/STATE.md progress ledger
+│       └── knowledge.template.md       # a .spec/knowledge/ reconnaissance entry
+├── commands/spec.md                   # /spec slash-command wrapper
+CLAUDE.md                              # declares SPEC.md the supreme, read-first reference
+docs/DESIGN-NOTES.md                   # full design rationale: 9 discussion rounds + decision log
 
 # generated at runtime by /spec:
 SPEC.md                                # the spec
-.spec/probes/<gate>_<slug>.sh          # executable probe per gate
-.spec/evidence/<gate>-<timestamp>.log  # captured raw probe output
+.spec/STATE.md                         # progress ledger (resumability)
+.spec/knowledge/<topic>.md             # persisted reconnaissance (pinned deps/facts)
+.spec/probes/<gate>.sh                 # executable probes
+.spec/evidence/<gate>-<ts>.log         # captured probe output
 ```
+
+## Design rationale
+
+`docs/DESIGN-NOTES.md` records the whole design conversation — nine rounds from
+"port OpenSpec" to this scout-based, resumable, single-command Gate 1 — plus a
+consolidated decision log.

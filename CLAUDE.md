@@ -14,16 +14,27 @@ reconcile. Do not silently contradict it.
 
 ## About this repository
 
-This repo provides the **`/spec`** command: a single, repeatable command that
-brainstorms with you to closure and maintains one authoritative specification
-document (`SPEC.md`). Crucially, it does not take answers on faith — every source
-of truth / gate is proven by a real, executable **probe** (`.spec/probes/`), and a
-phase cannot be marked construction-ready until its probes pass (green). It is
-implemented as a Claude Code skill in `.claude/skills/spec/` with a slash-command
-wrapper in `.claude/commands/spec.md`.
+This repo provides the **`/spec`** command — **Gate 1** of an AI-assisted
+development process. It is one repeatable command (like `/init`, but for the
+living spec) that acts as a **reconnaissance scout**: it investigates first
+(reads what you point at, checks its knowledge cache, searches the web when
+needed, probes reality), brainstorms with you to find the core problem and reach
+closure, and maintains one authoritative, *feasible* `SPEC.md`. It doesn't take
+answers on faith — sources of truth / gates are backed by real, runnable
+**probes** (`.spec/probes/`), and findings are persisted so they aren't
+re-explored (`.spec/knowledge/`). Progress is externalized to `.spec/STATE.md`,
+so `/spec` is **resumable** across context resets — the human only brainstorms
+and decides; the AI does the heavy lifting.
 
-Run `/spec` to create or update `SPEC.md`. Execution and any other skills are
-intentionally decoupled from `/spec`; they simply read this file and `SPEC.md`.
+Implemented as a Claude Code skill in `.claude/skills/spec/` with a slash-command
+wrapper in `.claude/commands/spec.md`. The full design rationale (9 discussion
+rounds + a consolidated decision log) is in `docs/DESIGN-NOTES.md`.
 
-> Note: `SPEC.md` does not exist until you run `/spec` for the first time. Until
-> then, the authority block above points at a document that `/spec` will generate.
+Run `/spec` to create, update, reconcile, or resume `SPEC.md`. Execution and Gate
+2 (skill extraction — Claude Code's built-in skill-builder) are intentionally
+decoupled; they just read this file and `SPEC.md` (and `.spec/knowledge/` for
+pinned facts).
+
+> Note: `SPEC.md` and `.spec/` do not exist until you run `/spec` for the first
+> time. Until then, the authority block above points at documents `/spec` will
+> generate.
