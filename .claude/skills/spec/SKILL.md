@@ -45,6 +45,29 @@ paperwork.
 6. **Don't implement.** `/spec` only specifies and verifies readiness — it does
    not write product code.
 
+## Time — every record carries real time, and you reason about it
+
+A time dimension runs through the whole flow so new can be told from old. Keep it
+minimal: **timestamps on everything + judgment**, not format gymnastics.
+
+- **Every persisted record is stamped with a real timestamp** — decisions, gate
+  evidence, knowledge entries, `STATE.md`, phase seals. If it's written, it has a
+  time. (This is the only hard rule.)
+- **Get the time from the OS, never from memory.** Run the platform's date command
+  in UTC; never type a timestamp you guessed:
+  - Unix / macOS / Linux / WSL / git-bash: `date -u +%Y-%m-%dT%H:%M:%SZ`
+  - Windows PowerShell: `(Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")`
+- **Understand time by judgment, not by a fixed threshold.** Compare a record's
+  timestamp to now and decide *contextually* whether it's likely still true: a
+  captured "latest version" ages fast; an architectural decision ages slowly; a
+  green probe is suspect if the thing it tested may have changed since. There is no
+  "N-day" rule — use the nature of the fact + elapsed time + whether the world
+  likely changed. Default is reuse; flag what looks stale for the human; re-verify
+  on request or when it blocks the current decision.
+- **Label recency when you present** — "as of 2026-06-29", "3 days ago",
+  "superseded 2026-07" — so the human sees new vs old at a glance.
+- Append-only: never rewrite a past timestamp; supersession is dated.
+
 ## Fixed locations (all committed to the repo)
 
 ```
@@ -75,6 +98,9 @@ what's done, what's pending, the next action. **Tell the human where things
 stand** in one short status line, e.g.:
 
 > Phase 2 · step: 侦察 · core problem: <…> · done: G1,G2 green; tokio chosen · pending: Q3, gate G4 unverified · next: probe G4.
+
+Also note each record's **age** (its timestamp vs the current OS time) and flag
+anything that looks stale — by judgment (see Time above) — for the human.
 
 If `.spec/` doesn't exist, initialize it (create `.spec/`, a fresh `STATE.md`
 from `references/STATE.template.md`, and a `SPEC.md` skeleton from
@@ -144,7 +170,8 @@ proceed with eyes open.
 Update, as a whole: `SPEC.md` (vision, scope, **sources of truth & gates** with
 probe evidence, requirements, **phases ledger**, decisions, open questions),
 `.spec/knowledge/`, `.spec/probes` + `.spec/evidence`, and **`.spec/STATE.md`**
-(current step, done, pending, next_action). Ensure `CLAUDE.md` has the managed
+(current step, done, pending, next_action). **Stamp every record you write with
+real OS time (see Time above) — never a guessed timestamp.** Ensure `CLAUDE.md` has the managed
 authority block (create if missing; replace only between the markers) so all
 later work reads `SPEC.md` first:
 

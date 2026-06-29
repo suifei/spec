@@ -45,9 +45,13 @@ suite is **vacuous** — it stays green even when the behavior is wrong. So:
    artifacts); confirm with the human before anything destructive, irreversible,
    production-touching, or secret-using.
 4. **Never contain or echo secrets** — read credentials from env vars; redact.
-5. **Record where/when it ran** (`date -u`, `hostname`, `uname`). A probe proves
-   truth *on that machine at that time* — don't claim a devbox result holds for
-   production; if the target is unreachable, probe a proxy or defer.
+5. **Record where/when it ran** with **real OS time in UTC** — never a guessed
+   timestamp. Use the platform's date command: `date -u` on Unix/macOS/Linux/WSL/
+   git-bash; `(Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")` in
+   Windows PowerShell. Also record `hostname`/`uname`. A probe proves truth *on
+   that machine at that time* — don't claim a devbox result holds for production;
+   if the target is unreachable, probe a proxy or defer. The evidence timestamp is
+   what later lets `/spec` judge whether this green is fresh or stale.
 6. Carry a **negative control** (above).
 
 ## Standard preamble

@@ -3,7 +3,9 @@
 writes this so the same exploration isn't repeated next time, and so downstream
 execution can read pinned facts without re-fetching from the web. Committed.
 Default is REUSE; refresh only on request or when the spec changes this item.
-Superseded entries are kept (set status: superseded), not deleted.
+Superseded entries are kept (set status: superseded), not deleted. `captured` is
+the real OS date (UTC) when this was fetched — never guessed; it tells the scout
+how old this finding is so it can judge (by context) whether to reuse or re-check.
 -->
 
 ---

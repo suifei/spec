@@ -3,7 +3,8 @@ Fixed structure for SPEC.md (repo root). /spec rewrites this file as a whole.
 Keep every section (write "None yet" if empty). Stay at contract-surface altitude
 (behavior, contracts, sources-of-truth/gates, NFRs, declared constraints) — never
 implementation detail. Phases are a ledger: emergent, append-only, sealed phases
-are read-only.
+are read-only. All dates/timestamps are real OS time in UTC (never guessed) — they
+let a reader tell new from old; judge staleness by context, not a fixed rule.
 -->
 
 # <Project Name> — Specification
