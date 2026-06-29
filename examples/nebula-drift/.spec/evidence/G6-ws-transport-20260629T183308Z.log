@@ -1,0 +1,9 @@
+== probe G6: ws transport round-trip on 8787 ==
+when: 2026-06-29T18:33:08Z
+where: vm / Linux 6.18.5 x86_64
+node: v22.22.2
+----
+handshake OK (101)
+round-trip OK: sent "ping" -> got "echo:ping"
+neg-control: dial to unused port 8788 refused (as expected)
+RESULT: ws transport round-trip works; server-authoritative echo verified
