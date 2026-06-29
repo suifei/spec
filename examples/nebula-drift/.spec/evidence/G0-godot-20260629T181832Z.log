@@ -1,0 +1,5 @@
+== probe G0: godot engine ==
+when: 2026-06-29T18:18:32Z
+where: vm
+----
+godot NOT found on PATH

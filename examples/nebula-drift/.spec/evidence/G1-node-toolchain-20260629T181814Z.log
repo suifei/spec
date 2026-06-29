@@ -1,0 +1,7 @@
+== probe G1: node toolchain ==
+when: 2026-06-29T18:18:14Z
+where: vm / Linux 6.18.5 x86_64
+----
+node: v22.22.2
+npm: 10.9.7
+RESULT: node toolchain present

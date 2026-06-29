@@ -59,6 +59,18 @@ no forms, no burden.
 
 `SPEC.md` and `.spec/` are generated on first run.
 
+## Example
+
+A complete, **probe-verified** `/spec` run is captured under
+[`examples/nebula-drift/`](examples/nebula-drift/) as the official example. It
+takes a real brief ("build a 2D space shooter") through two phases to closure:
+the scout **refutes** a human assumption (a native Godot build — gate G0 goes
+red), pivots to a browser build, then in Phase 2 makes a real netcode decision
+(server-authoritative over `ws`) backed by a dependency-free transport probe
+(G6). Run `./verify.sh` in that directory to re-run every probe plus 23
+assertions (`ALL PASS`, exit 0). The example's README also carries an objective
+value assessment of the artifacts as a project-initial-phase deliverable.
+
 ## Files
 
 ```

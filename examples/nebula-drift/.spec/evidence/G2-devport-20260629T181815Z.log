@@ -1,0 +1,7 @@
+== probe G2: port 5173 ==
+when: 2026-06-29T18:18:15Z
+where: vm
+----
+bind+listen OK on 0.0.0.0:5173
+neg-control: second bind refused (errno 98)
+RESULT: port 5173 bindable
