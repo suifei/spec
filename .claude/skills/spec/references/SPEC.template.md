@@ -54,27 +54,34 @@ One authority per concern; each proven by a probe. Status ∈
 
 ## 4. Requirements
 
-Numbered, verifiable. Use SHALL/MUST for binding requirements.
+Numbered, verifiable. Use SHALL/MUST. Tag each `[locked]` (backed by a green probe)
+or `[provisional→Phase N]` (a future phase will confirm or overturn it).
 
-- **R1.** The system SHALL <…>.  *Acceptance:* <observable check / Given–When–Then>
-- **R2.** …
+- **R1.** `[locked]` The system SHALL <…>.  *Acceptance:* <observable check / Given–When–Then>
+- **R2.** `[provisional→Phase 2]` The system SHALL <…>.  *Unlocked by:* <trigger>
 
 ## 5. Phases
 
-Execution plan, gated by probes. A phase may be constructed **only** when all its
-gates are ✅. Order encodes dependency.
+Execution plan, **cut along the probe line**. The near phase is detailed; far phases
+stay coarse (goal + trigger) until unlocked — do not over-detail them, that's
+fabrication. A phase may be **built** only when its entry gates are ✅; it is **done**
+only when its exit probes are ✅.
 
-### Phase 1 — <name>   ·   status: <ready | blocked | in-progress | done>
+Dependency flow:  `Phase 1 ──unlocks──▶ Phase 2 ──unlocks──▶ Phase 3`
+
+### Phase 1 — <name>   ·   status: <blocked|ready|in-progress|done>   ·   resolution: detailed
+- **Depends on:** — (none)
 - **Goal:** <what this phase delivers>
-- **Gates required green to start:** G1, G2
-- **Exit criteria / unlocks:** <what becomes true or newly probe-able afterward,
-  e.g. "produces the API that makes G4 probe-able">
-- **Construction may begin only when the listed gates are ✅.**
+- **Entry gates (must be ✅ to start):** G1, G2
+- **Exit = probes that go green:** <e.g. `.spec/probes/G4.sh` becomes runnable and passes>
+- **Unlocks:** Phase 2 gates (G4, G5)
+- **Owner:** <who builds it>
 
-### Phase 2 — <name> (depends on Phase 1)
-- **Goal:** <…>
-- **Gates:** G4 (⤳ deferred until Phase 1 ships the API), …
-- …
+### Phase 2 — <name>   ·   status: blocked   ·   resolution: coarse (unlocked by Phase 1)
+- **Depends on:** Phase 1 (its API / output)
+- **Goal:** <coarse goal — do NOT over-detail until unlocked>
+- **Deferred gates:** G4 ⤳ deferred→Phase 2 (trigger: Phase 1 ships API; re-probe `.spec/probes/G4.sh`; owner: <who>)
+- **Open questions to resolve when unlocked:** Q3, Q4
 
 ## 6. Architecture & Key Decisions
 

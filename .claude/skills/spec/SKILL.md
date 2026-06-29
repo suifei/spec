@@ -70,18 +70,44 @@ deletes data, or writes to an external system MUST be confirmed with the user
 time*. Record where it ran; do not claim a devbox result holds for production. If
 the real target is unreachable, say so and either probe a proxy or defer the gate.
 
-## Phases — the escape valve for "can't be probed yet"
+## Phased construction — when truth can't be probed yet
 
-Some truths can't be probed now because they depend on outputs that don't exist yet
-(Phase 2 calls an API that Phase 1 will build). Don't fake them — **phase them**:
+The hard gate ("no green probe ⇒ no build") would deadlock any project whose later
+truths depend on work that doesn't exist yet (Phase 2 calls an API Phase 1 will
+build). Phasing resolves this **without lowering the bar** — cut the work so each
+phase only needs truths that are probe-able *now*. Treat this as a first-class part
+of the spec, not an afterthought.
 
-- Every gate is assigned to a **phase**. A phase is **construction-ready ⟺ all of
-  its gates are `verified` with fresh evidence.**
-- A later phase's gates may become probe-able only after an earlier phase ships;
-  mark them `deferred→Phase N`.
-- **Research/spike work:** when something genuinely can't be made probe-able yet,
-  make the phase's *exit criterion* be "produce something that CAN be probed."
-  Converge the probe-able subset into early phases.
+Principles:
+
+1. **Cut phases along the probe line.** Phase 1 = everything you can prove today.
+   Push anything not-yet-probe-able into a later phase. The boundary between two
+   phases is literally "what becomes probe-able after the earlier one ships."
+2. **Planning resolution decreases with distance.** The near phase is fully probed
+   and detailed; far phases stay deliberately coarse — goal + open questions + the
+   trigger that will make them plannable. **Detailing or "verifying" a far phase now
+   is fabrication and is forbidden.** An honest "TBD, unlocked by Phase 2" beats a
+   made-up requirement.
+3. **Phases chain by probes.** State each phase's **exit criterion as the probe(s)
+   that will go green** — and those are exactly the probes that unlock the next
+   phase's deferred gates. A phase is *done* only when its exit probes pass.
+4. **Every deferred gate carries a trigger + owner**, e.g.
+   `deferred→Phase 2 (trigger: Phase 1 ships the ingest API; re-probe
+   .spec/probes/G4.sh; owner: <who>)`. On each `/spec` run, re-attempt any deferred
+   gate whose trigger is now satisfied.
+5. **Tag decisions/requirements `[locked]` vs `[provisional→Phase N]`.** Locked =
+   backed by a green probe. Provisional = a best guess a future phase will confirm or
+   overturn. A later **red** probe may re-open an earlier provisional decision — this
+   is the feedback path; phasing is *not* "decide everything now."
+6. **Even pure research has a probe-able Phase 1.** Scope it to what's verifiable
+   today — can we access the data? run the experiment? reach the cluster? — and make
+   its deliverable a probe-able artifact/finding that unlocks the next phase. If you
+   genuinely can't probe anything, the first deliverable is "make one thing
+   probe-able."
+
+**Phase status lifecycle (ownership matters):** `/spec` sets **blocked → ready**
+purely from probe state; the *executor* (not `/spec`) sets **in-progress → done**;
+`/spec` confirms **done** by re-running the phase's exit probes on its next run.
 
 Not everything reduces to a script (e.g. "legal approved"). Record those as an
 **attestation** gate with a named source, and **mark them explicitly as weak
