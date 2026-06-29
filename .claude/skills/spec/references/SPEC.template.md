@@ -1,21 +1,21 @@
 <!--
 Fixed structure for SPEC.md (repo root). /spec rewrites this file as a whole.
-Keep every section. If a section is genuinely empty, write "None yet" rather than
-deleting it. Requirements are numbered and verifiable. Scenario-style acceptance
-("Given/When/Then") is encouraged where it sharpens a requirement.
+Keep every section. Requirements are numbered and verifiable. Gates are
+probe-verified: a gate is only "verified" when its probe script ran and passed,
+with raw evidence. A phase is construction-ready only when all its gates are green.
 -->
 
 # <Project Name> — Specification
 
-> **Version:** v<N>  ·  **Last updated:** <YYYY-MM-DD>  ·  **Status:** <Draft | ✅ Closed | ⏳ Open questions remain>
+> **Version:** v<N>  ·  **Last updated:** <YYYY-MM-DD>
+> **Closure:** <Phase 1: ✅ ready (3/3 gates) · Phase 2: ⏳ 2 gates deferred>
 >
-> This is the authoritative specification for this project and the highest-priority
-> reference for any work. Generated and maintained by `/spec`.
+> Authoritative specification and highest-priority reference. Maintained by `/spec`.
+> Gates below are verified by real probe scripts (`.spec/probes/`), not assertions.
 
 ## 1. Vision & Problem
 
-<Why this project exists. The problem it solves, for whom, and what success looks
-like. 1–3 short paragraphs.>
+<Why this project exists, for whom, and what success looks like. 1–3 paragraphs.>
 
 ## 2. Scope
 
@@ -23,47 +23,81 @@ like. 1–3 short paragraphs.>
 - <what this project will do>
 
 **Out of scope (explicitly not doing)**
-- <boundaries — the things people might assume but that are deliberately excluded>
+- <deliberate exclusions>
 
 ## 3. Sources of Truth & Gates
 
-The single authority for each key concern. Nothing else may contradict these.
+One authority per concern; each proven by a probe. Status ∈
+{unverified, ✅ verified, ❌ failed, ⤳ deferred→Phase N}.
 
-| Concern | Authoritative source | Gate / contract | Invariant (never violate) |
-|---------|----------------------|-----------------|---------------------------|
-| <e.g. Data model> | <e.g. `db/schema.sql`> | <e.g. migrations only> | <e.g. no model edits outside migrations> |
+| Gate | Concern | Authoritative source | Invariant | Probe | Last run (when / where) | Status |
+|------|---------|----------------------|-----------|-------|-------------------------|--------|
+| G1 | <e.g. storage> | <`./data/app.db`> | <writes only via this path> | `.spec/probes/G1_storage.sh` | <2026-06-29 / devbox> | ✅ verified |
+
+### Gate detail
+
+#### G1 — <short title>
+- **Concern:** <…>   **Authoritative source:** <…>   **Invariant:** <…>
+- **Probe:** `.spec/probes/G1_storage.sh`
+- **Evidence (raw, from `.spec/evidence/…`):**
+  ```
+  resolved path: /abs/.../data/app.db
+  write+read: OK (1 row round-tripped)
+  free space: 12G
+  ```
+- **Status:** ✅ verified — ran 2026-06-29T09:00 on devbox (`uname`: Linux …)
+- **Phase:** Phase 1
+
+<!-- Attestation gates (cannot be scripted, e.g. "legal approved"): mark clearly. -->
+<!-- #### G9 — Legal sign-off   **Type:** attestation (WEAK, non-probed)
+     **Source:** <name/email + date>   **Status:** attested (not probe-verified) -->
 
 ## 4. Requirements
 
-Numbered, verifiable statements of what must be true. Use SHALL/MUST for binding
-requirements.
+Numbered, verifiable. Use SHALL/MUST for binding requirements.
 
-- **R1.** The system SHALL <…>.
-  - *Acceptance:* <observable check / Given–When–Then>
+- **R1.** The system SHALL <…>.  *Acceptance:* <observable check / Given–When–Then>
 - **R2.** …
 
-## 5. Architecture & Key Decisions
+## 5. Phases
 
-<High-level approach: components, boundaries, data flow. Diagrams welcome. Explain
-the "why", not line-by-line implementation.>
+Execution plan, gated by probes. A phase may be constructed **only** when all its
+gates are ✅. Order encodes dependency.
+
+### Phase 1 — <name>   ·   status: <ready | blocked | in-progress | done>
+- **Goal:** <what this phase delivers>
+- **Gates required green to start:** G1, G2
+- **Exit criteria / unlocks:** <what becomes true or newly probe-able afterward,
+  e.g. "produces the API that makes G4 probe-able">
+- **Construction may begin only when the listed gates are ✅.**
+
+### Phase 2 — <name> (depends on Phase 1)
+- **Goal:** <…>
+- **Gates:** G4 (⤳ deferred until Phase 1 ships the API), …
+- …
+
+## 6. Architecture & Key Decisions
+
+<Components, boundaries, data flow. Diagrams welcome. Explain the "why".>
 
 ### Decision Log
-Append-only. Record reversals explicitly rather than deleting.
+Append-only; record reversals explicitly.
 
-| Date | Decision | Rationale (why this over alternatives) |
-|------|----------|----------------------------------------|
-| <YYYY-MM-DD> | <what was decided> | <why; what was rejected> |
+| Date | Decision | Rationale (why this over alternatives; cite probe evidence) |
+|------|----------|-------------------------------------------------------------|
+| <YYYY-MM-DD> | <chose SQLite over Postgres> | <single-node scale; G1 probe: write OK, 12G free> |
 
-## 6. Open Questions
+## 7. Open Questions
 
-The closure gate. Each item is either being driven to a decision or explicitly
-deferred. **The spec is "Closed" only when this list has no blocking items.**
+Closure gate. Each item is being driven to a decision or explicitly deferred. The
+spec is "Closed" for a phase only when that phase's gates are green and no blocking
+question remains.
 
 | # | Question | Status (open / deferred) | Owner / trigger | Notes |
 |---|----------|--------------------------|-----------------|-------|
 | Q1 | <question> | open | <who/when resolves it> | <context> |
 
-## 7. Glossary
+## 8. Glossary
 
 | Term | Meaning |
 |------|---------|
