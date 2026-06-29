@@ -1,119 +1,69 @@
-# Spec-Builder
+# /spec
 
-**Spec-driven development (SDD) for Claude Code** — a lightweight, file-based
-workflow where specs are the source of truth. Before non-trivial work you write a
-**change** (a proposal + spec deltas + design + tasks), implement against it, then
-merge the deltas into the living **specs** and archive the change.
+A single, repeatable Claude Code command that turns conversation into one
+authoritative specification.
 
-It runs entirely on the filesystem with Claude Code's built-in tools — **no
-external CLI or package required.**
+Think of it like `/init`, but for the living spec. You run `/spec`, it
+brainstorms with you until **every open question is closed** and **every source of
+truth is pinned down**, records the decisions, and writes the complete spec to a
+fixed file: **`SPEC.md`** at the repo root. Run it again any time — it reconciles
+`SPEC.md` with the project's actual progress, folds in whatever new requirement or
+change you bring, keeps clarifying to closure, and rewrites the latest spec.
 
-## The idea
+Everything else is decoupled: downstream work just reads `CLAUDE.md` → `SPEC.md`
+and treats `SPEC.md` as the highest-priority reference.
 
-```
-spec-builder/
-├── project.md            # project context & conventions
-├── specs/                # CURRENT truth — what is built today
-│   └── <capability>/spec.md
-└── changes/              # PROPOSED work
-    ├── <change-name>/
-    │   ├── proposal.md   # WHY + WHAT (the contract)
-    │   ├── design.md     # HOW (optional)
-    │   ├── tasks.md      # implementation checklist
-    │   └── specs/<capability>/spec.md   # delta (ADDED/MODIFIED/REMOVED/RENAMED)
-    └── archive/YYYY-MM-DD-<change-name>/
-```
-
-You never edit `specs/` directly during feature work — you propose a delta in a
-change, implement it, then merge + archive.
-
-## The lifecycle — 4 commands (+ optional verify)
+## What it does
 
 ```
-explore ──▶ propose ──▶ apply ──▶ [verify] ──▶ archive
+/spec ──▶ load SPEC.md + scan project ──▶ reconcile drift ──▶ fold in your input
+      ──▶ brainstorm to closure (闭环) ──▶ pin sources of truth (真实源/门)
+      ──▶ record decisions ──▶ rewrite SPEC.md ──▶ point CLAUDE.md at it
 ```
 
-| Command | Skill | What it does |
-|---------|-------|--------------|
-| `/spec:explore` | `spec-builder-explore` | Thinking partner; reads code, weighs options. **Never implements.** |
-| `/spec:propose` | `spec-builder-propose` | Scaffold workspace if needed, then create a change and its artifacts. **Resumable** — re-run to fill in missing artifacts. |
-| `/spec:apply` | `spec-builder-apply` | Implement the tasks; tick checkboxes as you go. |
-| `/spec:verify` | `spec-builder-verify` | *(Optional)* Check implementation vs artifacts before archiving. |
-| `/spec:archive` | `spec-builder-archive` | **Merge** the change's delta specs into the living specs, then move it to `archive/`. |
-
-`propose` absorbs workspace setup and step-by-step continuation; `archive` absorbs
-the spec merge. So the surface is just four commands plus an optional `verify`.
-
-The workflow is **fluid, not rigid**: update any artifact anytime, no hard phase
-gates.
+- **Closure gate (闭环):** it won't call the spec done while a blocking question is
+  unresolved. Items leave the list only when *decided* or *explicitly deferred*.
+- **Sources of truth & gates (真实源/门):** every key concern ends with a single
+  named authority — no two places silently claim the same truth.
+- **One document, always whole:** `SPEC.md` is the single source; it's rewritten in
+  full each run, never fragmented.
+- **Idempotent:** with no new input and no drift, a re-run changes nothing but the
+  timestamp.
+- **Decoupled from execution:** `/spec` only specifies. It doesn't write code.
 
 ## Usage
 
-In Claude Code, either:
-
-- **Type a slash command**: `/spec:propose add user authentication`
-- **Just describe intent**: "let's plan a change to add CSV export" — the matching
-  `spec-builder-*` skill triggers automatically from its description.
-
-Start with `/spec:propose` (it scaffolds `spec-builder/` on first run), or
-`/spec:explore` to think first.
-
-### Deterministic status & lint (no dependencies)
-
-```bash
-# status of all changes (artifact statuses, applyReady, isComplete, N/M tasks)
-python3 .claude/skills/spec-builder/references/scripts/spec_status.py
-python3 .claude/skills/spec-builder/references/scripts/spec_status.py --change <name> --json
-
-# validate the strict spec format (fails non-zero on errors)
-python3 .claude/skills/spec-builder/references/scripts/spec_lint.py
+```
+/spec                                  # create or reconcile the spec
+/spec add multi-tenant support         # fold a new requirement in, then converge
+/spec <paste a doc / a change / notes> # absorb arbitrary input, then converge
 ```
 
-## Spec format (strict — fails silently if wrong)
+`SPEC.md` is generated on first run, so it isn't in the repo yet.
 
-```markdown
-### Requirement: User can export data
-The system SHALL allow users to export their data in CSV format.
+## The SPEC.md structure (fixed)
 
-#### Scenario: Successful export
-- **WHEN** user clicks "Export"
-- **THEN** the system downloads a CSV file with all user data
+```
+SPEC.md
+├─ 0. Meta            version · last updated · status
+├─ 1. Vision & Problem
+├─ 2. Scope           In / Out (what it deliberately won't do)
+├─ 3. Sources of Truth & Gates   ← the 真实源/门: one authority per concern
+├─ 4. Requirements    numbered, verifiable
+├─ 5. Architecture & Key Decisions   (+ append-only decision log)
+├─ 6. Open Questions  ← the closure gate: empty/deferred ⇒ "Closed"
+└─ 7. Glossary
 ```
 
-- `### Requirement:` (3 hashes), `#### Scenario:` (**exactly 4 hashes**).
-- Every requirement needs **≥ 1 scenario**. Use **SHALL/MUST**.
-- In a change, specs are **deltas** under `## ADDED/MODIFIED/REMOVED/RENAMED
-  Requirements`. The archive merge applies them to the living specs, preserving
-  content a `MODIFIED` delta doesn't mention.
-
-See `.claude/skills/spec-builder/references/conventions.md` for the complete rules.
-
-## Worked example
-
-[`examples/slugify/`](examples/slugify/) is the end-state of two full lifecycle
-runs on a tiny library — including a **partial `MODIFIED`** delta merged into an
-existing spec (the original scenarios are preserved, the new one folded in). It
-ships with working code, tests, and the archived changes; run the status/lint
-scripts and the tests against it to see the workflow's output.
+See `.claude/skills/spec/references/SPEC.template.md` for the full template.
 
 ## Layout
 
 ```
 .claude/
-├── skills/
-│   ├── spec-builder/                 # umbrella: methodology, setup, router
-│   │   ├── SKILL.md
-│   │   └── references/
-│   │       ├── conventions.md        # layout, spec/delta format, merge rules
-│   │       ├── spec-driven-schema.md # artifact graph + per-artifact instructions
-│   │       ├── templates/            # proposal, design, tasks, delta-spec, spec
-│   │       └── scripts/              # spec_status.py, spec_lint.py (no deps)
-│   ├── spec-builder-explore/SKILL.md
-│   ├── spec-builder-propose/SKILL.md
-│   ├── spec-builder-apply/SKILL.md
-│   ├── spec-builder-verify/SKILL.md
-│   └── spec-builder-archive/SKILL.md
-├── commands/spec/                    # /spec:* slash-command wrappers
-│   ├── explore.md  propose.md  apply.md  verify.md  archive.md
-└── examples/slugify/                 # worked end-to-end example
+├── skills/spec/
+│   ├── SKILL.md                       # the /spec procedure & guardrails
+│   └── references/SPEC.template.md     # fixed structure of SPEC.md
+└── commands/spec.md                   # /spec slash-command wrapper
+CLAUDE.md                              # declares SPEC.md as the supreme reference
 ```
