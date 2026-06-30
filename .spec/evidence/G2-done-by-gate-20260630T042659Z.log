@@ -1,0 +1,9 @@
+== probe G2: build 'done' is gated by re-running the spec's gates ==
+when: 2026-06-30T04:26:59Z
+where: vm / Linux 6.18.5 x86_64
+node: v22.22.2
+----
+gated done-check: broken impl (gate red) -> NOT done  ✓
+gated done-check: fixed impl (gate green) -> done  ✓
+neg-control: UNGATED done-check passes the broken impl -> would ship drift (probe can go red)
+RESULT: construction "done" must re-run the spec gates; a red gate blocks done
