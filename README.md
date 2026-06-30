@@ -73,10 +73,24 @@ no burden.
 
 `SPEC.md` and `.spec/` are generated on first run.
 
-## Example
+## Examples
+
+> **`examples/self-evolving-agent/`** — produced by an **actual `/spec` skill
+> invocation** (the skill drove the run): real research of the authoritative
+> literature, a real probe, and the **forks decided by the human in the loop**. It
+> establishes the subject first (a "self-evolving agent" is an *objective-gated
+> propose→evaluate→select→archive loop*, not "an LLM that edits itself"), verifies
+> the one behavioral invariant with a probe (an objective gate rejects regressions),
+> and — when the human picked the riskier auto-promote option — **honestly hardened
+> it** (mandatory held-out eval + rollback + kill-switch) instead of rubber-stamping.
+> `./verify.sh` → 26 assertions, `ALL PASS`.
+>
+> **`examples/web-claude-code/`** (below) was **hand-authored to model** the skill's
+> output — its probes and research are real, but it was not produced by invoking the
+> skill. Kept as a worked illustration of the format.
 
 A complete `/spec` run is captured under
-[`examples/web-claude-code/`](examples/web-claude-code/) as the official example,
+[`examples/web-claude-code/`](examples/web-claude-code/) as a worked illustration,
 on a deliberately **knowledge-heavy** brief: *"develop a Web version of Claude
 Code."* It also captures a real **mistake-and-correction** that shows the discipline
 working: a first draft jumped to "build an agent backend" — designing the *how*
