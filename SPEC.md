@@ -1,0 +1,143 @@
+# /spec → /build — Specification (this repo)
+
+> **Version:** v1 · **Updated:** 2026-06-30
+> **Closure:** Phase 1 (`/spec`, Gate 1) ✅ sealed · Phase 2 (`/build`, Gate 1.5) ⏳ open (spec settled, not yet built)
+>
+> Authoritative, highest-priority reference for this repo. Maintained by `/spec`.
+> Load-bearing gates are backed by evidence — a runnable probe where the truth is
+> behavioral, a cited source where it isn't. Research lives in `.spec/knowledge/`;
+> full design history in `docs/DESIGN-NOTES.md`. All times are real OS time (UTC).
+> A lower bound on verified truth, not a proof.
+>
+> *Produced by an actual `/spec` skill run (dogfood): real research of the field's
+> leading spec-driven build tools, a real probe, and the human's decision on the
+> genuine fork (Decision Log D6).*
+
+## 1. Subject & Core Problem
+**First, what this repo's next piece *is* (define the noun before the verb).** A
+**"construction layer"** is the bridge from an authoritative spec to code. The
+field's leaders implement it as a staged pipeline that **persists** the middle
+layer: **GitHub Spec Kit** (constitution + `/specify → /plan → /tasks →
+/implement`, each a committed artifact) and **AWS Kiro** (`requirements.md →
+design.md → tasks.md` in `.kiro/specs/`, version-controlled). (Sources in
+`.spec/knowledge/what-is-a-construction-layer.md`.)
+
+**The core problem this repo already half-solved, and the gap that remains.**
+`/spec` (Gate 1, **built**) produces a thin, probe-backed `SPEC.md` — the durable
+*decisions/constraints/verified-truths* layer. But there is no defined step from
+`SPEC.md` to code: an undefined **Gate 1.5**. The real problem: **build that
+construction step (`/build`) such that it conforms to `SPEC.md` and does not
+re-introduce drift.** The insight (and the deliberate divergence from Spec
+Kit/Kiro): **keep the Plan/Tasks EPHEMERAL** — regenerated from `SPEC.md` each run,
+never enshrined — because a persisted, prose-heavy middle layer *is* the dominant
+drift surface. Durable truth lives only at the two ends: `SPEC.md` (thin, probed)
+above and **code + tests** below; the plan is disposable scaffolding.
+
+## 2. Scope & boundaries
+**In scope** — the **`/build` skill (Gate 1.5)**: read the authoritative `SPEC.md`
++ `.spec/` → regenerate an **ephemeral** design/tasks plan → construct product code
+→ close when each targeted requirement's acceptance holds and the load-bearing
+gates are green (probes re-run). Single repeatable command, minimal human surface.
+
+**Out of scope / boundaries** — `/spec` itself (Gate 1, already built — Phase 1);
+Gate 2 skill-extraction (Claude Code's built-in skill-builder); a heavyweight
+project-management layer (estimates, tickets); committing the plan as a source of
+truth.
+
+**Anti-patterns (deliberately don't do)** — the traps:
+- **Enshrining the Plan/Tasks as a committed source of truth.** It's the drift
+  surface Spec Kit/Kiro accept; we deliberately don't — the plan is ephemeral.
+- **Self-certifying "done" without re-running the gates.** Done is acceptance +
+  green gates, not "looks finished."
+- **`/build` silently patching `SPEC.md`** to make a build pass. On a spec-vs-reality
+  conflict it must **stop and route back to `/spec`** — no silent contradiction.
+- **Designing `/build` before establishing what a construction layer is.** Noun
+  before verb (this section).
+
+## 3. Gates (load-bearing sources of truth)
+Only **load-bearing** gates. **Commonsense facts are deliberately *not* gated.**
+Status ∈ {unverified, ✅ verified, ❌ refuted, ⤳ deferred→Phase N}.
+
+| Gate | Decision it gates | Authoritative source | Invariant | Evidence | Last checked (UTC/where) | Status |
+|------|-------------------|----------------------|-----------|----------|--------------------------|--------|
+| G1 | what a construction layer is + the ephemeral-plan divergence | Spec Kit + Kiro docs | the field persists the middle layer; we diverge to ephemeral to kill the drift surface | research (cited) | 2026-06-30 / web | ✅ verified (research) |
+| G2 | the build's done-condition | runnable probe | "done" re-runs the spec's gates; a red gate blocks done (drift can't slip through) | `.spec/probes/G2-done-by-gate.sh` | 2026-06-30T04:26Z / vm | ✅ verified (probe) |
+
+### Gate detail
+#### G1 — the subject (research; established before designing /build)
+- **Decision it gates:** what `/build` even is, and whether to persist the plan.
+- **Finding:** the construction layer = Spec→Plan→Tasks→Implement; Spec Kit & Kiro
+  **persist/commit** the middle. We adopt the pipeline but keep the plan
+  **ephemeral** (anti-drift). Honest cost: we forgo a persisted task audit trail —
+  mitigated by the Decision Log + git history + tests. See
+  `.spec/knowledge/what-is-a-construction-layer.md`, `build-loop.md`.
+- **Status:** ✅ verified (research) — 2026-06-30.
+
+#### G2 — done is gated by re-running the spec's gates (runnable probe)
+- **Decision it gates:** the one behavioral invariant of construction closure.
+- **Probe:** `.spec/probes/G2-done-by-gate.sh` — a gated done-check returns NOT-done
+  for a broken impl (gate red) and done for a fixed impl (gate green); **negative
+  control:** an ungated done-check wrongly passes the broken impl, so drift would
+  ship — proving the probe can go red.
+- **Evidence (raw):** `broken→NOT done · fixed→done · ungated control passes broken`
+  — `.spec/evidence/G2-…Z.log`.
+- **Status:** ✅ verified (probe) — 2026-06-30T04:26Z, vm.
+
+## 4. Requirements
+- **R1.** `[locked]` `/build` SHALL treat `SPEC.md` + `.spec/` as authoritative input and SHALL NOT contradict it; on a spec-vs-reality conflict it SHALL stop and route back to `/spec`. *Acceptance:* a conflicting build halts with a `/spec` hand-off, no SPEC edit. *(D1)*
+- **R2.** `[locked]` `/build` SHALL regenerate the design/tasks plan each run and SHALL NOT commit it as a source of truth. *Acceptance:* no plan artifact enters the repo as authoritative; re-run reproduces it. *(D2)*
+- **R3.** `[locked]` `/build` SHALL declare construction **done** only when each targeted requirement's acceptance holds **and** the load-bearing gates are green (probes re-run). *Acceptance:* G2 probe. *(D3)*
+- **R4.** `[locked]` `/build` SHALL be a single repeatable command with a minimal human surface; default **propose-then-apply with checkpoints** (plan approval; approve before commit). *Acceptance:* runs as one command; pauses at the declared checkpoints. *(D4/D6)*
+- **R5.** `[locked]` `/build` SHALL write product code but SHALL NOT modify `SPEC.md` decisions/gates (that is `/spec`'s role). *Acceptance:* no diff to `SPEC.md`/`.spec/` decisions during a build. *(D5)*
+
+## 5. Dependencies (chosen approach — details in `.spec/knowledge/`)
+| Concern | Chosen | Considered | Why | Knowledge |
+|---------|--------|------------|-----|-----------|
+| Construction model | **Spec→(ephemeral Plan/Tasks)→Implement, gate-closed** | Spec Kit / Kiro (persisted plan) | adopt the pipeline, drop the drift surface | `.spec/knowledge/what-is-a-construction-layer.md` |
+| Plan persistence | **ephemeral (regenerated)** | committed plan/tasks | the middle layer is the drift surface | `.spec/knowledge/build-loop.md` |
+| Done-condition | **acceptance + green gates (re-run probes)** | self-certified "done" | drift/regressions can't pass | `.spec/knowledge/build-loop.md` |
+
+## 6. Decision Log (key reasoning path → conclusion)
+`[auto]` = settled from evidence; `[human]` = a genuine fork escalated and decided.
+
+| # | Decision | Reasoning (why, over alternatives) | Evidence | By | Date |
+|---|----------|------------------------------------|----------|----|------|
+| D1 | Authority = `SPEC.md` + `.spec/`; `/build` conforms, conflicts route to `/spec` | one source of truth; clean Gate-1 vs Gate-1.5 split; no silent contradiction | G1 | [auto] | 2026-06-30 |
+| D2 | Plan/Tasks are **ephemeral** (regenerated, not committed) | the persisted middle layer is the dominant drift surface (vs Spec Kit/Kiro); durable ends = SPEC.md + code/tests | G1 | [auto] | 2026-06-30 |
+| D3 | Done = requirement acceptance + **green gates (re-run probes)** | construction closes on verified truth, not "looks finished" | G2 | [auto] | 2026-06-30 |
+| D4 | `/build` is a **single command**, minimal surface (like `/spec`, `/init`) | consistency + the simplicity-is-a-feature principle | — | [auto] | 2026-06-30 |
+| D5 | `/build` writes code but never edits `SPEC.md` decisions | keeps Gate-1 (contract) and Gate-1.5 (code) separable | D1 | [auto] | 2026-06-30 |
+| D6 | Construction autonomy = **propose-then-apply with checkpoints** | user chose the recommended option ("a"); human-in-loop on plan + before commit; revisable | — | **[human]** (Q1) | 2026-06-30 |
+
+> **Note on D6:** taken as the recommended default on the user's "a"/proceed signal;
+> a one-word change switches it to autonomous-to-green or plan-only handoff.
+
+## 7. Phases (ledger — emergent from closure)
+
+### Phase 1 — `/spec` (Gate 1) · status: **sealed 2026-06-30**
+- **What it established:** the single-command, scout-based, resumable spec authority
+  (`SPEC.md` + `.spec/`), probe-verified gates, the Decision Log, the spec line.
+- **Built ahead of this SPEC** (the project bootstrapped itself); sealed here **by
+  reference** to its full decision record in `docs/DESIGN-NOTES.md` (D-01…D-39) and
+  its implementation in `.claude/skills/spec/`.
+- **Supersedes:** none.
+
+### Phase 2 — `/build` (Gate 1.5) · status: **open** (spec settled, not yet built)
+- **Goal:** the construction skill specified above — ephemeral plan, gate-closed,
+  conforms to `SPEC.md`. Next action: build it per this spec.
+- **Supersedes:** none (fills the previously-undefined gap between `/spec` and code).
+
+## 8. Open Questions (genuine forks — the human's to own)
+| # | Question | Status | Owner/trigger | Notes |
+|---|----------|--------|---------------|-------|
+| Q1 | Construction autonomy level? | **decided 2026-06-30** | human (D6) | propose-then-apply with checkpoints (recommended); revisable |
+| Q2 | Exact ephemeral-plan home & format (in-context vs gitignored scratch)? | deferred→build | derivable | gitignored scratch likely, for resumability; not a source of truth |
+
+## 9. Glossary
+| Term | Meaning |
+|------|---------|
+| Gate 1 / `/spec` | produce the authoritative spec (contract, gates, decisions) |
+| Gate 1.5 / `/build` | construct code from the spec; the subject of this document |
+| Ephemeral plan | a design/tasks plan regenerated each build, never enshrined as a source of truth |
+| Done-condition | requirement acceptance satisfied + load-bearing gates green (probes re-run) |
+| Drift | divergence between an authoritative document and the code/reality it describes |

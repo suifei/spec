@@ -13,9 +13,16 @@ you haven't thought through yet**. It then standardizes the result — key conte
 boundaries, and anti-patterns — into **`SPEC.md`**. Run it again any time — it
 **resumes** from where it left off.
 
-It is **Gate 1** of an AI-assisted development process. (Gate 2 — extracting a
-reusable skill from the finished project — is Claude Code's built-in
-skill-builder, and is out of scope here.)
+It is **Gate 1** of an AI-assisted development process. **Gate 1.5 is
+[`/build`](.claude/skills/build/SKILL.md)** — the construction layer that reads
+`SPEC.md` and writes the code from it, keeping the design/tasks plan *ephemeral*
+(regenerated each run, never enshrined) so it can't drift, and closing only when
+each requirement's acceptance holds and the load-bearing gates are green. (Gate 2 —
+extracting a reusable skill from the finished project — is Claude Code's built-in
+skill-builder, out of scope here.)
+
+> This repo **dogfoods itself**: its own `SPEC.md` + `.spec/` (from a real `/spec`
+> run) specify the `/spec → /build` pipeline.
 
 **The deal:** you weigh in only on the calls that are genuinely yours. The AI does
 the heavy lifting — investigating, reasoning, probing, deciding everything that's
@@ -117,12 +124,14 @@ objective value assessment.
 │       ├── SPEC.template.md            # structure of SPEC.md
 │       ├── STATE.template.md           # the .spec/STATE.md progress ledger
 │       └── knowledge.template.md       # a .spec/knowledge/ reconnaissance entry
+│   └── build/SKILL.md                 # the /build procedure (Gate 1.5: spec → code)
 ├── commands/spec.md                   # /spec slash-command wrapper
+├── commands/build.md                  # /build slash-command wrapper
 CLAUDE.md                              # declares SPEC.md the supreme, read-first reference
 docs/DESIGN-NOTES.md                   # full design rationale: discussion rounds + decision log
 
-# generated at runtime by /spec:
-SPEC.md                                # the spec
+# this repo dogfoods itself — produced by a real /spec run:
+SPEC.md                                # the spec (the /spec → /build pipeline)
 .spec/STATE.md                         # progress ledger (resumability)
 .spec/knowledge/<topic>.md             # persisted reconnaissance (pinned deps/facts)
 .spec/probes/<gate>.sh                 # executable probes

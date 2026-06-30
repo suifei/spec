@@ -39,11 +39,16 @@ Implemented as a Claude Code skill in `.claude/skills/spec/` with a slash-comman
 wrapper in `.claude/commands/spec.md`. The full design rationale (discussion rounds
 + a consolidated decision log) is in `docs/DESIGN-NOTES.md`.
 
-Run `/spec` to create, update, reconcile, or resume `SPEC.md`. Execution and Gate
-2 (skill extraction — Claude Code's built-in skill-builder) are intentionally
-decoupled; they just read this file and `SPEC.md` (and `.spec/knowledge/` for
-pinned facts).
+The repo also provides **`/build`** — **Gate 1.5**, the construction layer that
+*reads* `SPEC.md` and writes the code from it, keeping the design/tasks plan
+**ephemeral** (regenerated each run, never enshrined) so it can't drift, and closing
+construction only when each requirement's acceptance holds and the load-bearing
+gates are green. (`.claude/skills/build/` + `.claude/commands/build.md`.) Gate 2
+(skill extraction) remains Claude Code's built-in skill-builder and is out of scope.
 
-> Note: `SPEC.md` and `.spec/` do not exist until you run `/spec` for the first
-> time. Until then, the authority block above points at documents `/spec` will
-> generate.
+Run `/spec` to create/update/reconcile the spec; run `/build` to construct from it.
+
+> This repo **dogfoods itself**: its own `SPEC.md` + `.spec/` (produced by a real
+> `/spec` run) specify the `/spec → /build` pipeline — Phase 1 (`/spec`) sealed,
+> Phase 2 (`/build`) built. In a *fresh* project, `SPEC.md` and `.spec/` don't exist
+> until you run `/spec` for the first time.
