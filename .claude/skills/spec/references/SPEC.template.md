@@ -1,8 +1,8 @@
 <!--
 Fixed structure for SPEC.md (repo root). /spec rewrites this file as a whole.
 Keep every section (write "None yet" if empty). Stay at contract-surface altitude
-(behavior, contracts, sources-of-truth/gates, NFRs, declared constraints) — never
-implementation detail. Phases are a ledger: emergent, append-only, sealed phases
+(behavior, contracts, load-bearing gates, NFRs, declared constraints, boundaries,
+anti-patterns) — never implementation detail. Phases are a ledger: emergent, append-only, sealed phases
 are read-only. All dates/timestamps are real OS time in UTC (never guessed) — they
 let a reader tell new from old; judge staleness by context, not a fixed rule.
 -->
@@ -19,26 +19,33 @@ let a reader tell new from old; judge staleness by context, not a fixed rule.
 ## 1. Vision & Problem
 <The core problem (not surface symptoms), for whom, what success looks like.>
 
-## 2. Scope
+## 2. Scope & boundaries
 **In scope** — <what this project will do>
-**Out of scope (explicitly not doing)** — <deliberate exclusions>
+**Out of scope (explicitly not doing)** — <deliberate exclusions / boundaries>
+**Anti-patterns (deliberately don't do)** — <tempting-but-wrong approaches to avoid, and why — the traps, not just the boundaries>
 
-## 3. Sources of Truth & Gates
-One authority per concern; each proven by a probe. Status ∈ {unverified, ✅ verified, ❌ failed, ⤳ deferred→Phase N}.
+## 3. Gates (load-bearing sources of truth)
+List **only load-bearing** gates — a truth a real decision *hinges* on
+(load-bearing ∧ uncertain ∧ consequential-if-wrong). One authority per concern,
+backed by the strongest evidence: a probe that can go red, or (when unscriptable) a
+cited source marked WEAK. **Do not list commonsense facts** (a free port, a
+writable dir, a tool on PATH) — they are not gates. Status ∈ {unverified,
+✅ verified, ❌ failed/refuted, ⤳ deferred→Phase N}.
 
-| Gate | Concern | Authoritative source | Invariant | Probe | Last run (when/where) | Status |
-|------|---------|----------------------|-----------|-------|-----------------------|--------|
-| G1 | <e.g. storage> | <`./data` / SQLite 3.45> | <writes only via this path> | `.spec/probes/G1.sh` | <2026-06-29 / devbox> | ✅ verified |
+| Gate | Concern (decision it gates) | Authoritative source | Invariant | Evidence | Last run (when/where) | Status |
+|------|-----------------------------|----------------------|-----------|----------|-----------------------|--------|
+| G1 | <assumption the design rests on, e.g. on-device inference> | <`nvidia-smi` / CUDA present> | <inference runs on device> | `.spec/probes/G1.sh` | <2026-06-29 / devbox> | ✅ verified |
 
 ### Gate detail (one block per gate)
 #### G1 — <title>
-- **Source / Invariant:** <…>  · **Probe:** `.spec/probes/G1.sh`
-- **Evidence (raw):** `resolved /abs/data · free 12G · write+read OK`
+- **Decision it gates:** <what we'd build differently if this were false>
+- **Source / Invariant:** <…>  · **Evidence:** `.spec/probes/G1.sh` (+ neg-control)
+- **Evidence (raw):** `GPU: <name>, <mem> · bogus index rejected`
 - **Status:** ✅ verified — 2026-06-29, devbox
-- (Attestation gates that can't be scripted — e.g. "legal approved" — mark **WEAK (non-probed)** with a named source.)
+- (Non-scriptable gates — e.g. "legal approved" — mark **WEAK (non-probed)** with a named source, not a fake probe.)
 
 ## 4. Requirements
-Numbered, verifiable. Use SHALL/MUST. Tag `[locked]` (probe-backed) or `[provisional→Phase N]`.
+Numbered, verifiable. Use SHALL/MUST. Tag `[locked]` (evidence-backed) or `[provisional→Phase N]`.
 - **R1.** `[locked]` The system SHALL <…>. *Acceptance:* <observable check / probe>
 - **R2.** `[provisional→Phase 2]` The system SHALL <…>. *Unlocked by:* <trigger>
 
@@ -49,21 +56,34 @@ Decisions only; details/pinned docs in `.spec/knowledge/<lib>.md`.
 |---------|-----------------|------------|-----|-----------|
 | <async runtime> | <tokio 1.40> | <async-std 1.13> | <maintenance, ecosystem> | `.spec/knowledge/rust-async.md` |
 
-## 6. Phases (ledger — emergent from closure)
+## 6. Decision Log (key reasoning path → conclusion)
+Every decision the scout resolved (autonomously, or with the human on a genuine
+fork). Capture enough of the **reasoning path** that it isn't re-litigated. Mark
+who decided: `[auto]` (you settled it from evidence) or `[human]` (a genuine fork /
+better-option you escalated). Append-only; supersession is dated.
+
+| # | Decision | Reasoning (why, over alternatives) | Evidence | By | Date |
+|---|----------|------------------------------------|----------|----|------|
+| D1 | <chosen X> | <why X beats Y/Z> | <gate/knowledge ref> | [auto] | <YYYY-MM-DD> |
+| D2 | <chosen tradeoff> | <the fork only the human could own> | <…> | [human] | <YYYY-MM-DD> |
+
+## 7. Phases (ledger — emergent from closure)
 A phase is **sealed** when all its decisions are confirmed and its gates are
 green (or explicitly deferred) with no blocking open question. Sealed = read-only.
 
 ### Phase 1 — <name> · status: <open|sealed YYYY-MM-DD>
 - **Goal:** <what this closure establishes>
-- **Gates:** G1, G2  · **Key decisions:** <…>
+- **Gates:** G1  · **Key decisions:** D1, D2 (see Decision Log)
 - **Supersedes:** <none | "阶段K 的第X条 — 因 …">
 
-## 7. Open Questions (the closure gate)
+## 8. Open Questions (the closure gate)
+Only **genuine forks** the human must own (value/priority/risk/business) or
+better-options awaiting their pick — not things you can still investigate.
 | # | Question | Status (open/deferred) | Owner/trigger | Notes |
 |---|----------|------------------------|---------------|-------|
-| Q1 | <…> | open | <who/when> | <context> |
+| Q1 | <a call only the human can make> | open | <who/when> | <context> |
 
-## 8. Glossary
+## 9. Glossary
 | Term | Meaning |
 |------|---------|
 | <term> | <definition> |

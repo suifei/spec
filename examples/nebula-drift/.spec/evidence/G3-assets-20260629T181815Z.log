@@ -1,7 +1,0 @@
-== probe G3: assets ==
-when: 2026-06-29T18:18:15Z
-where: vm
-----
-resolved: /tmp/claude-0/-home-user-spec/2942e57b-47fb-5b42-8272-ac23403c104c/scratchpad/game-test/public/assets
-free: 30G
-RESULT: assets writable
