@@ -1,49 +1,63 @@
 # /spec
 
-A single, repeatable Claude Code command that turns conversation into one
-authoritative, *feasible* specification — with the AI working as your
-**reconnaissance scout**.
+A single, repeatable Claude Code command in which the AI plays an **expert
+requirements-elicitation analyst** — it takes your vague idea and turns it into one
+authoritative, *feasible* specification.
 
 Think of it like `/init`, but for the living spec. You run `/spec`; it
-**investigates first** (reads what you point at, checks its own knowledge cache,
-searches the web when the answer depends on external facts, and probes reality for
-evidence), then **brainstorms with you** to find the *core problem* and drive every
-decision to closure, and writes the result to a fixed file: **`SPEC.md`**. Run it
-again any time — it **resumes** from where it left off.
+**clarifies the vague into the clear** through investigation (reads what you point
+at, mines your project's data, searches its knowledge and the web, reasons it
+through — *investigation is research*), **reflects your idea back organized**,
+**offers better views**, and **reports what's closed-loop (ready to build) vs what
+you haven't thought through yet**. It then standardizes the result — key content,
+boundaries, and anti-patterns — into **`SPEC.md`**. Run it again any time — it
+**resumes** from where it left off.
 
 It is **Gate 1** of an AI-assisted development process. (Gate 2 — extracting a
 reusable skill from the finished project — is Claude Code's built-in
 skill-builder, and is out of scope here.)
 
-**The deal:** you only **brainstorm and decide**. The AI does the heavy lifting —
-scouting, probing, drafting, persisting. `/spec` is collaboration, not paperwork:
-no forms, no burden.
+**The deal:** you weigh in only on the calls that are genuinely yours. The AI does
+the heavy lifting — investigating, reasoning, probing, deciding everything that's
+decidable, drafting, persisting. `/spec` is collaboration, not paperwork: no forms,
+no burden.
 
 ## How it works
 
 ```
 /spec ─▶ rehydrate (.spec/STATE.md)         # know exactly where it left off
-      ─▶ SCOUT FIRST: cache → your material → own knowledge → web (if needed) → probe
-      ─▶ present findings (core problem, constraints, candidate gates, risks)
-      ─▶ ask only what needs you (aim at the core problem; low-burden, calibrated)
-      ─▶ you decide (options + recommendation + evidence)
-      ─▶ verify gates with real probes (must be able to go red)
+      ─▶ INVESTIGATE (= research): cache → your material → project data → knowledge → web → skills/MCP → reason → probe
+      ─▶ resolve what you can; register the reasoning (Decision Log)
+      ─▶ report findings + closure status (ready vs not-yet-thought-through)
+      ─▶ ask only the genuine forks (or a better option found) — low-burden, calibrated
+      ─▶ back load-bearing gates with evidence (probes must be able to go red)
       ─▶ persist everything + update CLAUDE.md ─▶ closure seals a phase
 ```
 
 ### Principles
 
-- **Scout before asking.** It never asks you what it could find out itself.
-- **Evidence, not bureaucracy.** Truth-finding (probing, never fabricating) is the
-  AI's discipline; the GO/no-go is yours.
+- **Investigation is research (探真 = 研究).** Finding the truth = finding the
+  knowledge — by any means (knowledge, web, project data, skills/MCP, reasoning). A
+  runnable probe is one instrument, not the definition.
+- **Decide what's decidable; ask rarely.** It resolves what it can and registers
+  the reasoning, asking you only about a genuine fork evidence can't settle, or a
+  better option it found. It never makes you adjudicate commonsense.
+- **Honest, including "no".** It refuses the research-proven-infeasible with the
+  real reason and names problems in your decisions — it won't spec a known-wrong
+  wish to be agreeable. Standing in for market/requirements/feasibility/
+  architecture/design-review at once, it pulls top-tier authoritative sources when
+  a role needs knowledge it lacks.
+- **Gates are load-bearing only.** A gate is a truth a real decision *hinges* on.
+  Commonsense facts (a free port, a writable dir, a tool on PATH) are never gates
+  and never a coding focus — *we don't build around whether a port is free.*
+- **Evidence, never fabrication.** A load-bearing gate is backed by a probe that
+  can go red, or a cited source (marked WEAK) when it can't be scripted.
 - **The filesystem is memory.** State lives on disk, not in the context window —
   so it runs reliably in a small window and **resumes** across resets/compaction.
-- **Reconnaissance is persisted** (`.spec/knowledge/`) so it isn't re-explored;
-  e.g. for a dependency it captures stable + latest + alternatives, you pick, and
-  it pins the version and saves the docs.
+  Reconnaissance persists (`.spec/knowledge/`) so it isn't re-explored.
 - **The spec line.** The spec governs the *contract surface* (behavior, contracts,
-  sources of truth & gates, NFRs, declared constraints) — never implementation
-  detail. Code stays free below the line.
+  load-bearing gates, NFRs, declared constraints, boundaries, anti-patterns) —
+  never implementation detail. Code stays free below the line.
 - **Phases emerge from closure**, they aren't pre-planned; sealed phases are
   read-only (corrections open a new, superseding phase).
 - **Honest limit.** `SPEC.md` is a *lower bound on verified truth*, not a
@@ -61,15 +75,19 @@ no forms, no burden.
 
 ## Example
 
-A complete, **probe-verified** `/spec` run is captured under
-[`examples/nebula-drift/`](examples/nebula-drift/) as the official example. It
-takes a real brief ("build a 2D space shooter") through two phases to closure:
-the scout **refutes** a human assumption (a native Godot build — gate G0 goes
-red), pivots to a browser build, then in Phase 2 makes a real netcode decision
-(server-authoritative over `ws`) backed by a dependency-free transport probe
-(G6). Run `./verify.sh` in that directory to re-run every probe plus 23
-assertions (`ALL PASS`, exit 0). The example's README also carries an objective
-value assessment of the artifacts as a project-initial-phase deliverable.
+A complete `/spec` run is captured under
+[`examples/web-claude-code/`](examples/web-claude-code/) as the official example,
+on a deliberately **knowledge-heavy** brief: *"develop a Web version of Claude
+Code."* It shows the analyst at work — finding the core problem (a browser tab has
+no filesystem/shell, so *where do the agent's hands live?*), settling it by
+**research** (WebContainers can't run native toolchains; Claude Code on the web
+uses isolated containers + an out-of-sandbox credential proxy — sources cited),
+**honestly refusing** the tempting "all-in-browser" approach (gate G1), recording
+the reasoning (`[auto]` decisions) while escalating the one genuine fork
+(isolation depth + cost) to the human (`[human]`), and reserving its single
+runnable probe for the one behavioral truth (a session survives disconnect — G3,
+with a negative control). Run `./verify.sh` there for the probe + 20 assertions
+(`ALL PASS`, exit 0). Its README carries an objective value assessment.
 
 ## Files
 
@@ -97,6 +115,6 @@ SPEC.md                                # the spec
 
 ## Design rationale
 
-`docs/DESIGN-NOTES.md` records the whole design conversation — nine rounds from
-"port OpenSpec" to this scout-based, resumable, single-command Gate 1 — plus a
-consolidated decision log.
+`docs/DESIGN-NOTES.md` records the whole design conversation — from "port OpenSpec"
+to this expert-analyst, resumable, single-command Gate 1 — plus a consolidated
+decision log.

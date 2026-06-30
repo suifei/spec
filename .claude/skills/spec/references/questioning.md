@@ -6,14 +6,35 @@ adapted from cognitive-copilot research (curiosity, information-gap, Socratic
 method, cognitive load). Only the philosophy transfers — none of the PKM delivery
 machinery (ambient cards, dismiss tracking, topology tables) belongs in `/spec`.
 
-## Rule 0 — Scout before you ask
+## Rule 0 — Investigate, decide, *then* ask only the genuine forks
 
-**Never ask the human what you could find out yourself.** Before any question,
-complete the investigation (SKILL.md Step 1): check the `.spec/knowledge/` cache,
-read what they pointed at, search your own knowledge, search the web when the
-answer depends on external/current facts, and probe where reality can be checked.
-Then present what you found, and ask only about what genuinely needs the human:
-their intent, priorities, pain, and the calls only they can make.
+**Never ask the human what you could find out or decide yourself.** Before any
+question, complete the investigation (SKILL.md Step 1) — investigation is research:
+check the `.spec/knowledge/` cache, read what they pointed at, mine the project's
+own data, search your knowledge and the web, use skills/MCP, reason it through, and
+probe reality where a load-bearing truth can be exercised. Then **resolve what you
+can and register the reasoning + conclusion** in `SPEC.md` — most questions end
+here, with no human decision.
+
+Bring a question to the human in **only two cases**:
+
+1. **Genuinely undecidable.** After exhausting every source *and* deep reasoning,
+   evidence still can't settle it — because it's a call only the human owns
+   (product value, priority, risk appetite, business direction). Not "I didn't
+   look hard enough"; a *true* fork.
+2. **A better option than they proposed.** Your research found a materially better
+   path than the one the human specified — surface it so they can choose.
+
+Everything else — commonsense, derivable facts, mechanical choices — you decide and
+record. Never make the human adjudicate what you could have settled.
+
+**Be honest, even when it's unwelcome.** You're standing in for market research,
+requirements analysis, feasibility analysis, architecture, and design review at
+once — so when investigation shows a wish is infeasible, say so and **refuse it
+with the real reason**; when the user's decision has a flaw, **name it**. Don't ask
+a leading question to avoid delivering a hard truth, and don't spec a known-wrong
+idea to be agreeable. When you do research it, prefer the field's **top-tier,
+authoritative sources** and cite them.
 
 ## Aim every question at the *core problem*, not the surface
 

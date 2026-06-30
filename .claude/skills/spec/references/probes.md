@@ -1,11 +1,24 @@
-# Probes — gathering real evidence for the human's decision (摸排探真)
+# Probes — the executable instrument of investigation
 
-A **probe** is a small, runnable check that confirms a source-of-truth/gate is
-*real* by exercising it against the actual environment. Probes are how `/spec`
-replaces "the user said so" with evidence. **The scout gathers the evidence; the
-human makes the GO decision.** Probes inform decisions — they are not a
-bureaucratic machine that blocks the human. But the scout never fabricates: a
-probe reports the truth, red or green.
+Investigation **is** research (探真 = 研究): you find the truth by every means —
+your knowledge, the web, the project's own data, skills/MCP, reasoning. A
+**probe** is *one* of those means: the **executable** one — a small, runnable
+check that confirms a truth by exercising it against the actual environment.
+Reach for a probe when the truth is **environment- or behavior-specific** and
+**load-bearing**; it is the strongest evidence there is, but it is **not** the
+definition of investigation, and most truths are settled by research and
+reasoning without one. Never reduce "探真" to "run a check."
+
+**Probe only what earns a gate.** A probe is worth writing only for a gate that is
+load-bearing, uncertain, and consequential-if-wrong (see SKILL.md "What earns a
+gate"). Do **not** write probes for commonsense facts — a free port, a writable
+dir, a tool on PATH, a stock library doing its documented thing. You may verify
+such a thing in passing, but it stays a footnote: never a gate, never a focus of
+downstream coding. *We do not build the project around whether a port is free.*
+
+The scout gathers evidence; the human makes the GO call on a genuine fork. A probe
+informs that decision — it is not a bureaucratic machine that blocks the human —
+and it never fabricates: it reports the truth, red or green.
 
 Probes live at `.spec/probes/<gate>.sh`; their captured output goes to
 `.spec/evidence/<gate>-<timestamp>.log`. Both are committed.
@@ -64,26 +77,35 @@ echo "== probe <gate-id> =="; date -u +"when: %Y-%m-%dT%H:%M:%SZ"
 echo "where: $(hostname) / $(uname -srm)"; echo "----"
 ```
 
-## Example: a dependency/storage gate (with negative control)
+## Example: a load-bearing gate (refutes an assumption, with negative control)
+
+A good probe targets an assumption the **design rests on** — one that, if false,
+makes you build something different. The archetype is refuting a stated premise
+(like "this ships as a native app" turning out untrue). Here: the design assumes
+on-device GPU compute; if absent, the whole inference approach changes.
 
 ```bash
 #!/usr/bin/env bash
-# Probe G1 — storage path is real and writable (chosen: SQLite @ ./data)
+# Probe G1 — does reality support the assumption the design rests on?
+# Assumption under test: "the target host has usable GPU compute."
+# If false, the on-device inference design is wrong — THIS is gate-worthy.
+# (A "port is free" / "dir is writable" check is NOT — never gate those.)
 set -euo pipefail
-DIR="${1:-./data}"; mkdir -p "$DIR"; ABS=$(cd "$DIR" && pwd)
-echo "resolved: $ABS"; df -h "$ABS" | awk 'NR==2{print "free: "$4}'
-TMP="$ABS/.probe_$$"; trap 'rm -f "$TMP"' EXIT
-echo ok > "$TMP" && test "$(cat "$TMP")" = ok || { echo "write FAILED"; exit 1; }
-# negative control: writing an impossible path must fail
-if ( : > /proc/definitely/not/writable ) 2>/dev/null; then echo "NEG CONTROL FAILED"; exit 1; fi
-echo "RESULT: storage writable"
+echo "== probe G1: GPU compute available =="; date -u +"when: %Y-%m-%dT%H:%M:%SZ"
+echo "where: $(hostname) / $(uname -srm)"; echo "----"
+command -v nvidia-smi >/dev/null || { echo "nvidia-smi NOT found — assumption refuted"; exit 1; }
+nvidia-smi --query-gpu=name,memory.total --format=csv,noheader || { echo "no usable GPU"; exit 1; }
+# negative control: a GPU index that cannot exist must NOT report present
+if nvidia-smi -i 999 >/dev/null 2>&1; then echo "NEG CONTROL FAILED: bogus GPU index reported OK"; exit 1; fi
+echo "neg-control: bogus GPU index rejected"
+echo "RESULT: GPU compute present — assumption holds"
 ```
 
 ## Recording
 
 ```bash
 mkdir -p .spec/probes .spec/evidence
-bash .spec/probes/G1.sh ./data 2>&1 | tee ".spec/evidence/G1-$(date -u +%Y%m%dT%H%M%SZ).log"
+bash .spec/probes/G1.sh 2>&1 | tee ".spec/evidence/G1-$(date -u +%Y%m%dT%H%M%SZ).log"
 echo "exit: ${PIPESTATUS[0]}"
 ```
 

@@ -25,8 +25,9 @@ sources: [<url>, <url>]
 ## Recommendation
 <which, and why>
 
-## Decision (human)
-<chosen · pinned version · date>
+## Decision
+<chosen · pinned version · date · tag `[auto]` if you settled it from evidence, or
+`[human]` if it was a genuine fork / better-option you escalated>
 
 ## Pinned knowledge (for execution)
 <key APIs, gotchas, minimal usage, version-specific notes, doc links — enough that
