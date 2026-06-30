@@ -628,6 +628,34 @@ next_action: <下一步唯一要做的事>
 
 ---
 
+## 第 13 轮 · 2026-06-30 — 先定义"是什么",再谈"怎么做"(define the noun before the verb)
+
+用户对 `web-claude-code` 示例不满意,指出一个**非常明显且关键**的缺陷:AI 没有**先主动澄清
+Claude Code 是什么、其基本原理**,就直接给实现路径。
+
+### 1. 缺陷本质
+- "web 化"的本质是:**把 Claude Code 这个 CLI 本体的标准 I/O 接管,经 ws 转发到浏览器**。
+- 第一版 spec 直接谈"建 agent 后端 + 沙箱",**完全忽略了 Claude Code 本质是一个 CLI**——
+  研究的**起点错了**。用户的比喻:"你搞不清目标是人还是猴子,就先谈怎么生孩子、孩子叫什么名字。"
+- 正确做法:**先去搜 Claude Code 官方文档,搞清它是什么**(agentic CLI、终端、Unix 可组合、
+  headless `stream-json`、Agent SDK,agent 循环/工具/权限都已内置),**再**推导方案:web 化 =
+  接管其 I/O 转发,而非重建 agent。
+
+### 2. 这是技能级缺陷(不止示例)
+- 教训上升为通用规则:**先定义名词,再谈动词**——任何方案之前,必须先用**权威/官方信源**确立
+  "这东西本质是什么、怎么运作";起点错比细节错严重得多。
+- 落地:`SKILL.md` Step 1 首条「Identify the subject first」+ Guardrails「Define the noun
+  before the verb」;`questioning.md` 核心问题段首条同义。
+
+### 3. 示例重做(v2,诚实记录 v1→v2 纠错)
+- `examples/web-claude-code/` 重写:**先确立主体**(`knowledge/what-is-claude-code.md`,引用官方文档)
+  → 核心问题 = 接管 CLI 的 I/O 转发(`io-bridge.md`:PTY/stream-json + WS + xterm.js,ttyd/wetty 先例)
+  → 凭据/权限留服务端(`credential-boundary.md`)。门:G1 主体(研究)、G2 机制(**可执行探针**:
+  CLI stdio 接管+双向转发 + 反向对照)、G3 信任边界(研究)、G4 PTY 全保真(延后到 build)。
+  决策日志 D1–D4 [auto]、D5/D6 [human] 叉;**Phase 1 显式 supersede v1 错误框架**。verify.sh 24 断言全过。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。
@@ -672,6 +700,7 @@ next_action: <下一步唯一要做的事>
 | D-36 | **诚实底线**:不为迎合不合理想法而不拒绝;对用户决议诚实指出问题、不掩盖;**可合理拒绝并给真实理由**;明知错的附和=失职 | 用户补充 | 12 |
 | D-37 | **/spec = 一人顶一支专家队**:市场分析/需求调研/脑暴/需求分析/可行性/技术架构/设计评审一并做;角色知识不足主动外取;目标=把模糊拆成清晰可落地 | 用户补充 | 12 |
 | D-38 | **搜网优先头部权威信源**(官方/标准/维护者/领军者),按质量+时效加权并引用,不靠随手博客 | 用户补充 | 12 |
+| D-39 | **先定义名词,再谈动词**:任何方案前先用权威/官方信源确立"主体本质是什么、怎么运作";起点错比细节错严重得多 | 用户(web-claude-code 缺陷) | 13 |
 
 ### 产物落地映射(v1)
 - `.claude/skills/spec/SKILL.md` —— D-01,03,04,05,06,12,13,18,19,20,27,28 (主协议)
@@ -696,5 +725,11 @@ next_action: <下一步唯一要做的事>
 - `references/questioning.md` —— D-36,37,38(Rule 0 诚实/多角色/头部信源段)
 - `README.md` / `CLAUDE.md` —— D-36,37(诚实+多角色)
 - `examples/web-claude-code/` —— D-32~38 的活检验(研究取证为主、唯一行为探针、诚实拒绝、决策日志)
+
+### 产物落地映射(v4 · 第 13 轮)
+- `SKILL.md` —— D-39(Step 1 首条「Identify the subject first」+ Guardrails「Define the noun before the verb」)
+- `references/questioning.md` —— D-39(核心问题段首条)
+- `examples/web-claude-code/` —— **重做 v2**:先确立主体(what-is-claude-code.md)→ 接管 CLI I/O 转发
+  (io-bridge.md)→ G2 stdio 接管探针;Phase 1 supersede v1 错误框架;诚实记录纠错
 
 *设计文档结束。实现见 `.claude/skills/spec/`。*
