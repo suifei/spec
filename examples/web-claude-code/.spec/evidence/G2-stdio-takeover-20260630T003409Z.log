@@ -1,0 +1,9 @@
+== probe G2: CLI stdio takeover + relay ==
+when: 2026-06-30T00:34:09Z
+where: vm / Linux 6.18.5 x86_64
+node: v22.22.2
+----
+takeover OK: sent "ping","hello-web" -> relayed "recv:ping\nrecv:hello-web"
+recv:ping
+neg-control: stdout NOT taken over -> nothing captured (browser would see nothing) — probe can go red
+RESULT: a CLI process's stdio can be taken over and relayed bidirectionally

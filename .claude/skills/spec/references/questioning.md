@@ -38,6 +38,13 @@ authoritative sources** and cite them.
 
 ## Aim every question at the *core problem*, not the surface
 
+- **Establish what the thing *is* before how to build it (define the noun before
+  the verb).** First nail the subject's essence and first principles from
+  authoritative/official sources. If the request is "a web version of X," you must
+  know what X fundamentally is and how it works before sketching any solution —
+  otherwise you'll confidently design the wrong thing (debating baby names before
+  knowing the subject is a human or a monkey). A wrong research *starting point* is
+  far costlier than a wrong detail.
 - **Meta-question first.** Surface the real goal behind the request:
   "You're asking for X — what's the underlying thing you're trying to solve?"
   Symptoms are cheap; the core problem is what the spec must capture.

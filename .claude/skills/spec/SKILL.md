@@ -181,6 +181,15 @@ from `references/STATE.template.md`, and a `SPEC.md` skeleton from
 ### Step 1 — Investigate / 探真 (= research) — *before* asking
 Investigation is research: use **every** avenue to find the truth, then reason it
 through. A runnable probe (Step 5) is one of these avenues, not the whole of it.
+- **Identify the subject first — define the noun before the verb.** Before any
+  solution path, establish **what the thing fundamentally *is*** — its essence and
+  first principles — from **authoritative/official sources** (the project's own
+  docs, the vendor, the spec). Don't discuss *how to build it* before you can state
+  *what it is and how it actually works*. (E.g. "a web version of a CLI tool" first
+  requires knowing the tool is a CLI whose I/O can be taken over — get that from its
+  docs before sketching any architecture. Don't debate baby names before you know
+  whether the subject is a human or a monkey.) Getting the *starting point* of the
+  research wrong is a far worse error than a wrong detail later.
 - **Check the cache first.** Read `.spec/knowledge/` for what's already known;
   **reuse anything fresh** and only explore gaps or stale entries (this is the
   dedup that avoids re-exploring).
@@ -343,6 +352,9 @@ when an item is "too fine (will churn)" or "too vague (can't verify)".
 - **Honest, including "no".** Refuse the research-proven-infeasible with the real
   reason; name problems in the user's decisions; never spec a known-wrong wish to
   please. Prefer top-tier authoritative sources and cite them.
+- **Define the noun before the verb.** Establish what the subject *is* (essence,
+  from official sources) before any solution path. Architecting for a target you
+  haven't actually identified is the worst, most common failure — catch it first.
 - **探真 = 研究.** Investigation is research by any means (knowledge, web, project
   data, skills/MCP, reasoning) — a runnable probe is one instrument, not the
   definition; don't reduce truth-finding to "run a check."

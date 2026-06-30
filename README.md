@@ -78,16 +78,18 @@ no burden.
 A complete `/spec` run is captured under
 [`examples/web-claude-code/`](examples/web-claude-code/) as the official example,
 on a deliberately **knowledge-heavy** brief: *"develop a Web version of Claude
-Code."* It shows the analyst at work — finding the core problem (a browser tab has
-no filesystem/shell, so *where do the agent's hands live?*), settling it by
-**research** (WebContainers can't run native toolchains; Claude Code on the web
-uses isolated containers + an out-of-sandbox credential proxy — sources cited),
-**honestly refusing** the tempting "all-in-browser" approach (gate G1), recording
-the reasoning (`[auto]` decisions) while escalating the one genuine fork
-(isolation depth + cost) to the human (`[human]`), and reserving its single
-runnable probe for the one behavioral truth (a session survives disconnect — G3,
-with a negative control). Run `./verify.sh` there for the probe + 20 assertions
-(`ALL PASS`, exit 0). Its README carries an objective value assessment.
+Code."* It also captures a real **mistake-and-correction** that shows the discipline
+working: a first draft jumped to "build an agent backend" — designing the *how*
+before establishing *what Claude Code is* (**define the noun before the verb**). The
+corrected spec **establishes the subject first** from official docs (Claude Code is
+an agentic **CLI** with a takeover-able I/O surface), and so finds the real core
+problem: *"to web" = take over the existing CLI's I/O (PTY or `stream-json`) and
+relay it to the browser over WebSocket — not rebuild the agent.* Two gates are
+settled by cited research (the subject; the credential boundary), the one behavioral
+truth (a CLI's stdio can be taken over and relayed) by a runnable probe with a
+negative control, and the old framing is honestly **superseded**. Run `./verify.sh`
+there for the probe + 24 assertions (`ALL PASS`, exit 0). Its README carries an
+objective value assessment.
 
 ## Files
 
@@ -103,7 +105,7 @@ with a negative control). Run `./verify.sh` there for the probe + 20 assertions
 │       └── knowledge.template.md       # a .spec/knowledge/ reconnaissance entry
 ├── commands/spec.md                   # /spec slash-command wrapper
 CLAUDE.md                              # declares SPEC.md the supreme, read-first reference
-docs/DESIGN-NOTES.md                   # full design rationale: 9 discussion rounds + decision log
+docs/DESIGN-NOTES.md                   # full design rationale: discussion rounds + decision log
 
 # generated at runtime by /spec:
 SPEC.md                                # the spec
