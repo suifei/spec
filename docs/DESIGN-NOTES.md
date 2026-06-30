@@ -656,6 +656,29 @@ Claude Code 是什么、其基本原理**,就直接给实现路径。
 
 ---
 
+## 第 14 轮 · 2026-06-30 — 诚实交代 + 第一次"真·跑 skill"
+
+### 1. 诚实交代:此前示例是"手搓模拟",非真跑
+用户问:"这是真正的 skill 测试跑出来的么?" 诚实回答:**不是**。`nebula-drift` 与
+`web-claude-code` 是我**按 skill 规则手写**的示范产物——**探针真跑、网搜真做**,但**没有真正
+invoke `/spec` 技能**驱动流程,"人类决策"也是我代写的。这正是第 12 轮"诚实底线"原则的当场应用。
+
+### 2. 第一次真跑:`examples/self-evolving-agent/`
+这次**真的用 Skill 工具调起 `/spec`**,让技能指令驱动:
+- **先定主体**(define the noun before the verb):查权威文献(自进化 agent 综述 2507.21046 /
+  2508.07407、Darwin Gödel Machine 2505.22954、ADAS 2408.08435)→ 结论:自进化 agent 不是
+  "LLM 自己改自己",而是 **objective-gated `propose→evaluate→select→archive` 循环**(按层:
+  prompt/memory/tools/workflow/code/weights)。
+- **可决的自决并登记**(D1–D4 [auto]:循环、客观门、archive、sandbox+rollback)。
+- **真叉交人**(AskUserQuestion):D5 进化范围 = prompt+memory+skills+workflow(不动 code/weights);
+  D6 晋升 = 自动晋升。**用户选了更激进的自动晋升**。
+- **诚实硬化(不附和)**:对 D6 不默许,按文献(Goodhart/过拟合是主failure)把"held-out 评估 +
+  自动回滚 + kill-switch"列为**强制** R6——这是第 11/12 轮"诚实 + 合理拒绝/指出问题"的实跑体现。
+- **唯一行为探针** G2:客观选择门**拒绝回归**(植入回归被拒;去掉门则回归被接收=能变红)。verify 26 断言全过。
+- README 标注:**这是真跑产物**;`web-claude-code` 标注为手搓示范(探针/研究真,流程非真调技能)。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。

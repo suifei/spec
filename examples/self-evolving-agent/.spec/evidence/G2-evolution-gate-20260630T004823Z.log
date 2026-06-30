@@ -1,0 +1,10 @@
+== probe G2: objective-gated evolution rejects regressions ==
+when: 2026-06-30T00:48:23Z
+where: vm / Linux 6.18.5 x86_64
+node: v22.22.2
+----
+gated best series: [0.5, 0.62, 0.7, 0.7, 0.74, 0.74, 0.81]
+  regression 0.55 at step 3 REJECTED (best held at 0.70); archive size 5
+  final best = 0.81
+no-gate run: regression ADMITTED (current fell below prior best) — probe can go red
+RESULT: an objective selection gate is what makes the evolution loop non-degrading
