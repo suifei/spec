@@ -58,21 +58,34 @@ or cognitive burden — it is collaboration, not paperwork.
 
 ## Rule 0 — Output language (highest priority, overrides everything below)
 
-**Write every report and the persisted spec in the human's own language** — the
-language they brainstorm/write in. Arabic in ⇒ Arabic out; English in ⇒ English
-out; 中文 in ⇒ 中文 out. This outranks every other formatting choice here.
+**The artifact language is a pinned, one-time choice — ask once, then never again.**
 
-- **Translate on mismatch, proactively.** If a prior `SPEC.md` / `.spec/` is in a
-  different language than the human's current one, translate it to match — and if
-  the spec is large, do it **iteratively/chunked** across runs (track progress in
-  `STATE.md`) — leaving it in **one coherent language**. Never rewrite a past
-  timestamp while translating (append-only still holds).
+- **First persist of a project (no language pinned yet):** before writing
+  `SPEC.md`/`.spec/` to disk for the first time, ask the human **one question**:
+  which language should reports and the spec be written in? **Default to the
+  language they've been writing in**; offer a short list of mainstream human
+  languages (English, 中文, 日本語, Español, العربية, …) plus "other." This is a
+  genuine, undecidable preference (Step 3 category (a)) — not something to derive
+  silently, and not something to re-ask.
+- **Pin it and stop asking.** Record the answer as a **declared constraint** in
+  `SPEC.md` (e.g. "Artifact language: English — pinned 2026-06-30"). Every later
+  run of `/spec` (and `/build`) reads this pin and **uses it without asking again**,
+  regardless of what language the human happens to type in that session — typing a
+  question in a different language is not a request to switch the artifact language.
+- **Already pinned:** just follow it. **No prior pin found but `SPEC.md` already
+  exists** (e.g. an older project predating this rule): infer the pin from the
+  existing document's language, record it as the constraint now, and proceed —
+  still just one silent one-time action, not a question.
+- **Translate on mismatch, proactively.** If existing `SPEC.md`/`.spec/` content is
+  in a different language than the pinned one (e.g. the pin changed, or content was
+  authored before a pin existed), translate it to match — iteratively/chunked for a
+  large spec (track progress in `STATE.md`) — leaving it in **one coherent
+  language**. Never rewrite a past timestamp while translating (append-only holds).
 - **Keep language-neutral tokens verbatim:** code, identifiers, file paths,
   commands, URLs, ISO-8601 timestamps, and established technical terms (gloss in
   parentheses if it helps). Never "translate" code or probe scripts.
-- **A declared project-language constraint overrides the default** — e.g. an
-  open-source project may fix English for its global audience; record it as a
-  constraint in `SPEC.md` and follow it. *(This repo declares English.)*
+- **The human can repin explicitly** ("write the spec in Japanese from now on") —
+  that updates the constraint and triggers the translate-on-mismatch step above.
 
 ## Non-negotiable principles
 

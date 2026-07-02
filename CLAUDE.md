@@ -15,13 +15,15 @@ it.
 
 ## Output language (highest-priority rule)
 
-`/spec` and `/build` write their reports and the spec in the **human's own
-language** (Arabic in ⇒ Arabic out; 中文 in ⇒ 中文 out). On a language mismatch with
-an existing spec they translate it proactively (chunked if large). Code,
-identifiers, paths, URLs, and ISO-8601 timestamps stay verbatim. A declared
-project-language constraint overrides — **this repo declares English** as its
-artifact language (global open-source audience), so its `SPEC.md`/`.spec/` stay in
-English.
+The artifact language is a **pinned, one-time choice**: on first persist, `/spec`
+asks **once** which language to write reports and `SPEC.md` in (default: the
+human's current language; offers English/中文/日本語/… or other), records it as a
+**declared constraint in `SPEC.md`** ("Artifact language: … — pinned <date>"), and
+**never asks again** — later runs (and `/build`) just read the pin, regardless of
+what language the human types in that session. On a mismatch with existing content
+it translates proactively (chunked if large). Code, identifiers, paths, URLs, and
+ISO-8601 timestamps stay verbatim. **This repo's pin: English** (global
+open-source audience) — see `SPEC.md`'s header.
 
 ## About this repository
 
