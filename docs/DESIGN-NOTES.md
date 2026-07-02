@@ -818,10 +818,16 @@ PowerShell,而非传统 `cmd.exe`**。用户最初的原话是"Windows cmd/Linux
 Windows 一节收敛为这一条命令;`install.ps1` 头部用法说明同步为"经 `powershell.exe` 从任意 shell
 调用"为主、"已在 PowerShell 提示符下则可直接 `irm|iex`"为辅。
 
-### 4. 诚实边界(延续)
+### 4. 诚实边界(延续)→ 已由用户真机验证闭环
 本沙箱依旧没有 Windows 环境,也尝试过安装 PowerShell(GitHub Release 制品被环境代理拦截、
-apt/snap 均不可用)——**`install.ps1` 同样是审阅而非实测**,已用括号/引号配平等静态检查降低风险,
+apt/snap 均不可用)——**`install.ps1` 当时是审阅而非实测**,已用括号/引号配平等静态检查降低风险,
 但覆盖限度如实标注,并请用户在真机复核这次修正。
+
+**用户随即在真实 Windows 机器上跑了文档里给出的那一条 `powershell.exe -Command "irm|iex"` 命令,
+干净成功**:四个目标文件(`skills/spec/`、`skills/build/`、`commands/spec.md`、`commands/build.md`)
+全部装到位,无报错、无残留。至此,"审阅但未实测"这条覆盖缺口**由真实证据补齐**——这正是探针纪律
+里"诚实标注覆盖边界,而非假装已验证"这条原则该有的收尾:先如实说清楚没测过,拿到真实证据后再
+如实更新状态,而不是从一开始就含糊其辞、也不是拿到证据后假装"早就测过"。
 
 ---
 
@@ -876,7 +882,7 @@ apt/snap 均不可用)——**`install.ps1` 同样是审阅而非实测**,已用
 | D-43 | **Rule 0(最优先)——产物语种**:初版为"跟随人类当前输入语种";代码/路径/URL/时间戳原样、不一致主动翻译 | 用户 | 16 |
 | D-44 | **语种改为"问一次、钉进 SPEC.md、永不再问"**(默认=当前输入语种,给主流语言选项);`/build` 只读钉、绝不自问;老项目从既有文档语种静默反推钉住 | 用户修正 D-43 | 17 |
 | D-45 | **一句话跨平台安装**(初版):`scripts/install.sh`(bash,已端到端实测)+ `scripts/install.cmd`(cmd.exe,已审阅未实机测);只装 `.claude/skills/{spec,build}` + `.claude/commands/{spec,build}.md`,绝不碰 CLAUDE.md/SPEC.md/.spec/;重装幂等——**被 D-46 部分取代(cmd.exe 路径废弃)** | 用户要求 | 18 |
-| D-46 | **Windows 路径改为纯 PowerShell**:真实用户反馈 cmd.exe 命令贴进 PowerShell 直接报错(根因=现代 Windows 默认 shell 通常是 PowerShell,而非 cmd.exe);删除 `install.cmd`,改用 `scripts/install.ps1`(`irm|iex` 范式,PS 5.1+ 内置能力零依赖);安装指示统一为 `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "..."`,可从任意 shell 调用,**从根上消除"用户搞不清自己在哪个 shell"的问题**,而非仅在文档里提醒 | 用户真实报错 + 用户拍板 | 19 |
+| D-46 | **Windows 路径改为纯 PowerShell**:真实用户反馈 cmd.exe 命令贴进 PowerShell 直接报错(根因=现代 Windows 默认 shell 通常是 PowerShell,而非 cmd.exe);删除 `install.cmd`,改用 `scripts/install.ps1`(`irm|iex` 范式,PS 5.1+ 内置能力零依赖);安装指示统一为 `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "..."`,可从任意 shell 调用,**从根上消除"用户搞不清自己在哪个 shell"的问题**,而非仅在文档里提醒——**用户随后在真实 Windows 上跑通,四个目标文件全部装到位,无报错**(见第 19 轮第 4 节) | 用户真实报错 + 用户拍板 | 19 |
 
 ### 产物落地映射(v1)
 - `.claude/skills/spec/SKILL.md` —— D-01,03,04,05,06,12,13,18,19,20,27,28 (主协议)
