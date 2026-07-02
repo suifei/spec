@@ -168,6 +168,8 @@ scripts/install.ps1                    # one-line installer (Windows, run via po
 scripts/install.sh                     # one-line installer (Linux/macOS/WSL/Git Bash)
 CLAUDE.md                              # declares SPEC.md the supreme, read-first reference
 docs/DESIGN-NOTES.md                   # full design rationale: discussion rounds + decision log
+docs/USER-GUIDE.zh-CN.md               # usage manual (Chinese): when to use it, scenarios, strategy, philosophy
+docs/RESEARCH-REPORT.zh-CN.md          # research report (Chinese): background, pain points, decision context
 
 # this repo dogfoods itself — produced by a real /spec run:
 SPEC.md                                # the spec (the /spec → /build pipeline)
@@ -181,4 +183,9 @@ SPEC.md                                # the spec (the /spec → /build pipeline
 
 `docs/DESIGN-NOTES.md` records the whole design conversation — from "port OpenSpec"
 to this expert-analyst, resumable, single-command Gate 1 — plus a consolidated
-decision log.
+decision log. `docs/RESEARCH-REPORT.zh-CN.md` is a structured Chinese-language
+synthesis of that conversation (background, pain points, decision context) for
+readers who want the thinking without the round-by-round log. `docs/USER-GUIDE.zh-CN.md`
+is a Chinese-language usage manual — when to reach for `/spec` vs `/build`, worked
+scenarios (real and illustrative, clearly labeled), strategy, anti-patterns, and
+the engineering philosophy behind the design.
