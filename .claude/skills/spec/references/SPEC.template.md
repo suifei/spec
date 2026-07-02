@@ -5,13 +5,14 @@ Keep every section (write "None yet" if empty). Stay at contract-surface altitud
 anti-patterns) — never implementation detail. Phases are a ledger: emergent, append-only, sealed phases
 are read-only. All dates/timestamps are real OS time in UTC (never guessed) — they
 let a reader tell new from old; judge staleness by context, not a fixed rule.
-Write this file in the HUMAN'S language (Rule 0); a declared project-language
-constraint overrides. Code/identifiers/paths/URLs/timestamps stay verbatim.
+Write this file in the pinned **Artifact language** below (Rule 0) — ask the human
+ONCE, on first persist, then never again; record the pin here and just follow it on
+every later run. Code/identifiers/paths/URLs/timestamps stay verbatim.
 -->
 
 # <Project Name> — Specification
 
-> **Version:** v<N> · **Updated:** <YYYY-MM-DD>
+> **Version:** v<N> · **Updated:** <YYYY-MM-DD> · **Artifact language:** <English | 中文 | 日本語 | … — pinned <YYYY-MM-DD>, asked once>
 > **Closure:** <Phase 1 ✅ sealed (gates green) · Phase 2 ⏳ open>
 >
 > Authoritative, highest-priority reference. Maintained by `/spec`. Gates are

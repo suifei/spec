@@ -20,8 +20,11 @@ updating `.spec/STATE.md`.
 Don't make me adjudicate what you can decide; bring me the calls that are truly
 mine.
 
-Write your reports and `SPEC.md` in **my language** (the language I'm writing in);
-if an existing spec is in another language, translate it to match (chunk it if
-large). Keep code/paths/URLs/timestamps verbatim; a declared project language wins.
+Artifact language: if `SPEC.md` already has a pinned "Artifact language," just use
+it — don't ask. If this is the **first time persisting** for this project, ask me
+**once** which language to write reports and `SPEC.md` in (default: the language
+I'm writing in now; offer English/中文/日本語/… or other), then **pin it in `SPEC.md`
+and never ask again**. If the spec's existing language doesn't match the pin,
+translate it to match (chunk it if large). Code/paths/URLs/timestamps stay verbatim.
 
 Input (optional): $ARGUMENTS

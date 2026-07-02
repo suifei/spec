@@ -1,6 +1,6 @@
 # /spec → /build — Specification (this repo)
 
-> **Version:** v1 · **Updated:** 2026-06-30
+> **Version:** v1 · **Updated:** 2026-06-30 · **Artifact language:** English — pinned 2026-06-30 (declared: global open-source audience; not re-asked)
 > **Closure:** Phase 1 (`/spec`, Gate 1) ✅ sealed · Phase 2 (`/build`, Gate 1.5) ⏳ open (spec settled, not yet built)
 >
 > Authoritative, highest-priority reference for this repo. Maintained by `/spec`.

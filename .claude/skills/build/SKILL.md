@@ -22,10 +22,12 @@ Authoritative spec for `/build`'s own behavior: this repo's `SPEC.md` §2/§4
 (Phase 2) and `.spec/knowledge/build-loop.md`. The rules below conform to it.
 
 ## Rule 0 — Output language (highest priority)
-Write every report, plan, and summary in the **human's own language** (the language
-they write in) — same rule as `/spec`. Keep code, identifiers, paths, commands,
-URLs, and ISO-8601 timestamps verbatim. A declared project-language constraint in
-`SPEC.md` overrides. *(This repo declares English.)*
+Write every report, plan, and summary in `SPEC.md`'s **pinned artifact language**
+(the "Artifact language:" constraint `/spec` records on first persist) — never ask
+this yourself; `/build` only reads the pin. Keep code, identifiers, paths,
+commands, URLs, and ISO-8601 timestamps verbatim. If `SPEC.md` has no pin yet
+(pre-Rule-0 project), infer it from the document's language and proceed — don't
+block construction on it. *(This repo's pin: English.)*
 
 ## Non-negotiable principles
 
