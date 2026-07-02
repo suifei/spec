@@ -49,7 +49,7 @@ curl -fsSL https://raw.githubusercontent.com/suifei/spec/main/scripts/install.sh
 **Windows `cmd.exe`** (cmd has no `curl | bash` equivalent, so it's fetch-then-run,
 chained on one line):
 ```cmd
-curl -fsSL -o "%TEMP%\spec-install.cmd" https://raw.githubusercontent.com/suifei/spec/main/scripts/install.cmd && call "%TEMP%\spec-install.cmd" && del "%TEMP%\spec-install.cmd"
+curl -fsSL -o "%TEMP%\spec-install.cmd" https://raw.githubusercontent.com/suifei/spec/main/scripts/install.cmd ; call "%TEMP%\spec-install.cmd" ; del "%TEMP%\spec-install.cmd"
 ```
 
 Either uses `git` if present, else `curl` + `tar` (both ship with modern Windows and
