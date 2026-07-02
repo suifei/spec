@@ -780,6 +780,51 @@ propose-then-apply(用户 "a")。产物落到**仓库自身 `SPEC.md` + `.spec/`
 
 ---
 
+## 第 19 轮 · 2026-07-02 — 真实用户反馈:`cmd.exe` 一句话装进了 PowerShell,直接报错
+
+用户在真实 Windows 机器上执行了第 18 轮给出的 `cmd.exe` 一句话安装命令,**贴到了 PowerShell 里**,
+完整报错回执如下:`&&` 被判定为"不是本版本合法的语句分隔符"、`curl -fsSL` 报"找不到参数 fsSL"
+(说明 `curl` 被 PowerShell 的 `Invoke-WebRequest` 别名接管)、`call` 不是可识别命令、`%TEMP%` 没有
+被展开(被当成字面路径)。这组特征**精确指向 PowerShell**,而非 `cmd.exe`——这正是我此前诚实标注
+"cmd.cmd 只经审阅、未在真机验证"这一覆盖缺口暴露出的真实问题:**没验证的不只是脚本本身的语法,
+还有"用户实际所在的 shell 是否等于我假设的 shell"这个更基本的前提。**
+
+### 1. 根因判断:名词判断偏了("Windows" ≠ "cmd.exe")
+现代 Windows 开发者的默认终端(Windows Terminal、VS Code 内置终端等)**绝大多数场景下都是
+PowerShell,而非传统 `cmd.exe`**。用户最初的原话是"Windows cmd/Linux bash",但真实触达用户的
+"Windows"这一类目,其**实际所指**更多是 PowerShell。这是又一次"先定义名词、再谈动词"式的教训:
+之前只按用户的字面措辞("cmd")去实现,没有反问"用户真正会用哪个 shell"。
+
+### 2. 修正:新增原生 PowerShell 安装器,而非仅仅"写清楚说明"
+没有满足于"在文档里加一句提示区分 shell"这种表面修补,而是补上**真正原生的 PowerShell 安装器**
+`scripts/install.ps1`,用业界该场景的标准范式 `irm <url> | iex`(Scoop、rustup 等装机脚本同款
+写法):
+- 全程只用 PowerShell 5.1+ 内置能力(`Invoke-WebRequest` + `Expand-Archive`),`git` 不可用时
+  **零外部依赖**回退,不像 `cmd.exe` 版本依赖 `tar.exe`。
+- 有意**不设**全局 `$ErrorActionPreference = 'Stop'`,因为 `git clone` 的常规进度信息走 stderr,
+  若与该设置叠加容易把"正常进度输出"误判成终止性错误(PowerShell 已知的老坑)——改用 `*>` 这种
+  纯流重定向操作符处理 `git`,只对真正的 PowerShell cmdlet(`Invoke-WebRequest`/`Expand-Archive`/
+  `Copy-Item`)显式加 `-ErrorAction Stop`。
+### 3. 用户当场追加指令:干脆不要 cmd 批处理了
+用户看到修正方向后,直接给出更彻底的定案:**Windows 一律用 PowerShell 写 `.ps1`,不要再维护
+`cmd.exe` 批处理**;安装指示应该是**用 `powershell.exe` 去执行这个 `.ps1`**——而不是要求用户先
+自行判断"我现在是不是在 PowerShell 里"。
+
+这个方案**从根上解决了本轮问题**,而不只是"文档里提醒一下":`powershell -NoProfile
+-ExecutionPolicy Bypass -Command "irm <url> | iex"` 这条命令本身**显式调用 `powershell.exe`
+可执行文件**,不管使用者当前贴到 `cmd.exe`、PowerShell、"运行"对话框还是某个 `.bat` 文件里,
+它都会正确进入 PowerShell 执行——**彻底消除了"用户搞不清自己在哪个 shell 里"这一类问题的存在
+条件**,比"给两条命令、让用户自己选对"更根本。落地:删除 `scripts/install.cmd`;`README.md`
+Windows 一节收敛为这一条命令;`install.ps1` 头部用法说明同步为"经 `powershell.exe` 从任意 shell
+调用"为主、"已在 PowerShell 提示符下则可直接 `irm|iex`"为辅。
+
+### 4. 诚实边界(延续)
+本沙箱依旧没有 Windows 环境,也尝试过安装 PowerShell(GitHub Release 制品被环境代理拦截、
+apt/snap 均不可用)——**`install.ps1` 同样是审阅而非实测**,已用括号/引号配平等静态检查降低风险,
+但覆盖限度如实标注,并请用户在真机复核这次修正。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。
@@ -830,7 +875,8 @@ propose-then-apply(用户 "a")。产物落到**仓库自身 `SPEC.md` + `.spec/`
 | D-42 | **仓库自举**:本仓库自身 `SPEC.md` + `.spec/`(真跑 `/spec` 产出)规定 `/spec → /build` 流水线(Phase 1 /spec 封存、Phase 2 /build 已建) | dogfood | 15 |
 | D-43 | **Rule 0(最优先)——产物语种**:初版为"跟随人类当前输入语种";代码/路径/URL/时间戳原样、不一致主动翻译 | 用户 | 16 |
 | D-44 | **语种改为"问一次、钉进 SPEC.md、永不再问"**(默认=当前输入语种,给主流语言选项);`/build` 只读钉、绝不自问;老项目从既有文档语种静默反推钉住 | 用户修正 D-43 | 17 |
-| D-45 | **一句话跨平台安装**:`scripts/install.sh`(bash,已端到端实测)+ `scripts/install.cmd`(cmd.exe,已审阅未实机测);只装 `.claude/skills/{spec,build}` + `.claude/commands/{spec,build}.md`,绝不碰 CLAUDE.md/SPEC.md/.spec/;重装幂等 | 用户要求 | 18 |
+| D-45 | **一句话跨平台安装**(初版):`scripts/install.sh`(bash,已端到端实测)+ `scripts/install.cmd`(cmd.exe,已审阅未实机测);只装 `.claude/skills/{spec,build}` + `.claude/commands/{spec,build}.md`,绝不碰 CLAUDE.md/SPEC.md/.spec/;重装幂等——**被 D-46 部分取代(cmd.exe 路径废弃)** | 用户要求 | 18 |
+| D-46 | **Windows 路径改为纯 PowerShell**:真实用户反馈 cmd.exe 命令贴进 PowerShell 直接报错(根因=现代 Windows 默认 shell 通常是 PowerShell,而非 cmd.exe);删除 `install.cmd`,改用 `scripts/install.ps1`(`irm|iex` 范式,PS 5.1+ 内置能力零依赖);安装指示统一为 `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "..."`,可从任意 shell 调用,**从根上消除"用户搞不清自己在哪个 shell"的问题**,而非仅在文档里提醒 | 用户真实报错 + 用户拍板 | 19 |
 
 ### 产物落地映射(v1)
 - `.claude/skills/spec/SKILL.md` —— D-01,03,04,05,06,12,13,18,19,20,27,28 (主协议)
@@ -869,7 +915,12 @@ propose-then-apply(用户 "a")。产物落到**仓库自身 `SPEC.md` + `.spec/`
 - `.gitignore` —— 忽略 `.spec/plan/`(临时计划不入库)
 
 ### 产物落地映射(v6 · 第 18 轮)
-- `scripts/install.sh` / `scripts/install.cmd` —— D-45:跨平台一句话安装(只装四项、幂等重装)
+- `scripts/install.sh` —— D-45:跨平台一句话安装(只装四项、幂等重装)
 - `README.md` —— 新增 "## Install" 段 + 修正 "## Files" 树状图缩进、补 `scripts/` 条目
+
+### 产物落地映射(v7 · 第 19 轮)
+- `scripts/install.ps1` —— D-46:纯 PowerShell 安装器,取代 `scripts/install.cmd`(已删除)
+- `README.md` —— Install 段收敛为 `powershell.exe -Command "irm|iex"`(Windows,任意 shell 可调用)
+  + `curl|bash`(Linux/macOS/WSL);Files 树同步
 
 *设计文档结束。实现见 `.claude/skills/spec/` 与 `.claude/skills/build/`。*
