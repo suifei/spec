@@ -13,6 +13,16 @@ treat `SPEC.md` as intent and run `/spec` to reconcile. Do not silently contradi
 it.
 <!-- END SPEC-AUTHORITY -->
 
+## Output language (highest-priority rule)
+
+`/spec` and `/build` write their reports and the spec in the **human's own
+language** (Arabic in ⇒ Arabic out; 中文 in ⇒ 中文 out). On a language mismatch with
+an existing spec they translate it proactively (chunked if large). Code,
+identifiers, paths, URLs, and ISO-8601 timestamps stay verbatim. A declared
+project-language constraint overrides — **this repo declares English** as its
+artifact language (global open-source audience), so its `SPEC.md`/`.spec/` stay in
+English.
+
 ## About this repository
 
 This repo provides the **`/spec`** command — **Gate 1** of an AI-assisted
