@@ -753,6 +753,33 @@ propose-then-apply(用户 "a")。产物落到**仓库自身 `SPEC.md` + `.spec/`
 
 ---
 
+## 第 18 轮 · 2026-07-02 — 一句话安装:跨平台一行命令装进项目
+
+用户要求:用户到 Windows cmd 或 Linux bash 中,**一句话**就能把这套 skill 直接装进任意项目。
+
+### 1. 先定义名词:装的到底是什么
+延续"先定义名词、再谈动词"的纪律:在写安装脚本前先确认——**技能真正需要的是什么**。答案很窄:
+只有 `.claude/skills/spec/`、`.claude/skills/build/`、`.claude/commands/spec.md`、
+`.claude/commands/build.md` 这四样。**`CLAUDE.md`/`SPEC.md`/`.spec/` 不属于"要安装的东西"**——
+它们是目标项目自己的产物,由 `/spec` 首次运行时自动生成,安装器绝不能碰它们。
+
+### 2. 落地
+- `scripts/install.sh`(bash,覆盖 Linux/macOS/WSL/Git Bash):优先 `git clone --depth 1`(对代理/
+  重定向最稳),失败则退回 `curl` + `tar --strip-components=1` 拉取仓库 tarball;只拷贝上述四项到
+  目标目录(默认当前目录,可传参覆盖);**重装前先删旧的 skill 子目录**,保证幂等升级、不留旧文件。
+  **已针对真实仓库端到端跑通**(git clone 成功,拷贝结果与本地源逐字节一致;重装验证了幂等清理)。
+- `scripts/install.cmd`(Windows `cmd.exe` 批处理):同样逻辑。踩过一个经典批处理坑并修正——
+  在一个多行 `( ... )` 括号块内用 `%ERRORLEVEL%` 检查,其展开发生在**解析时**而非逐行执行时,
+  会读到进入该块**之前**的旧值;改用 `命令 || goto :label` 结构(`||`/`&&` 在执行时求值,不受此坑
+  影响)彻底规避。**本沙箱没有 Windows,无法真机跑 cmd.exe**——已逐行审阅确认语义正确,但诚实标注
+  这是"审阅而非实测",与探针纪律里"诚实标注覆盖边界"的一贯做法一致。
+- `README.md` 新增 "## Install" 段,给出两条一句话命令(Linux/macOS/WSL/Git Bash 用
+  `curl | bash`;`cmd.exe` 没有管道执行等价物,用"先下载到临时文件、执行、删除"的链式一行命令),
+  并顺手修正了 "## Files" 树状图里一处早先的缩进错误(`build/SKILL.md` 曾被误挂在 `skills/spec/`
+  下)、补上 `scripts/` 条目。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。
@@ -803,6 +830,7 @@ propose-then-apply(用户 "a")。产物落到**仓库自身 `SPEC.md` + `.spec/`
 | D-42 | **仓库自举**:本仓库自身 `SPEC.md` + `.spec/`(真跑 `/spec` 产出)规定 `/spec → /build` 流水线(Phase 1 /spec 封存、Phase 2 /build 已建) | dogfood | 15 |
 | D-43 | **Rule 0(最优先)——产物语种**:初版为"跟随人类当前输入语种";代码/路径/URL/时间戳原样、不一致主动翻译 | 用户 | 16 |
 | D-44 | **语种改为"问一次、钉进 SPEC.md、永不再问"**(默认=当前输入语种,给主流语言选项);`/build` 只读钉、绝不自问;老项目从既有文档语种静默反推钉住 | 用户修正 D-43 | 17 |
+| D-45 | **一句话跨平台安装**:`scripts/install.sh`(bash,已端到端实测)+ `scripts/install.cmd`(cmd.exe,已审阅未实机测);只装 `.claude/skills/{spec,build}` + `.claude/commands/{spec,build}.md`,绝不碰 CLAUDE.md/SPEC.md/.spec/;重装幂等 | 用户要求 | 18 |
 
 ### 产物落地映射(v1)
 - `.claude/skills/spec/SKILL.md` —— D-01,03,04,05,06,12,13,18,19,20,27,28 (主协议)
@@ -839,5 +867,9 @@ propose-then-apply(用户 "a")。产物落到**仓库自身 `SPEC.md` + `.spec/`
 - `SPEC.md` + `.spec/`(仓库根)—— 第 15 轮 D-40/41/42:**真跑 `/spec` 自举**,规定 `/spec → /build` 流水线(G1 研究 / G2 done-by-gate 探针 / D6 人选 autonomy)
 - `.claude/skills/build/SKILL.md` + `.claude/commands/build.md` —— 第 15 轮 D-41:按封存的 SPEC 实现 `/build`(临时计划、门收口、冲突回 `/spec`)
 - `.gitignore` —— 忽略 `.spec/plan/`(临时计划不入库)
+
+### 产物落地映射(v6 · 第 18 轮)
+- `scripts/install.sh` / `scripts/install.cmd` —— D-45:跨平台一句话安装(只装四项、幂等重装)
+- `README.md` —— 新增 "## Install" 段 + 修正 "## Files" 树状图缩进、补 `scripts/` 条目
 
 *设计文档结束。实现见 `.claude/skills/spec/` 与 `.claude/skills/build/`。*
