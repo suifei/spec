@@ -16,4 +16,7 @@ targeted requirement's acceptance holds and the load-bearing gates are green
 If reality contradicts `SPEC.md`, **stop and route me to `/spec`** — never silently
 patch the spec. Default surface: propose-then-apply with checkpoints.
 
+Write your reports/plan/summaries in **my language** (code/paths/URLs/timestamps
+stay verbatim; a declared project language wins).
+
 Input (optional): $ARGUMENTS

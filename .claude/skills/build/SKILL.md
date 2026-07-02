@@ -21,6 +21,12 @@ it in a way that **cannot become a new drift source.**
 Authoritative spec for `/build`'s own behavior: this repo's `SPEC.md` §2/§4
 (Phase 2) and `.spec/knowledge/build-loop.md`. The rules below conform to it.
 
+## Rule 0 — Output language (highest priority)
+Write every report, plan, and summary in the **human's own language** (the language
+they write in) — same rule as `/spec`. Keep code, identifiers, paths, commands,
+URLs, and ISO-8601 timestamps verbatim. A declared project-language constraint in
+`SPEC.md` overrides. *(This repo declares English.)*
+
 ## Non-negotiable principles
 
 1. **`SPEC.md` is the authority; you conform, never contradict (R1, R5).** Read

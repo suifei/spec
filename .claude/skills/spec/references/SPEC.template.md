@@ -5,6 +5,8 @@ Keep every section (write "None yet" if empty). Stay at contract-surface altitud
 anti-patterns) — never implementation detail. Phases are a ledger: emergent, append-only, sealed phases
 are read-only. All dates/timestamps are real OS time in UTC (never guessed) — they
 let a reader tell new from old; judge staleness by context, not a fixed rule.
+Write this file in the HUMAN'S language (Rule 0); a declared project-language
+constraint overrides. Code/identifiers/paths/URLs/timestamps stay verbatim.
 -->
 
 # <Project Name> — Specification

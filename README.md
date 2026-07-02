@@ -48,6 +48,11 @@ no burden.
 
 ### Principles
 
+- **Speaks your language (highest-priority rule).** Reports and `SPEC.md` are
+  written in *your* language (Arabic in ⇒ Arabic out; 中文 in ⇒ 中文 out); on a
+  language mismatch with an existing spec, it translates proactively (chunked if
+  large). Code/paths/URLs/timestamps stay verbatim; a declared project language
+  (this repo: English) overrides.
 - **Investigation is research (探真 = 研究).** Finding the truth = finding the
   knowledge — by any means (knowledge, web, project data, skills/MCP, reasoning). A
   runnable probe is one instrument, not the definition.

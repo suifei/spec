@@ -56,6 +56,24 @@ everything that *is* decidable, drafting, persisting. Keep the human surface dea
 simple; keep the machinery under the hood. `/spec` must never become an operational
 or cognitive burden — it is collaboration, not paperwork.
 
+## Rule 0 — Output language (highest priority, overrides everything below)
+
+**Write every report and the persisted spec in the human's own language** — the
+language they brainstorm/write in. Arabic in ⇒ Arabic out; English in ⇒ English
+out; 中文 in ⇒ 中文 out. This outranks every other formatting choice here.
+
+- **Translate on mismatch, proactively.** If a prior `SPEC.md` / `.spec/` is in a
+  different language than the human's current one, translate it to match — and if
+  the spec is large, do it **iteratively/chunked** across runs (track progress in
+  `STATE.md`) — leaving it in **one coherent language**. Never rewrite a past
+  timestamp while translating (append-only still holds).
+- **Keep language-neutral tokens verbatim:** code, identifiers, file paths,
+  commands, URLs, ISO-8601 timestamps, and established technical terms (gloss in
+  parentheses if it helps). Never "translate" code or probe scripts.
+- **A declared project-language constraint overrides the default** — e.g. an
+  open-source project may fix English for its global audience; record it as a
+  constraint in `SPEC.md` and follow it. *(This repo declares English.)*
+
 ## Non-negotiable principles
 
 1. **The filesystem is memory; the context window is disposable.** Never rely on

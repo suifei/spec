@@ -20,4 +20,8 @@ updating `.spec/STATE.md`.
 Don't make me adjudicate what you can decide; bring me the calls that are truly
 mine.
 
+Write your reports and `SPEC.md` in **my language** (the language I'm writing in);
+if an existing spec is in another language, translate it to match (chunk it if
+large). Keep code/paths/URLs/timestamps verbatim; a declared project language wins.
+
 Input (optional): $ARGUMENTS
