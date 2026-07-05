@@ -62,7 +62,7 @@ Then open Claude Code in that directory and run `/spec`.
 
 ```
 /spec ─▶ rehydrate (.spec/STATE.md)         # know exactly where it left off
-      ─▶ INVESTIGATE (= research): cache → your material → project data → knowledge → web → skills/MCP → reason → probe
+      ─▶ INVESTIGATE (= research): cache → your material → project data → knowledge → web (+ optional /deep-research for a contested, load-bearing question) → skills/MCP → reason → probe
       ─▶ resolve what you can; register the reasoning (Decision Log)
       ─▶ report findings + closure status (ready vs not-yet-thought-through)
       ─▶ ask only the genuine forks (or a better option found) — low-burden, calibrated

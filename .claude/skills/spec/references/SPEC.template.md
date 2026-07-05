@@ -50,7 +50,7 @@ writable dir, a tool on PATH) — they are not gates. Status ∈ {unverified,
 - **Source / Invariant:** <…>  · **Evidence:** `.spec/probes/G1.sh` (+ neg-control)
 - **Evidence (raw):** `GPU: <name>, <mem> · bogus index rejected`
 - **Status:** ✅ verified — 2026-06-29, devbox
-- (Non-scriptable gates — e.g. "legal approved" — mark **WEAK (non-probed)** with a named source, not a fake probe.)
+- (Non-scriptable gates — e.g. "legal approved" — mark **WEAK (non-probed)** with a named source, not a fake probe; this applies the same whether the source came from ordinary search or a `/deep-research` sweep — still WEAK, not a new tier.)
 
 ## 4. Requirements
 Numbered, verifiable. Use SHALL/MUST. Tag `[locked]` (evidence-backed) or `[provisional→Phase N]`.
