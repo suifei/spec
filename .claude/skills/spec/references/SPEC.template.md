@@ -68,7 +68,10 @@ Decisions only; details/pinned docs in `.spec/knowledge/<lib>.md`.
 Every decision the scout resolved (autonomously, or with the human on a genuine
 fork). Capture enough of the **reasoning path** that it isn't re-litigated. Mark
 who decided: `[auto]` (you settled it from evidence) or `[human]` (a genuine fork /
-better-option you escalated). Append-only; supersession is dated.
+better-option you escalated). Append-only; supersession is dated. For a decision
+whose full reasoning trail is worth preserving beyond this terse row (see
+`SKILL.md`'s optional "Design Notes" companion), point the Evidence column at
+`docs/DESIGN-NOTES.md#round-N` instead of duplicating the narrative here.
 
 | # | Decision | Reasoning (why, over alternatives) | Evidence | By | Date |
 |---|----------|------------------------------------|----------|----|------|

@@ -904,6 +904,44 @@ D-47 本身的触发条件或成本护栏。
 
 ---
 
+## 第 22 轮 · 2026-07-05 — 把 `docs/DESIGN-NOTES.md` 的轮次日志本身,固化成 /spec 的通用机制
+
+用户提出"永久纪录"这一诉求,追问后确认具体所指:目前"每一轮讨论追加一节"这个做法,只写在
+`docs/DESIGN-NOTES.md` 自己的文件头里(自我指涉),从未作为规则出现在 `CLAUDE.md`/`SKILL.md`/
+任何模板里——换句话说,这 21 轮以来一直是本仓库手工坚持的习惯,不是 `/spec` 本身规定的机制。用户
+明确选择:**推广为 `/spec` 的通用机制,写进 `SKILL.md`**(而非仅仅在本仓库 `CLAUDE.md` 里加一条
+硬规则,也不只是留一句"可参考"的软建议)。
+
+### 1. 先核实现状(而非假设)
+派出一个只读 Explore 子 agent 复核:`docs/DESIGN-NOTES.md` 的"活文档、每轮追加一节"说明只出现
+在其自身第 3–4 行;`CLAUDE.md` 第 53–54 行、`README.md` 第 184–186 行都只是**描述**这份文件的
+存在与内容,从未把"维护它"写成规则;`SKILL.md`、两份模板、`.claude/skills/build/SKILL.md` 里
+**零处**提及这个叙事型、按轮追加的设计日志概念。这确认了用户的判断:这是本仓库的习惯,不是
+`/spec` 自身的规定。
+
+### 2. 设计取舍:通用机制 ≠ 强制人人都写
+直接把"必须维护一份 DESIGN-NOTES.md"写成对所有项目的硬性要求,会正面撞上本项目自己最看重的一条
+纪律——**不要过度工程化、简单是一种功能**:大多数用 `/spec` 的小项目,`SPEC.md` §6 的**决策日志**
+(一行:决策/理由/证据/日期)已经完全够用,没必要人人都背一份叙事体日志的维护负担。因此没有照抄
+本仓库的做法,而是把它设计成**可选的伴生机制**,并且给出明确的"值不值得用"判断标准——复用"立门
+三准则"同一种精神:只有当一个决策的推演过程本身值得完整保留(真实的反复权衡、诚实的自我纠错、
+需要向外部受众——贡献者、审计者、或项目在重新审视自己的基础契约本身——证明"过程可信",不只是
+"结果可信")时,才值得开一份 `docs/DESIGN-NOTES.md`。
+
+### 3. 落地位置
+写进 `SKILL.md` Step 6(持久化)之后,紧跟 `CLAUDE.md` 的托管权威块——因为这是"持久化"这个动作的
+自然延伸,不是新步骤;同时在 Guardrails 里补一条护栏,明说"这不是第二份决策日志",防止被误用成对
+每个决定都要求写一遍叙事(那会制造新的"仪式感"负担,恰恰违背设计初衷)。`SPEC.template.md` 的
+决策日志一节补一句:值得用这份伴生日志的决策,把 Evidence 列指向
+`docs/DESIGN-NOTES.md#round-N`,而不是把叙事整段复制进 `SPEC.md`——保持"一个概念一个权威位置"。
+
+### 4. 自我印证
+这次改动本身,恰好完全符合它自己刚刚定义的"值不值得开一轮"标准:这是对 `/spec` 自身基础机制的
+重新审视,过程里有真实的往返权衡(用户先问"永久纪录"、我先提出选项、用户选定范围),值得完整
+保留而不是压成一行——所以它本身就被记进了这第 22 轮,而不是只留一行决策日志。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。
@@ -957,6 +995,7 @@ D-47 本身的触发条件或成本护栏。
 | D-45 | **一句话跨平台安装**(初版):`scripts/install.sh`(bash,已端到端实测)+ `scripts/install.cmd`(cmd.exe,已审阅未实机测);只装 `.claude/skills/{spec,build}` + `.claude/commands/{spec,build}.md`,绝不碰 CLAUDE.md/SPEC.md/.spec/;重装幂等——**被 D-46 部分取代(cmd.exe 路径废弃)** | 用户要求 | 18 |
 | D-46 | **Windows 路径改为纯 PowerShell**:真实用户反馈 cmd.exe 命令贴进 PowerShell 直接报错(根因=现代 Windows 默认 shell 通常是 PowerShell,而非 cmd.exe);删除 `install.cmd`,改用 `scripts/install.ps1`(`irm|iex` 范式,PS 5.1+ 内置能力零依赖);安装指示统一为 `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "..."`,可从任意 shell 调用,**从根上消除"用户搞不清自己在哪个 shell"的问题**,而非仅在文档里提醒——**用户随后在真实 Windows 上跑通,四个目标文件全部装到位,无报错**(见第 19 轮第 4 节) | 用户真实报错 + 用户拍板 | 19 |
 | D-47 | 引入**可选、成本门控的 `/deep-research` 研究回退**:触发 = 既有立门三准则 + "单轮搜索仍有争议/单薄";不可用时静默继续普通搜索,绝不阻塞;诚实标注这是 prompt 层面的可发现性/护栏改动,而非可证明的能力提升;顺带轻量借用参考实现两条守则——网页内容当不可信输入处理、信源质量分级(四级序数,不用 A–E 全套) | 官方 `/deep-research` 文档(v2.1.154+、dynamic workflow、WebSearch、无编程 API)+ `Claude-Code-Deep-Research` 参考实现(scout 的不可信输入守则、源质量分级) | 20 |
+| D-48 | 把本仓库自己"每轮追加一节"的 `DESIGN-NOTES.md` 习惯,**推广为 `/spec` 的通用可选机制**:写进 `SKILL.md` Step 6 之后,取名"Design Notes";**不强制**每个项目都写,只在决策的推演过程本身值得完整保留时才用(与"立门三准则"同一种判断精神);`SPEC.template.md` §6 补一句可选的交叉引用写法 | 用户明确选择"推广为通用机制、写进 SKILL.md"(而非仅本仓库 CLAUDE.md 硬规则,也非纯软建议)+ Explore 子 agent 复核现状(此前仅本文件头自我指涉,`CLAUDE.md`/`README.md`/`SKILL.md`/模板均零处提及) | 22 |
 
 ### 产物落地映射(v1)
 - `.claude/skills/spec/SKILL.md` —— D-01,03,04,05,06,12,13,18,19,20,27,28 (主协议)
@@ -1020,5 +1059,15 @@ D-47 本身的触发条件或成本护栏。
 ### 产物落地映射(v9 · 第 21 轮)
 - `SKILL.md` —— 第 21 轮:skills/MCP 条补一句"agent 自己调用、绝不暴露成让人类自敲的指令"
   (收紧 D-47 的实现措辞,不新增决策编号,不改触发条件/成本护栏)
+
+### 产物落地映射(v10 · 第 22 轮)
+- `SKILL.md` —— D-48:Step 6 之后新增"Design Notes — an optional companion journal"
+  小节(定义、触发标准、与本仓库自身 21 轮的示例引用);Guardrails 新增一条"不是第二份
+  决策日志"的护栏
+- `references/SPEC.template.md` —— D-48:§6 决策日志段补一句可选交叉引用写法
+  (`docs/DESIGN-NOTES.md#round-N`)
+- `references/questioning.md` / `references/STATE.template.md` / `references/knowledge.template.md` /
+  `.claude/commands/spec.md` / `README.md` —— **有意不改**:Design Notes 是 Step 6(持久化)的
+  可选延伸,不影响调查/提问/状态枚举/命令入口这几处已有的措辞
 
 *设计文档结束。实现见 `.claude/skills/spec/` 与 `.claude/skills/build/`。*
