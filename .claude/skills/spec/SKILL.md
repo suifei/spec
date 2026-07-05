@@ -238,13 +238,17 @@ through. A runnable probe (Step 5) is one of these avenues, not the whole of it.
   load-bearing claim; weight evidence by source quality and recency, and cite
   what you used.
 - **Use available skills / MCP** when they can surface a fact faster or
-  firsthand — including Claude Code's built-in `/deep-research <question>`
-  workflow (if available in this environment) for a load-bearing, uncertain,
-  consequential question (see "What earns a gate") that a single web-search pass
-  leaves contested or thinly sourced. It costs more tokens/time than an ordinary
-  search, so reserve it for genuinely gate-worthy questions, not routine
-  lookups; if it isn't available here, just continue with ordinary web search —
-  never block the run on it.
+  firsthand — including invoking Claude Code's built-in `/deep-research
+  <question>` workflow **yourself** (if available in this environment) for a
+  load-bearing, uncertain, consequential question (see "What earns a gate")
+  that a single web-search pass leaves contested or thinly sourced. This is
+  internal machinery **you** reach for as part of your own research — exactly
+  like delegating a read to a sub-agent — **never** surface it to the human as
+  something they should type or run themselves; they only see its findings
+  folded into your Step 2 report, same as any other research. It costs more
+  tokens/time than an ordinary search, so reserve it for genuinely gate-worthy
+  questions, not routine lookups; if it isn't available here, just continue
+  with ordinary web search — never block the run on it.
 - **Reason and verify** — derive the answer; do the calculation; cross-check
   sources. Most questions resolve here without bothering the human.
 - **Probe reality** when the truth is environment-/behavior-specific *and*
