@@ -110,6 +110,17 @@ exercise), that is itself a spec conflict — Step 6, so `/spec` sharpens the
 acceptance; never substitute your own judgment as "evidence". Capture
 fresh evidence to `.spec/evidence/` (real UTC time).
 
+**A load-bearing acceptance with no red-able *method* is an incomplete gate, not
+an assumed pass.** If the acceptance is prose with no `.spec/probes/<R>.sh` to
+re-run and isn't marked `OPEN`/`WEAK`, do **not** close it by reading the source
+and eyeballing it — that is exactly how written-but-unreached code and
+silently-skipped behaviors slip through green. Route to Step 6 so `/spec` authors
+the method. Verify **behavioral / user-visible acceptance by driving the actual
+running flow end-to-end** (the `verify` discipline — e.g. Playwright against the
+running app, observed at the real entrypoint), never by inspecting components in
+isolation; and "the build succeeded / all tests pass" is a floor, never evidence
+that a specific listed behavior works.
+
 ### Step 5 — Checkpoint: approve & commit
 Show the diff + the green gate results. On approval, commit the **code** (never the
 ephemeral plan). Update the `## build` section of `.spec/STATE.md` (built /

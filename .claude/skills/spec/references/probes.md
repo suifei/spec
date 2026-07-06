@@ -49,6 +49,53 @@ suite is **vacuous** — it stays green even when the behavior is wrong. So:
   question / a later phase). "Can't write a real test" ⇒ "not closed", never
   "close it with a fake test."
 
+## Every load-bearing acceptance needs a *method*, not just a description
+
+Recording **what** to accept ("the status shows a warning color above 70%")
+without recording **how** it is verified leaves a hole: a downstream builder
+faced with prose and no runnable check falls back to *reading the source and
+eyeballing it* — which passes code that is written-but-never-reached, or a listed
+behavior that was silently skipped. So a load-bearing requirement's **acceptance
+is itself a gate**: `/spec` must resolve it into exactly one of three states —
+never leave it as prose alone:
+
+1. **Probed** — a red-able check in `.spec/probes/<R>.sh` with a negative control.
+2. **OPEN** — no red-able check is constructible yet ⇒ the requirement stays
+   unclosed (an open question / a later phase), *visibly*. Never a silent pass.
+3. **WEAK** — genuinely un-scriptable (a quality/subjective judgment) ⇒ a cited
+   finding or a named human/LLM-judge sign-off, marked WEAK — honest, not a fake
+   probe.
+
+**Prose acceptance with no method is an incomplete requirement**, the same defect
+as a gate with no evidence. Prove it by construction: if you cannot describe the
+red for this acceptance, it is state 2 or 3, not a quiet green.
+
+## Match the method to what the acceptance observes — at the *real* entrypoint
+
+The modality is **derivable from the acceptance's nature** (decide it silently,
+register `[auto]`; you already investigate the project, so you know its harness):
+
+- **User-visible / interaction behavior** (a UI element, a status, a click flow)
+  ⇒ **drive the actually-running product end-to-end** (e.g. Playwright against the
+  running app) and assert what the *user* observes — **not** a component rendered
+  in isolation or the source read by eye. Rendering `<X/>` in a unit test proves
+  nothing about whether `<X/>` is mounted on the screen you actually use.
+- **A pure function / module contract** ⇒ a unit probe asserting input→output.
+- **A service / API / cross-process contract** ⇒ an integration probe hitting the
+  real endpoint or seam.
+- **A quality/subjective bar** ("is the payoff satisfying") ⇒ WEAK (above).
+
+**The negative control must break the *wiring/reachability*, not only the logic.**
+The failure that hides is "present but never reached": delete the mount / the
+route / the call site and the probe must go **red**. If only corrupting the
+internal logic turns it red, the probe is blind to orphaned features — rewrite it
+to observe from the real entrypoint.
+
+**"Build succeeds" and "all tests pass" are not acceptances.** They stay green
+while a listed behavior is unimplemented (that is exactly how a missing behavior
+slips through). Each behavior in the acceptance list earns its own red-able check;
+a green build is a floor, never evidence that behavior *B* works.
+
 ## Every probe must
 
 1. Be a standalone script: `set -euo pipefail`; **exit 0 = pass, non-zero = fail**.
