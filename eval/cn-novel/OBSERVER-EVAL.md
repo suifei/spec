@@ -76,3 +76,20 @@ now-named canon gate actually catches drift as the manuscript grows.
   `SIMULATION.md`. Fixed in `/spec` Step 6 + `/build` Step 4 + a coherence invariant; `_coherence.sh` is the
   reference check. Regression after fixes: novella G1/G2 and cn-novel G-canon/G-conservation/coherence all
   green; every negative-control self-test still red+green.
+
+## Phase C — construction at scale (ch001–ch011, ongoing toward 30)
+
+`/build` constructed 11 original chapters with the **full** gate set live and gate-checked each batch:
+canon / conservation / foreshadow-payoff / main-thread / coherence — all green. Observed:
+- **Consistency held over a growing manuscript**, and the machinery works incrementally: 境界 monotone
+  淬体1→通脉2, star-force conserved chapter by chapter, foreshadow **F1** planted ch4 and paid off ch9
+  on deadline, **F2** correctly "pending" (due ch14).
+- **Scale stress test (the point):** ch11 was seeded with two *realistic* long-serial slips — 陆微's eye
+  colour written as her brother's (人设/设定矛盾) and 卫恒 mistyped as 卫衡 (姓名漂移). `G-canon` caught
+  **both** automatically (RED, line-by-line), then green after the fix. This is exactly the cross-chapter
+  drift ("人物/姓名/属性在多章间是否一致") that no read-through reliably catches.
+- **No new skill defect surfaced** in this increment — `/build`'s gate-check discipline and the canon
+  gate family (D-56) functioned as intended at scale.
+
+Honest scope: building **incrementally** toward 30 (11 done) — quality prose + a live gate set over a
+growing manuscript is the real test; the remaining chapters continue the same gated loop.
