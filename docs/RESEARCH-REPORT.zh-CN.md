@@ -429,6 +429,16 @@ pinned 2026-06-30(declared: global open-source audience; not re-asked)`。
 "真跑测试"(目前尚无案例证明其在真实项目上端到端可靠执行),以及持续观察"临时计划"哲学在更
 大规模项目上是否依然成立。
 
+> **补记(2026-07-06,截至第 27 轮 · D-53):** 本报告是截至第 17 轮(D-44)的点位综述,写定后
+> 管线又向前走了几轮,其中最大的一件是新增了**第三个核心指令 `/yolo`**(D-52,第 26 轮)——它
+> 不是新的 Gate,而是 `/build` 的"油门":自主到绿模式 + 自我终结的循环,靠打出固定句式
+> `/loop 1m …`(`CronCreate`)每分钟续跑、逐轮 code-review、建完/冲突/卡死时 `CronDelete` 自删。
+> 随后第 27 轮(D-53)据真机实测把 `/yolo` 收敛为"薄发射器"(先真把 `/loop` 打出去、别解释),
+> 并核对了 `CronCreate→CronList→CronDelete` 全链路。上文"对 `/build` 端到端真跑测试"的空白因此
+> 由 `/yolo` 的实测部分补上。这些较新的决策(D-45 起,含 Windows 纯 PowerShell 安装、`/deep-research`
+> 回退、两轮设计评审修复、`/yolo`)不在本综述正文范围内,以 `docs/DESIGN-NOTES.md` 的完整决策
+> 日志为准。
+
 ---
 
 ## 附录 A:核心概念速查
@@ -466,4 +476,5 @@ pinned 2026-06-30(declared: global open-source audience; not re-asked)`。
 ---
 
 *本报告基于 `docs/DESIGN-NOTES.md`(17 轮讨论、决策 D-01 至 D-44,截至 2026-06-30)综合整理,
-撰写于 2026-07-02(真实 OS 时间,UTC)。原始逐轮讨论记录与完整决策日志请参阅该文件。*
+撰写于 2026-07-02(真实 OS 时间,UTC)。第 18–27 轮(D-45 至 D-53,含第三个核心指令 `/yolo`)
+的进展见第十二章末尾的「补记」与 `DESIGN-NOTES.md` 的完整决策日志。原始逐轮讨论记录请参阅该文件。*
