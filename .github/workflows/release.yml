@@ -21,7 +21,7 @@ jobs:
           TAG="${{ github.ref_name }}"
           ZIP="spec-skills-${TAG}.zip"
 
-          # List exactly the 8 distributable files - no staging dir needed
+          # List exactly the 10 distributable files - no staging dir needed
           zip -r "$ZIP" \
             .claude/skills/spec/SKILL.md \
             .claude/skills/spec/references/probes.md \
@@ -30,8 +30,10 @@ jobs:
             .claude/skills/spec/references/knowledge.template.md \
             .claude/skills/spec/references/questioning.md \
             .claude/skills/build/SKILL.md \
+            .claude/skills/yolo/SKILL.md \
             .claude/commands/spec.md \
-            .claude/commands/build.md
+            .claude/commands/build.md \
+            .claude/commands/yolo.md
 
           # Verify zip contents
           echo "=== ZIP contents ==="
@@ -62,11 +64,14 @@ jobs:
             │   ├── spec/
             │   │   ├── SKILL.md
             │   │   └── references/
-            │   └── build/
+            │   ├── build/
+            │   │   └── SKILL.md
+            │   └── yolo/
             │       └── SKILL.md
             └── commands/
                 ├── spec.md
-                └── build.md
+                ├── build.md
+                └── yolo.md
             ```
 
             ### Install
