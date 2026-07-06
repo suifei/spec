@@ -1,8 +1,8 @@
 # /spec progress
 
-- **updated:** 2026-06-30T04:26Z   # real OS time, UTC
+- **updated:** 2026-07-06T02:50Z   # real OS time, UTC
 - **current_phase:** 2
-- **current_step:** 闭环   # Phase 2 (/build) spec settled; next is to build it
+- **current_step:** 闭环   # Phase 2 (/build) built + recorded; phase sealed
 - **core_problem:** define the missing Gate 1.5 — a /build skill that constructs code from the authoritative SPEC.md without re-introducing drift (ephemeral plan; gate-closed)
 
 ## done
@@ -12,13 +12,18 @@
 - 2026-06-30 — Decisions D1–D5 [auto] (authority/ephemeral-plan/done-by-gates/single-command/code-not-spec); D6 [human] autonomy = propose-then-apply (user "a")
 
 ## pending
-- **Build `/build`** per this SPEC (Phase 2 construction): `.claude/skills/build/` + command wrapper
-- Q2 — exact ephemeral-plan home/format ⤳ deferred→build (gitignored scratch likely)
+- (none blocking — Phase 2 built and recorded)
+- Q2 — exact ephemeral-plan home/format ⤳ resolved at build time: `.spec/plan/` gitignored scratch
 
 ## next_action
-Construct the `/build` skill per SPEC.md §2/§4: read SPEC.md+.spec → ephemeral
-plan → construct → close on acceptance + green gates; propose-then-apply
-checkpoints; conflicts route to /spec. Then verify against R1–R5 + G2.
+Phase 2 sealed. Future work opens a new superseding phase per the usual closure flow.
+
+## build
+<!-- owned by /build; /spec preserves this section verbatim when rewriting -->
+- built: 2026-06-30 — `/build` skill (`.claude/skills/build/SKILL.md` + `.claude/commands/build.md`) per R1–R5; G2 probe green (2026-06-30T04:26Z, vm)
+- remaining: none
+- next: —
+- conflict: none
 
 # Freshness note: Spec Kit/Kiro facts captured 2026-06-30 from their docs; this is
 # a fast-moving space — re-verify at build time. G2 probe green as-of 2026-06-30T04:26Z.

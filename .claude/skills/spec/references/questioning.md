@@ -11,10 +11,17 @@ machinery (ambient cards, dismiss tracking, topology tables) belongs in `/spec`.
 **Never ask the human what you could find out or decide yourself.** Before any
 question, complete the investigation (SKILL.md Step 1) — investigation is research:
 check the `.spec/knowledge/` cache, read what they pointed at, mine the project's
-own data, search your knowledge and the web, use skills/MCP, reason it through, and
-probe reality where a load-bearing truth can be exercised. Then **resolve what you
-can and register the reasoning + conclusion** in `SPEC.md` — most questions end
-here, with no human decision.
+own data, search your knowledge and the web, use skills/MCP (including the
+optional `/deep-research` fallback for a contested, load-bearing question — see
+SKILL.md Step 1), reason it through, and probe reality where a load-bearing truth
+can be exercised. Then **resolve what you can and register the reasoning +
+conclusion** in `SPEC.md` — most questions end here, with no human decision.
+
+This rule has an executable anchor: the sources you consulted and the conclusions
+you drew must already be in `.spec/investigation.log` (SKILL.md Step 1) **before**
+a question reaches the human. A question with no logged trail behind it is, by
+definition, a question you haven't earned yet; and if the human asks "why are you
+asking me this," the answer comes from that log, not from improvisation.
 
 Bring a question to the human in **only two cases**:
 

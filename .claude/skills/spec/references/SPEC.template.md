@@ -38,19 +38,21 @@ List **only load-bearing** gates — a truth a real decision *hinges* on
 backed by the strongest evidence: a probe that can go red, or (when unscriptable) a
 cited source marked WEAK. **Do not list commonsense facts** (a free port, a
 writable dir, a tool on PATH) — they are not gates. Status ∈ {unverified,
-✅ verified, ❌ failed/refuted, ⤳ deferred→Phase N}.
+✅ verified, ❌ failed/refuted, ⤳ deferred→Phase N}; a non-probed cited gate is
+annotated `✅ verified (research / WEAK)` — it satisfies closure as WEAK, not as
+probe-passing.
 
 | Gate | Concern (decision it gates) | Authoritative source | Invariant | Evidence | Last run (when/where) | Status |
 |------|-----------------------------|----------------------|-----------|----------|-----------------------|--------|
-| G1 | <assumption the design rests on, e.g. on-device inference> | <`nvidia-smi` / CUDA present> | <inference runs on device> | `.spec/probes/G1.sh` | <2026-06-29 / devbox> | ✅ verified |
+| G1 | <assumption the design rests on, e.g. on-device inference> | <`nvidia-smi` / CUDA present> | <inference runs on device> | `.spec/probes/G1.sh` | <YYYY-MM-DD / host> | <unverified until a probe actually ran> |
 
 ### Gate detail (one block per gate)
 #### G1 — <title>
 - **Decision it gates:** <what we'd build differently if this were false>
 - **Source / Invariant:** <…>  · **Evidence:** `.spec/probes/G1.sh` (+ neg-control)
 - **Evidence (raw):** `GPU: <name>, <mem> · bogus index rejected`
-- **Status:** ✅ verified — 2026-06-29, devbox
-- (Non-scriptable gates — e.g. "legal approved" — mark **WEAK (non-probed)** with a named source, not a fake probe.)
+- **Status:** <✅ verified — YYYY-MM-DD, host — only after the probe actually ran>
+- (Non-scriptable gates — e.g. "legal approved" — mark **WEAK (non-probed)** with a named source, not a fake probe; this applies the same whether the source came from ordinary search or a `/deep-research` sweep — still WEAK, not a new tier.)
 
 ## 4. Requirements
 Numbered, verifiable. Use SHALL/MUST. Tag `[locked]` (evidence-backed) or `[provisional→Phase N]`.
@@ -68,7 +70,12 @@ Decisions only; details/pinned docs in `.spec/knowledge/<lib>.md`.
 Every decision the scout resolved (autonomously, or with the human on a genuine
 fork). Capture enough of the **reasoning path** that it isn't re-litigated. Mark
 who decided: `[auto]` (you settled it from evidence) or `[human]` (a genuine fork /
-better-option you escalated). Append-only; supersession is dated.
+better-option you escalated). Append-only; supersession is dated. For a decision
+whose full reasoning trail is worth preserving beyond this terse row (see
+`SKILL.md`'s optional "Design Notes" companion), point the Evidence column at the
+round's actual heading anchor in `docs/DESIGN-NOTES.md` (e.g. `#round-N` for an
+English-language journal — match whatever the journal's real headings slugify to)
+instead of duplicating the narrative here.
 
 | # | Decision | Reasoning (why, over alternatives) | Evidence | By | Date |
 |---|----------|------------------------------------|----------|----|------|

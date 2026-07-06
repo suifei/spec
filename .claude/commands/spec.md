@@ -8,9 +8,11 @@ Invoke the `spec` skill.
 First **rehydrate** from `.spec/STATE.md` (+ `SPEC.md`, `.spec/knowledge/`) and tell
 me where things stand. Then **investigate first** — investigation is research: read
 what I point at, check the knowledge cache, mine the project's own data, search your
-knowledge and the web, use skills/MCP, reason it through, and probe reality where a
-**load-bearing** truth can be exercised (delegate heavy reads to a sub-agent and
-keep only the summary). **Resolve everything you can yourself and register the
+knowledge and the web, use skills/MCP (including the optional `/deep-research`
+fallback for a contested, load-bearing question, when available), reason it
+through, and probe reality where a **load-bearing** truth can be exercised
+(delegate heavy reads to a sub-agent and keep only the summary). **Resolve
+everything you can yourself and register the
 reasoning + conclusion in the Decision Log.** Present your findings, then ask me
 **only** about a genuine fork evidence can't settle, or a better option than I
 proposed. Back load-bearing gates with real evidence (no probes for commonsense
