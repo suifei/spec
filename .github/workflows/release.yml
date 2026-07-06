@@ -4,12 +4,6 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
-    inputs:
-      tag_name:
-        description: 'Release tag (e.g. v2026-07-06)'
-        required: false
-        default: 'v2026-07-06'
 
 jobs:
   package-and-release:
@@ -20,65 +14,49 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set tag name
-        id: tag
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            TAG="${{ github.event.inputs.tag_name }}"
-          else
-            TAG="${{ github.ref_name }}"
-          fi
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-
-      - name: Create tag if missing (workflow_dispatch)
-        run: |
-          TAG="${{ steps.tag.outputs.tag }}"
-          if ! git tag -l | grep -q "^${TAG}$"; then
-            git config user.name "flynn"
-            git config user.email "suifei@gmail.com"
-            git tag "$TAG"
-            git push origin "$TAG"
-          fi
 
       - name: Package skills
         id: package
         run: |
-          STAGE="$RUNNER_TEMP/stage"
-          mkdir -p "$STAGE/.claude/skills/spec"
-          mkdir -p "$STAGE/.claude/skills/build"
-          mkdir -p "$STAGE/.claude/commands"
+          TAG="${{ github.ref_name }}"
+          ZIP="spec-skills-${TAG}.zip"
 
-          # Copy only the distributable files — nothing else
-          cp -r .claude/skills/spec/*   "$STAGE/.claude/skills/spec/"
-          cp -r .claude/skills/build/*  "$STAGE/.claude/skills/build/"
-          cp   .claude/commands/spec.md  "$STAGE/.claude/commands/spec.md"
-          cp   .claude/commands/build.md "$STAGE/.claude/commands/build.md"
+          # List exactly the 8 distributable files - no staging dir needed
+          zip -r "$ZIP" \
+            .claude/skills/spec/SKILL.md \
+            .claude/skills/spec/references/probes.md \
+            .claude/skills/spec/references/SPEC.template.md \
+            .claude/skills/spec/references/STATE.template.md \
+            .claude/skills/spec/references/knowledge.template.md \
+            .claude/skills/spec/references/questioning.md \
+            .claude/skills/build/SKILL.md \
+            .claude/commands/spec.md \
+            .claude/commands/build.md
 
-          ZIP="spec-skills-${{ steps.tag.outputs.tag }}.zip"
-          (cd "$STAGE" && zip -r "../$ZIP" .)
+          # Verify zip contents
+          echo "=== ZIP contents ==="
+          unzip -l "$ZIP"
+          echo "=== END ==="
+
           echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
-      - name: Create Release from Tag
+      - name: Create Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="${{ steps.tag.outputs.tag }}"
+          TAG="${{ steps.package.outputs.tag }}"
           ZIP="${{ steps.package.outputs.zip }}"
 
           gh release create "$TAG" \
             --title "Skills ${TAG}" \
-            --notes "## /spec + /build Skills Package
+            --notes '## /spec + /build Skills Package
 
-            Extract this zip into your project root — it installs the
-            \`.claude/skills/\` and \`.claude/commands/\` files that Claude Code
-            needs for the \`/spec\` and \`/build\` commands.
+            Extract this zip into your project root.
 
             ### Contents
 
-            \`\`\`
+            ```
             .claude/
             ├── skills/
             │   ├── spec/
@@ -89,21 +67,19 @@ jobs:
             └── commands/
                 ├── spec.md
                 └── build.md
-            \`\`\`
+            ```
 
-            ### Quick Install
+            ### Install
 
             **PowerShell**
-            \`\`\`powershell
-            iwr -UseBasicParsing https://github.com/suifei/spec/releases/download/${TAG}/spec-skills-${TAG}.zip -OutFile skills.zip
+            ```powershell
             Expand-Archive -Path skills.zip -DestinationPath . -Force
-            \`\`\`
+            ```
 
             **Bash**
-            \`\`\`bash
-            curl -fsLO https://github.com/suifei/spec/releases/download/${TAG}/spec-skills-${TAG}.zip
+            ```bash
             unzip -o skills.zip
-            \`\`\`
+            ```
 
-            Then open Claude Code in your project and run \`/spec\` to start." \
+            Then run `/spec` in Claude Code.' \
             "$ZIP"
