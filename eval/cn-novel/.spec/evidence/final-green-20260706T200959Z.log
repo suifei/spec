@@ -1,0 +1,23 @@
+== probe G-canon: manuscript honors canon ==
+when: 2026-07-06T20:10:00Z
+where: vm / Linux 6.18.5 x86_64
+----
+----
+RESULT: GREEN — no canon contradiction
+
+== probe G-conservation (R7): star-force accounting conserved ==
+when: 2026-07-06T20:10:00Z
+where: vm / Linux 6.18.5 x86_64
+----
+----
+RESULT: GREEN — 账目守恒
+
+== meta-probe: spec <-> probe coherence ==
+when: 2026-07-06T20:10:00Z
+----
+  OK   locked req -> G-canon.sh exists
+  wait locked req -> G2-foreshadow.sh missing but marked deferred/Phase
+  wait locked req -> G3-mainthread.sh missing but marked deferred/Phase
+  OK   locked req -> G-conservation.sh exists
+----
+RESULT: GREEN — every locked requirement is gated (or deferred); no orphan gates

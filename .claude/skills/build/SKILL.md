@@ -127,6 +127,16 @@ running app, observed at the real entrypoint), never by inspecting components in
 isolation; and "the build succeeded / all tests pass" is a floor, never evidence
 that a specific listed behavior works.
 
+**Green from a stale gate set is not done — check spec↔probe coherence first.**
+`SPEC.md` can move (a change request, a new phase) while `.spec/probes/` lags. Before
+trusting a green board, confirm the set still matches the spec: every `[locked]`
+requirement whose Method is Probed has an existing `.spec/probes/<R>.sh`, and no
+probe you re-ran belongs to a **superseded** requirement. A `[locked]` requirement
+whose probe is **missing or older than the requirement's last change** is an
+**incomplete/stale gate → route to `/spec`** (Step 6) to author or replace it —
+never declare done on a run that never tested the new requirement. Passing a
+dead requirement's lingering probe counts for nothing.
+
 ### Step 5 — Checkpoint: approve & commit
 Show the diff + the green gate results. On approval, commit the **code** (never the
 ephemeral plan). Update the `## build` section of `.spec/STATE.md` (built /

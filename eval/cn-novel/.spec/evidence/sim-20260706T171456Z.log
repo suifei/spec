@@ -1,0 +1,30 @@
+[A] committed gate set with R7 added but no R7 probe:
+### coherence (detects the hole):
+== meta-probe: spec <-> probe coherence ==
+when: 2026-07-06T17:14:56Z
+----
+  OK   locked req -> G-canon.sh exists
+  wait locked req -> G2-foreshadow.sh missing but marked deferred/Phase
+  wait locked req -> G3-mainthread.sh missing but marked deferred/Phase
+  RED  locked req -> G-conservation.sh MISSING, not deferred — requirement is UNGATED
+----
+RESULT: RED — gate set OUT OF SYNC with the spec
+coherence_exit=1
+
+### G-canon (the stale set /build re-runs):
+----
+----
+RESULT: GREEN — no canon contradiction
+gcanon_exit=0
+
+[B] after authoring R7's probe (G-conservation):
+### G-conservation (catches ch003's 数值崩坏):
+  RED ch3: 陆沉 升级 cost=200 无等额扣减 (账目不平)
+----
+RESULT: RED — 数值崩坏 (R7 violated)
+gcons_exit=1
+
+### coherence (R7 now gated):
+----
+RESULT: GREEN — every locked requirement is gated (or deferred); no orphan gates
+coherence_exit=0

@@ -127,6 +127,39 @@ dot and a not-yet-due one reports "pending". Losing the ledger is how a
 1000-chapter payoff silently evaporates: the check must carry the obligation
 across the whole span, not just the chapter it was planted in.
 
+## Canon: consistency over a *growing* corpus (a gate family in its own right)
+
+Most gates ask "is this truth true?" at design time. A different, load-bearing
+class asks **"does each new addition contradict what was already established?"** —
+and it is the defining gate of anything that grows over time: a serial novel (a
+character's name, eye colour, power rank, relationships), a wiki or knowledge base,
+a multi-release system's public contracts, even a long spec. The characteristic
+failure is a **quiet contradiction** buried 50 chapters (or 50 commits) after the
+fact it breaks — invisible to any local read, exactly like an orphaned feature is
+invisible to a unit test.
+
+Gate it the same way you gate reachability: **instrument, then check against a
+ledger.**
+- Keep a **canon ledger** (a "story bible" / a facts-of-record file): each
+  established fact = an entry (`subject`, `attribute`, `value`, `established-at`),
+  plus which attributes are **immutable** (eye colour) vs **monotone** (a power
+  rank only rises) vs **free**.
+- Tag each addition (`<!-- CANON:name=… attr=… val=… -->`) and run a
+  **contradiction probe**: an immutable attribute that changed, a monotone one that
+  went backwards, or an identifier absent from the glossary → **red**. Its negative
+  control is a synthetic contradiction (flip an eye colour, drop a rank) that must
+  go red.
+This catches the whole family — 人设崩塌 / 数值崩坏 / 姓名漂移 / 设定前后矛盾 — that no
+"reads fine" pass will. Without the ledger the gate collapses to "trust the author's
+memory across 100 chapters", which is how long works rot.
+
+**Consistency is checkable even when *quality* is not.** Don't fold everything
+subjective into one WEAK bucket. "Is the prose good / the character compelling / the
+twist earned" is genuinely WEAK. But *consistency* of the same material — a single
+POV person, one tense, terminology drawn from the glossary, a rank that never
+regresses — is a **red-able sub-gate**. Split them: probe the consistency half, mark
+only the taste half WEAK.
+
 ## Every probe must
 
 1. Be a standalone script: `set -euo pipefail`; **exit 0 = pass, non-zero = fail**.
