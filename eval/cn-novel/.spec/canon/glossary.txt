@@ -4,11 +4,15 @@
 陆微
 卫恒
 顾昭
+# people (arc 2)
+沈砚
 # places / factions
 青兰星
 人类星盟
 猎户旋臂
 蚀族
+幽戍星
+蚀影
 # system / power
 星枢系统
 星潮
