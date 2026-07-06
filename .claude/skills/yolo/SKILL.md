@@ -48,53 +48,75 @@ never ask; code/paths/URLs/timestamps verbatim.
 
 ## The loop
 
-### Setup (first invocation)
-1. Rehydrate exactly as `/build` Step 0 (CLAUDE.md → SPEC.md, `## build` section,
-   knowledge, gates, worktree). If `SPEC.md` is missing or has open blocking
-   questions, stop — nothing to run a loop against; send the human to `/spec`.
-2. State the target set (every buildable `[locked]` requirement, or what the
-   human scoped in the arguments) and announce the loop contract: what will run,
-   when it will stop by itself.
-3. **Schedule the loop** — prefer the environment's native scheduler: invoke
-   Claude Code's `/loop` (which creates a Cron task via CronCreate) with an
-   interval around one minute and a prompt equivalent to:
-   > continue `/build` in autonomous mode; when no buildable work remains,
-   > delete this loop task; code-review each round and fix verified findings
-   Record the returned task id in the `## build` section (so a resumed session
-   can find and manage it). If no scheduler is available in this environment,
-   run the same tick cycle **inline** until a stop condition — same behavior,
-   no cron.
+### Setup — fire the loop first, don't explain it
+The whole value of `/yolo` is that it *starts a real recurring loop*. So firing
+that loop is the first substantive action — a mechanical step, not something to
+deliberate or narrate. Do these in order, as actual tool calls:
 
-### Each tick
-1. Rehydrate from `## build`; reconcile the worktree (interrupted-tick residue is
-   handled exactly as `/build` Step 0 prescribes).
-2. If buildable targets remain: run the `/build` cycle **autonomous-to-green**
-   (plan → construct → re-run gates + acceptance), skipping the propose/commit
-   pauses — `/yolo`'s invocation is the standing approval. Commit the code on
-   green, exactly as `/build` Step 5 (never the plan).
-3. **Code-review the tick's diff** (the environment's `/code-review` when
-   available, else a self-review pass at the same bar: hunt real defects, verify
-   before acting). Fix the verified findings; re-run gates if the fixes touched
-   anything gated; commit.
-4. Update `## build` (built / remaining / next / loop-task id) with a real UTC
-   timestamp — every tick, even a no-op one.
+1. **Rehydrate** exactly as `/build` Step 0 (CLAUDE.md → SPEC.md, `## build`,
+   knowledge, gates, worktree). Stop before scheduling anything if: `SPEC.md` is
+   missing or has open blocking questions (→ send the human to `/spec`); or no
+   buildable `[locked]` work exists (say so — nothing to loop); or `## build`
+   (cross-check `CronList`) already shows a live loop (**one loop at a time** —
+   report the existing one, don't start a second).
+2. **Fire the loop — the fixed move.** Invoke the `loop` skill with args
+   `1m <the loop prompt below>` (equivalently, call `CronCreate` with cron
+   `*/1 * * * *` and that prompt). The prompt is **fixed and self-contained**:
+   each firing is a fresh turn whose only memory is the filesystem, so it must
+   carry the whole tick contract itself, not a reference to this document:
+   > **`/build` — continue construction autonomously to green.** Do NOT pause at
+   > `/build`'s propose/commit checkpoints (this loop is the standing approval).
+   > Each firing: (1) rehydrate from `.spec/STATE.md` `## build`; (2) if
+   > buildable `[locked]` work remains, run the `/build` cycle to green — plan →
+   > construct → re-run gates + acceptance — and commit the code on green (never
+   > the plan); (3) code-review this round's diff (invoke `/code-review` if it
+   > exists, else self-review at the same bar) and fix the verified findings,
+   > re-running gates if a fix touched anything gated; (4) checkpoint `## build`
+   > with a real UTC timestamp; then **end the turn** so the schedule fires the
+   > next round. When no buildable `[locked]` work remains — or on a spec
+   > conflict, a genuine fork, or two firings that hit the same failure with no
+   > new information — do NOT build: **delete this loop** (`CronList` →
+   > `CronDelete` its id) and write the final report instead.
+3. **Record** the returned job id in `## build`, announce the contract in one or
+   two lines (what runs each minute, when it self-stops), then **end the turn.**
+   A session-only cron fires only while the REPL is idle, so the loop physically
+   cannot advance until you stop — do not hand-crank a second tick yourself.
+   *(Session caveat, state it once: the schedule lives in this Claude session
+   and dies if the session exits; keep it alive for the loop to run. It also
+   auto-expires after 7 days.)*
 
-### Termination (the part that makes /yolo trustworthy)
-Delete the loop task (CronDelete with the recorded id — or simply end, if
-running inline) and write a final report when **any** of these holds:
+**Inline fallback — only if neither the `loop` skill nor `CronCreate` exists
+here.** Then run the tick contract above back-to-back **in this same turn**, and
+never stop after one tick — inline, the turn ends only at a termination
+condition. "One tick, then silence" is exactly the failure this command exists
+to prevent.
+
+### Each firing (what the schedule runs; the same cycle, inline, on fallback)
+The loop prompt above *is* the tick — this restates it for the inline path and
+for clarity. In order: rehydrate from `## build` and reconcile the worktree
+(interrupted-tick residue handled per `/build` Step 0); if buildable targets
+remain, run `/build` **autonomous-to-green** and commit on green (never the
+plan); code-review the diff and fix verified findings, re-running gates if the
+fixes touched anything gated; checkpoint `## build` (real UTC — every tick, even
+a no-op). Then let the schedule fire the next round (inline: go straight into
+the next tick). Evaluate the termination conditions each firing.
+
+### Termination — the delete is part of "done"
+A firing that meets any condition below does **not** build: it deletes the loop
+(`CronList` → `CronDelete` its id — or just ends, if running inline) and writes
+a final report.
 - **Done:** no buildable `[locked]` work remains — every targeted requirement's
   acceptance holds and gates are green (evidence captured). Report what was
   built, the green results, and the review findings fixed along the way.
 - **Blocked on a human:** spec conflict / genuine fork / unevaluable acceptance —
   recorded in `## build`, loop deleted, handed to `/spec` or the human. Say
   plainly what's needed to resume.
-- **Stuck:** two consecutive ticks, same failure, no new information — loop
+- **Stuck:** two consecutive firings, same failure, no new information — loop
   deleted, honest stuck-report (what failed, what was tried, best hypothesis).
 - **The human says stop** — immediately, no argument.
 
-Never leave an orphaned loop running after any of these; a forgotten cron
-re-running against a finished (or wedged) repo is the one way `/yolo` can do
-harm, so the delete is part of the definition of done.
+A forgotten cron re-running against a finished (or wedged) repo is the one way
+`/yolo` can do harm, so deleting it is the definition of done — not cleanup.
 
 ## Guardrails
 - **Gate-judged done, always** — inherit `/build`'s done-condition verbatim;

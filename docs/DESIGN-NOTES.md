@@ -1106,6 +1106,42 @@ README(定位段、Install、Usage、Files 树)、CLAUDE.md(第三指令一句�
 
 ---
 
+## 第 27 轮 · 2026-07-06 — `/yolo` 实测失败:调度从未发生,一轮即止(改为"薄发射器")
+
+用户实测 `/yolo`:没有出现 `/loop 1m <prompt>`、没有 CronCreate/CronDelete 调用、没有
+code-review 效果,只跑了一轮就结束。用户的判断很准:**"必须让 AI 按流程来——直接调用固定句式
+`/loop 1m <prompt>` 激活循环,而不是跟 Claude Code 解释为什么这样做。"** 根因是 SKILL.md 把
+"发射循环"这个唯一要紧的机械动作,埋进了一堆"为什么/机制"的解释里,执行模型读完解释后并没有
+真去调度。
+
+### 真机核对(本轮先做了可验证的机械测试)
+在真实环境里加载并跑通 `CronCreate → CronList → CronDelete` 全链路(建了每分钟任务 `e18d5756`、
+列出确认、删除干净)。据此确认关键事实:①`CronCreate` 真实可调,`*/1 * * * *` 即一分钟循环,
+返回 job id 供 `CronDelete`;②任务**仅存于本会话内存**("durable 无效"、Claude 退出即失、7 天
+自动过期);③**仅在 REPL 空闲时触发**——所以"发射后必须收 turn,循环才能推进",这不是可选项。
+
+### 修复:把 `/yolo` 改成一个"薄发射器"(全部落在 SKILL.md + command,规则零改动)
+- **Setup 第一要务 = 发射循环,别解释。** 复水后若有可施工 `[locked]` 工作,**第一个实质动作**
+  就是调 `loop` skill(args `1m <固定 prompt>`)或直接 `CronCreate`(`*/1 * * * *`)。
+- **固定且自足的循环 prompt。** 每次触发都是无状态新 turn(记忆只有文件系统),所以 prompt
+  必须自带整份 tick 契约(而非引用本文档):`/build` 自主到绿 → code-review 修确证项 → 打点
+  `## build` → 收 turn;无可施工工作/冲突/连续两轮同一失败时,`CronList → CronDelete` 删本循环
+  并出终报。**循环目标直接是 `/build`**(匹配用户实测过的 `/loop 1m /build …` 句式),不再绕道
+  "重入 `/yolo`"。
+- **发射后立即收 turn。** 因 cron 仅空闲时触发,收 turn 是循环能跑的前提;明令不许自己手摇 tick。
+- **一次性会话告知**:调度仅存活于本会话、退出即失、7 天过期——写进 Setup 让人知情。
+- **内联降级收紧为"双重缺席才允许"**(`loop` skill 与 `CronCreate` 都真不存在),且同 turn 背靠背
+  连跑、绝不一轮即止。
+- code-review 明确"`/code-review` 存在就真调";Termination 明确"删循环=done 的定义,非收尾"。
+
+(放弃了上一版提交里的"循环重入 `/yolo` + 重入检查 + 大段 deferred/ToolSearch 说教"设计——那是
+本轮被用户反馈纠正掉的中间形态;设计文档记最终落地形态。)
+
+定性:这是 D-52 的**实现层修复**——`/yolo` 回归其本质:一个把固定 `/loop` 句式真正打出去的
+薄发射器,机制交给原生 `/loop`/cron。四终结条件、只改节奏不改规则等设计原样不动。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。
@@ -1164,6 +1200,7 @@ README(定位段、Install、Usage、Files 树)、CLAUDE.md(第三指令一句�
 | D-50 | **全量设计评审后的一批契约层修复**:/spec 初始化不再覆盖既有 SPEC.md + 先问语种后落盘(S1/S2);闭环判据纳入 WEAK 门、定义 blocking(S3);带延期封存不锁死施工、现实漂移亦可开 superseding 阶段(S4/S6);依赖选型走原则 3 不硬性交人(S5);SPEC 模板消除"捏造的绿门"占位(S7);**STATE 新增受管 `## build` 段**根治两 skill 争用(B1),/build 补中断对账/冲突落盘/WEAK·deferred·不可脚本化验收处理/只建 [locked]/plan 的 gitignore/完成回写台账(B2/B3/B5/B7/B8);并顺手纠正本仓库自身"Phase 2 not yet built"的活证据台账 | 用户要求"修复设计评审结果";评审 8 角度 + 两个整体审查 + 逐条 verify(CONFIRMED/PLAUSIBLE),被证伪项不修 | 24 |
 | D-51 | **第二轮评审六项修复**:SPEC.md Q2 残留补记为 decided;**规格闭环(sealed)与施工完成(built)正式分为两条轴**(模板阶段条目新增 `Construction:` 行,由 /spec 从 `## build` 段回写);journal 弃用行号引注改按步骤引用;/build Step 2 批准后先写 in-progress 标记再动工(补上第 24 轮漏掉的根因);investigation.log 补生命周期(阶段封存时可压缩已沉淀条目,尾部有界);README 文件树如实列出 investigation.log(**部分修正 D-49**:零暴露≠隐藏存在) | 第二轮 /code-review(6 项,前 2 项为第 24 轮修复自身引入) | 25 |
 | D-52 | **新增第三个核心指令 `/yolo`**:= `/build` 的 autonomous-to-green 模式(R4/D6 预留的切换)+ 自我终结循环——优先 `/loop`→CronCreate 调度(任务 id 记入 `## build`),每 tick 施工到绿 + code-review + 修确证项 + 打点;四个硬终结条件(做完/该人上/连续两轮无进展/人叫停)任一命中即 CronDelete,删循环写进 done 定义;无调度器时同逻辑内联降级;**只改节奏不改规则**(SPEC 权威、门收口、冲突回 /spec 全部继承);安装器改装 3+3,README/CLAUDE/USER-GUIDE 同步 | 用户给出 /loop 真实体验与三句话理想形态(`/spec`→`/build`→`/yolo`),指定为第三核心指令 | 26 |
+| D-53 | **`/yolo` 改为"薄发射器"**(D-52 实现层):其唯一要紧动作=真把固定 `/loop 1m <prompt>` 句式打出去,机制交给原生 `/loop`/cron,**不向 Claude Code 解释为什么**。复水后有可施工 `[locked]` 工作即**第一动作**调 `loop`(`1m <固定 prompt>`)或 `CronCreate`(`*/1 * * * *`);循环 prompt **固定自足**、目标直接是 `/build`(自主到绿 + code-review 修确证项 + 打点 `## build` + 无工作/冲突/两轮同败即 `CronList→CronDelete` 删循环出终报);**发射后即收 turn**(cron 仅空闲触发);会话内存态、退出即失、7 天过期如实告知;内联降级仅限 `loop`+`CronCreate` 双缺席且同 turn 连跑不一轮即止。真机核对 `CronCreate→CronList→CronDelete` 全链路通过。规则零改动 | 用户实测 `/yolo` 未调 CronCreate/CronDelete、无 code-review、一轮即止 + 用户明确"要固定句式激活 loop、别解释" | 27 |
 
 ### 产物落地映射(v1)
 - `.claude/skills/spec/SKILL.md` —— D-01,03,04,05,06,12,13,18,19,20,27,28 (主协议)
