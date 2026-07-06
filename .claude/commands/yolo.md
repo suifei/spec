@@ -7,22 +7,31 @@ Invoke the `yolo` skill.
 
 This is `/build`'s autonomous-to-green mode plus a self-terminating loop: my
 invoking it **is** the standing approval for the checkpoints `/build` would
-normally pause at. Rehydrate like `/build` (SPEC.md, `## build` section, gates,
-worktree) — if `## build` already records a live loop-task id, this invocation
-is a scheduled tick: run one tick and stop. Otherwise state the target set and
-schedule the loop **with real tool calls**: prefer the native scheduler —
-invoke the `loop` skill via the Skill tool (args like `1m /yolo <these same
-arguments>`, so each firing re-enters `/yolo`) or call CronCreate directly;
-note the Cron tools are often *deferred* and must be loaded with ToolSearch
-(`select:CronCreate,CronDelete,CronList`) before calling — deferred is not
-unavailable. Record the task id in `## build`, run tick #1 now, end the turn.
-Only if both the `loop` skill and the Cron tools are genuinely absent, run the
-tick cycle inline back-to-back in this turn — never stopping after one tick;
-inline, the turn ends only at a termination condition.
+normally pause at.
 
-Each tick: run `/build` to green (plan → construct → re-run gates + acceptance),
-code-review the diff (invoke the `code-review` skill when available) and fix
-verified findings, commit, checkpoint `## build` with real UTC time.
+The whole point of `/yolo` is to **start a real recurring loop**, so that is the
+first substantive move — mechanical, not narrated. Rehydrate like `/build`
+(SPEC.md, `## build`, gates, worktree); stop before scheduling only if there's
+no spec, open blocking questions, no buildable `[locked]` work, or a loop is
+already live (one loop at a time). Otherwise **fire the loop**: invoke the
+`loop` skill with args `1m <fixed prompt>` (or call `CronCreate` with cron
+`*/1 * * * *` and that prompt). The prompt is fixed and self-contained — each
+firing is a fresh, stateless turn, so it carries the whole tick contract:
+
+> `/build` — continue autonomously to green; do NOT pause at propose/commit
+> checkpoints. Each firing: rehydrate from `## build`; if buildable `[locked]`
+> work remains, drive `/build` to green (plan → construct → re-run gates +
+> acceptance) and commit on green; code-review the diff (`/code-review` if
+> present) and fix verified findings; checkpoint `## build` with real UTC time;
+> then end the turn. When no buildable work remains — or on a spec conflict /
+> genuine fork / two firings with the same failure — delete this loop
+> (`CronList` → `CronDelete`) and write the final report.
+
+Record the job id in `## build`, then **end the turn** — a session-only cron
+fires only when the REPL is idle, so the loop can't advance until you stop; do
+not hand-crank a tick yourself. Only if neither the `loop` skill nor
+`CronCreate` exists here, run that same tick cycle inline, back-to-back, never
+stopping after one tick.
 
 Terminate the loop yourself (CronDelete) the moment any of these holds: all
 buildable `[locked]` work is done with green evidence · a spec conflict / genuine
