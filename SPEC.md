@@ -1,7 +1,7 @@
 # /spec → /build — Specification (this repo)
 
 > **Version:** v1 · **Updated:** 2026-07-06 · **Artifact language:** English — pinned 2026-06-30 (declared: global open-source audience; not re-asked)
-> **Closure:** Phase 1 (`/spec`, Gate 1) ✅ sealed · Phase 2 (`/build`, Gate 1.5) ✅ built (constructed 2026-06-30; ledger recorded late, 2026-07-06)
+> **Closure:** Phase 1 (`/spec`, Gate 1) ✅ sealed · Phase 2 (`/build`, Gate 1.5) ✅ sealed (spec settled 2026-06-30) · construction ✅ built 2026-06-30 (recorded 2026-07-06)
 >
 > Authoritative, highest-priority reference for this repo. Maintained by `/spec`.
 > Load-bearing gates are backed by evidence — a runnable probe where the truth is
@@ -127,7 +127,7 @@ Status ∈ {unverified, ✅ verified, ❌ refuted, ⤳ deferred→Phase N}.
   its implementation in `.claude/skills/spec/`.
 - **Supersedes:** none.
 
-### Phase 2 — `/build` (Gate 1.5) · status: **built** (constructed 2026-06-30; recorded 2026-07-06)
+### Phase 2 — `/build` (Gate 1.5) · status: **sealed** (spec settled 2026-06-30) · construction: **✅ built 2026-06-30** (recorded 2026-07-06)
 - **Goal:** the construction skill specified above — ephemeral plan, gate-closed,
   conforms to `SPEC.md`. Built as `.claude/skills/build/SKILL.md` +
   `.claude/commands/build.md`, per R1–R5; G2 probe green (2026-06-30T04:26Z, vm).
@@ -142,7 +142,7 @@ Status ∈ {unverified, ✅ verified, ❌ refuted, ⤳ deferred→Phase N}.
 | # | Question | Status | Owner/trigger | Notes |
 |---|----------|--------|---------------|-------|
 | Q1 | Construction autonomy level? | **decided 2026-06-30** | human (D6) | propose-then-apply with checkpoints (recommended); revisable |
-| Q2 | Exact ephemeral-plan home & format (in-context vs gitignored scratch)? | deferred→build | derivable | gitignored scratch likely, for resumability; not a source of truth |
+| Q2 | Exact ephemeral-plan home & format (in-context vs gitignored scratch)? | **decided 2026-06-30** (recorded 2026-07-06) | derivable (resolved at build time) | `.spec/plan/` gitignored scratch; the ignore entry is `/build` Step 1's own duty (D-50); not a source of truth |
 
 ## 9. Glossary
 | Term | Meaning |

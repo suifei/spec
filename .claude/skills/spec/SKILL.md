@@ -280,7 +280,10 @@ through. A runnable probe (Step 5) is one of these avenues, not the whole of it.
   every question you bring to the human (Step 3) is backed by an on-disk trail
   of what you already ruled out — **if the log doesn't show the investigation,
   you're not ready to ask** — and (c) if the human asks "why are you asking me
-  this," you answer from the log, not from memory.
+  this," you answer from the log, not from memory. It's a working trail, not an
+  archive: at phase seal (Step 7), entries whose conclusions are already
+  distilled into `.spec/knowledge/` or `SPEC.md` may be compacted away, keeping
+  the tail a resumed run scans bounded.
 
 **Dependency selection (standard flow):** for any external dependency — search
 the library **and its peers**, capture **stable + latest versions + alternatives**,
