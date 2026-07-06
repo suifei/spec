@@ -32,26 +32,28 @@ jobs:
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Package skills
-        run: |
-          ZIP="spec-skills-${{ steps.tag.outputs.tag }}.zip"
-          zip -r "$ZIP" \
-            .claude/skills/spec/ \
-            .claude/skills/build/ \
-            .claude/commands/spec.md \
-            .claude/commands/build.md
-          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
         id: package
+        run: |
+          STAGE="$RUNNER_TEMP/stage"
+          mkdir -p "$STAGE"
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Copy only the distributable files — nothing else
+          cp -r .claude/skills/spec   "$STAGE/.claude/skills/spec"
+          cp -r .claude/skills/build  "$STAGE/.claude/skills/build"
+          cp   .claude/commands/spec.md  "$STAGE/.claude/commands/spec.md"
+          cp   .claude/commands/build.md "$STAGE/.claude/commands/build.md"
+
+          ZIP="spec-skills-${{ steps.tag.outputs.tag }}.zip"
+          (cd "$STAGE" && zip -r "../$ZIP" .)
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release from Tag
+        uses: softprops/action-gh-release@v2
         with:
+          files: ${{ steps.package.outputs.zip }}
           tag_name: ${{ steps.tag.outputs.tag }}
-          release_name: "Skills ${{ steps.tag.outputs.tag }}"
-          draft: false
-          prerelease: false
+          name: "Skills ${{ steps.tag.outputs.tag }}"
+          generate_release_notes: false
           body: |
             ## /spec + /build Skills Package
 
@@ -89,13 +91,3 @@ jobs:
             ```
 
             Then open Claude Code in your project and run `/spec` to start.
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.package.outputs.zip }}
-          asset_name: ${{ steps.package.outputs.zip }}
-          asset_content_type: application/zip
