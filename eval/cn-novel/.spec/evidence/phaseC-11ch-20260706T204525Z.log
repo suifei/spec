@@ -1,0 +1,12 @@
+== Phase C scale check: 11 chapters ==
+2026-07-06T20:45:26Z
+--- G-canon ---
+RESULT: GREEN — no canon contradiction
+--- G-conservation ---
+RESULT: GREEN — 账目守恒
+--- G2-foreshadow ---
+RESULT: GREEN
+--- G3-mainthread ---
+RESULT: GREEN
+--- _coherence ---
+RESULT: GREEN — every locked requirement is gated (or deferred); no orphan gates

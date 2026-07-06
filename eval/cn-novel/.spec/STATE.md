@@ -11,7 +11,11 @@
 
 ## build
 <!-- owned by /build; /spec preserves this section verbatim when rewriting -->
-- built: (未开始 —— Phase C)
-- remaining: 前 30 章,honor R1(canon)/R2(坑填)/R3(主线)/R4(文风机械项)
-- next: —
+- built: 2026-07-06 — ch001–ch011(共 11 章,原创)。全门集实例化并随写随检:
+  G-canon / G-conservation / G2-foreshadow / G3-mainthread / _coherence 全绿。
+  F1(星纹玉牌)于 ch9 按期回收;F2(卫家知情)ch5 埋、deadline14 未到 pending;境界单调
+  淬体1→通脉2、账目守恒逐章过账。**规模压力测试:** ch11 蓄意注入两处真实连载漂移(陆微瞳色
+  乌黑→墨金、卫恒误写卫衡),G-canon 逐条变红拦下,修正后复绿(证据 .spec/evidence/)。
+- remaining: ch012–ch030(向 30 章推进);F2 需在 ch14 前回收;后续境界继续单调、账目守恒。
+- next: 续写 ch012 起,每批随写随门检。
 - conflict: none
