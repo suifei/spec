@@ -1106,6 +1106,41 @@ README(定位段、Install、Usage、Files 树)、CLAUDE.md(第三指令一句�
 
 ---
 
+## 第 27 轮 · 2026-07-06 — `/yolo` 实测失败:调度从未发生,一轮即止(修复)
+
+用户实测 `/yolo`:没有出现 `/loop 1m <prompt>`、没有 CronCreate/CronDelete 调用、没有
+code-review 效果,只跑了一轮就结束。逐一归因,三个根因都在 SKILL.md 的措辞层:
+
+1. **"invoke `/loop`" 只是叙述,不是机械指令。** 真实 Claude Code 会话里,`/loop` 是一个
+   须经 Skill 工具调用的 skill,而 `CronCreate`/`CronDelete` 是 **deferred 工具**——工具表里
+   只有名字,直接调用会失败,必须先 `ToolSearch`(`select:CronCreate,CronDelete,CronList`)
+   加载 schema。执行模型看一眼可调用工具列表,找不到 CronCreate,便判定"本环境无调度器",
+   直接落入内联降级——调度从未被尝试。
+2. **内联降级没写"一轮之后不许收turn"。** 于是模型跑完一个 tick 就自然结束了回合——恰好是
+   这个指令存在的意义所要防止的"跑一轮就沉默"。
+3. **code-review 同病:**"环境的 `/code-review` 可用时用之"没有写成"经 Skill 工具真实调用",
+   一轮即止的路径上它被顺带跳过。
+
+修复(全部落在 `.claude/skills/yolo/SKILL.md` + `.claude/commands/yolo.md`,规则零改动):
+- Setup 第 3 步改写为**可执行的机械步骤**:先查 available-skills 里的 `loop` 与工具表里的
+  Cron 三件套;明示 **deferred ≠ unavailable**,先 ToolSearch 加载再调用;优先经 Skill 工具
+  调 `loop`,args 形如 `1m /yolo <本次收到的同一参数>`——**循环 prompt 必须原样重新调起
+  `/yolo`**,使每次 cron 触发都重入本 skill;记录 task id 后**立即跑第 1 个 tick 再收 turn**,
+  后续 tick 由 cron 驱动(同一时间只有一个驱动者)。
+- Setup 第 1 步新增**重入检查**:`## build` 已有活 loop-task id ⇒ 本次调用就是一次 cron tick,
+  跳过 Setup 直进 tick 流程。
+- 内联降级收紧为**双重缺席才允许**(`loop` skill 与 Cron 工具都真不存在),且明写"同一 turn
+  内背靠背连跑,**绝不在一个 tick 后收 turn**,只在终结条件命中时才结束"。
+- Each tick 新增第 5 步"收 tick":评估终结条件;有 cron 则收 turn 等下次触发,内联则直接进
+  下一 tick。
+- code-review 改为"在 available-skills 列表中时**经 Skill 工具真实调用**,不是嘴上提一句"。
+- Termination 补一句:CronDelete 若是 deferred,同样先 ToolSearch 再调。
+
+定性:这是 D-52 的**实现层修复**——补齐"能力具名"到"工具可调"之间缺失的机械一步,
+四终结条件、只改节奏不改规则等设计原样不动。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。
@@ -1164,6 +1199,7 @@ README(定位段、Install、Usage、Files 树)、CLAUDE.md(第三指令一句�
 | D-50 | **全量设计评审后的一批契约层修复**:/spec 初始化不再覆盖既有 SPEC.md + 先问语种后落盘(S1/S2);闭环判据纳入 WEAK 门、定义 blocking(S3);带延期封存不锁死施工、现实漂移亦可开 superseding 阶段(S4/S6);依赖选型走原则 3 不硬性交人(S5);SPEC 模板消除"捏造的绿门"占位(S7);**STATE 新增受管 `## build` 段**根治两 skill 争用(B1),/build 补中断对账/冲突落盘/WEAK·deferred·不可脚本化验收处理/只建 [locked]/plan 的 gitignore/完成回写台账(B2/B3/B5/B7/B8);并顺手纠正本仓库自身"Phase 2 not yet built"的活证据台账 | 用户要求"修复设计评审结果";评审 8 角度 + 两个整体审查 + 逐条 verify(CONFIRMED/PLAUSIBLE),被证伪项不修 | 24 |
 | D-51 | **第二轮评审六项修复**:SPEC.md Q2 残留补记为 decided;**规格闭环(sealed)与施工完成(built)正式分为两条轴**(模板阶段条目新增 `Construction:` 行,由 /spec 从 `## build` 段回写);journal 弃用行号引注改按步骤引用;/build Step 2 批准后先写 in-progress 标记再动工(补上第 24 轮漏掉的根因);investigation.log 补生命周期(阶段封存时可压缩已沉淀条目,尾部有界);README 文件树如实列出 investigation.log(**部分修正 D-49**:零暴露≠隐藏存在) | 第二轮 /code-review(6 项,前 2 项为第 24 轮修复自身引入) | 25 |
 | D-52 | **新增第三个核心指令 `/yolo`**:= `/build` 的 autonomous-to-green 模式(R4/D6 预留的切换)+ 自我终结循环——优先 `/loop`→CronCreate 调度(任务 id 记入 `## build`),每 tick 施工到绿 + code-review + 修确证项 + 打点;四个硬终结条件(做完/该人上/连续两轮无进展/人叫停)任一命中即 CronDelete,删循环写进 done 定义;无调度器时同逻辑内联降级;**只改节奏不改规则**(SPEC 权威、门收口、冲突回 /spec 全部继承);安装器改装 3+3,README/CLAUDE/USER-GUIDE 同步 | 用户给出 /loop 真实体验与三句话理想形态(`/spec`→`/build`→`/yolo`),指定为第三核心指令 | 26 |
+| D-53 | **`/yolo` 调度机械化修复**(D-52 实现层):调度须落为真实工具调用——先查 `loop` skill 与 Cron 工具,**deferred 工具先 ToolSearch 加载再调**(deferred ≠ unavailable);循环 prompt = 原样重调 `/yolo`,Setup 加重入检查(`## build` 有活 id ⇒ 本次即一个 tick);cron 建立后跑 tick #1 即收 turn,后续由 cron 驱动;内联降级仅限调度器**双重缺席**,且同 turn 连跑、绝不一轮即止;code-review 在可用时经 Skill 工具真实调用;CronDelete 同样先加载。规则零改动 | 用户实测:`/yolo` 未调 CronCreate/CronDelete、无 code-review、一轮即止 | 27 |
 
 ### 产物落地映射(v1)
 - `.claude/skills/spec/SKILL.md` —— D-01,03,04,05,06,12,13,18,19,20,27,28 (主协议)

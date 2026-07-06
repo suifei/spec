@@ -8,13 +8,21 @@ Invoke the `yolo` skill.
 This is `/build`'s autonomous-to-green mode plus a self-terminating loop: my
 invoking it **is** the standing approval for the checkpoints `/build` would
 normally pause at. Rehydrate like `/build` (SPEC.md, `## build` section, gates,
-worktree), state the target set, then schedule the loop — prefer the native
-scheduler (`/loop` → CronCreate, recording the task id in `## build`); if none
-exists here, run the same tick cycle inline.
+worktree) — if `## build` already records a live loop-task id, this invocation
+is a scheduled tick: run one tick and stop. Otherwise state the target set and
+schedule the loop **with real tool calls**: prefer the native scheduler —
+invoke the `loop` skill via the Skill tool (args like `1m /yolo <these same
+arguments>`, so each firing re-enters `/yolo`) or call CronCreate directly;
+note the Cron tools are often *deferred* and must be loaded with ToolSearch
+(`select:CronCreate,CronDelete,CronList`) before calling — deferred is not
+unavailable. Record the task id in `## build`, run tick #1 now, end the turn.
+Only if both the `loop` skill and the Cron tools are genuinely absent, run the
+tick cycle inline back-to-back in this turn — never stopping after one tick;
+inline, the turn ends only at a termination condition.
 
 Each tick: run `/build` to green (plan → construct → re-run gates + acceptance),
-code-review the diff and fix verified findings, commit, checkpoint `## build`
-with real UTC time.
+code-review the diff (invoke the `code-review` skill when available) and fix
+verified findings, commit, checkpoint `## build` with real UTC time.
 
 Terminate the loop yourself (CronDelete) the moment any of these holds: all
 buildable `[locked]` work is done with green evidence · a spec conflict / genuine

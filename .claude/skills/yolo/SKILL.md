@@ -52,18 +52,36 @@ never ask; code/paths/URLs/timestamps verbatim.
 1. Rehydrate exactly as `/build` Step 0 (CLAUDE.md → SPEC.md, `## build` section,
    knowledge, gates, worktree). If `SPEC.md` is missing or has open blocking
    questions, stop — nothing to run a loop against; send the human to `/spec`.
+   **Re-entry check:** if `## build` already records a live loop-task id, this
+   invocation *is* a scheduled tick firing — skip the rest of Setup and go
+   straight to "Each tick".
 2. State the target set (every buildable `[locked]` requirement, or what the
    human scoped in the arguments) and announce the loop contract: what will run,
    when it will stop by itself.
-3. **Schedule the loop** — prefer the environment's native scheduler: invoke
-   Claude Code's `/loop` (which creates a Cron task via CronCreate) with an
-   interval around one minute and a prompt equivalent to:
-   > continue `/build` in autonomous mode; when no buildable work remains,
-   > delete this loop task; code-review each round and fix verified findings
-   Record the returned task id in the `## build` section (so a resumed session
-   can find and manage it). If no scheduler is available in this environment,
-   run the same tick cycle **inline** until a stop condition — same behavior,
-   no cron.
+3. **Schedule the loop — with real tool calls, not narration:**
+   - **Find the scheduler before concluding it's absent.** Check the
+     available-skills list for the `loop` skill and the tool list for the Cron
+     tools (`CronCreate` / `CronDelete` / `CronList`). In Claude Code these
+     tools are often **deferred**: only their names appear, and calling them
+     fails until their schemas are loaded with `ToolSearch`
+     (`select:CronCreate,CronDelete,CronList`). **Deferred ≠ unavailable** —
+     never fall back inline just because a tool needs loading first.
+   - **Preferred path:** invoke the `loop` skill via the Skill tool with an
+     interval around one minute and a prompt that **re-invokes this command
+     verbatim** — e.g. args: `1m /yolo <the same arguments this run received>`.
+     Each firing then re-enters `/yolo`, which recognizes the live loop id
+     (step 1's re-entry check) and runs exactly one tick. Calling `CronCreate`
+     directly with that interval and prompt is equivalent.
+   - Record the returned task id in the `## build` section (so a resumed
+     session can find and manage it).
+   - Then run **tick #1 immediately** in this session and end the turn — the
+     scheduler drives every subsequent tick. One driver at a time: never also
+     keep cycling inline while a cron is live.
+   - **Inline fallback — only if both the `loop` skill and the Cron tools are
+     genuinely absent:** run the same tick cycle back-to-back **in this same
+     turn**, and do **not** end the turn after one tick. Inline, the turn ends
+     only when a termination condition below holds. "One tick, then silence"
+     is precisely the failure this command exists to prevent.
 
 ### Each tick
 1. Rehydrate from `## build`; reconcile the worktree (interrupted-tick residue is
@@ -72,16 +90,22 @@ never ask; code/paths/URLs/timestamps verbatim.
    (plan → construct → re-run gates + acceptance), skipping the propose/commit
    pauses — `/yolo`'s invocation is the standing approval. Commit the code on
    green, exactly as `/build` Step 5 (never the plan).
-3. **Code-review the tick's diff** (the environment's `/code-review` when
-   available, else a self-review pass at the same bar: hunt real defects, verify
-   before acting). Fix the verified findings; re-run gates if the fixes touched
-   anything gated; commit.
+3. **Code-review the tick's diff** — when a `code-review` skill is in the
+   available-skills list, actually invoke it via the Skill tool (don't just
+   mention it); else run a self-review pass at the same bar: hunt real defects,
+   verify before acting. Fix the verified findings; re-run gates if the fixes
+   touched anything gated; commit.
 4. Update `## build` (built / remaining / next / loop-task id) with a real UTC
    timestamp — every tick, even a no-op one.
+5. **Close the tick:** evaluate the termination conditions below. If one holds,
+   terminate (delete the loop, final report). Otherwise: with a live cron, end
+   the turn — the next firing continues; running inline, go straight into the
+   next tick without ending the turn.
 
 ### Termination (the part that makes /yolo trustworthy)
-Delete the loop task (CronDelete with the recorded id — or simply end, if
-running inline) and write a final report when **any** of these holds:
+Delete the loop task (CronDelete with the recorded id — load its schema via
+`ToolSearch` first if it's deferred; or simply end, if running inline) and
+write a final report when **any** of these holds:
 - **Done:** no buildable `[locked]` work remains — every targeted requirement's
   acceptance holds and gates are green (evidence captured). Report what was
   built, the green results, and the review findings fixed along the way.
