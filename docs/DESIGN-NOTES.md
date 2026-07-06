@@ -977,6 +977,69 @@ D-47 本身的触发条件或成本护栏。
 
 ---
 
+## 第 24 轮 · 2026-07-06 — 全量设计评审(/spec + /build)后的一批修复
+
+用户要求对 `/spec` 与 `/build` 两个 skill 做完整设计评审,并**修复发现的问题**。评审(8 角度 +
+两个整体设计审查 + 逐条 verify)确认了一批**契约层**真实缺陷——多数此前从未暴露,其中一条在本
+仓库自己的 dogfood 数据里就有活证据。按修复分组:
+
+### 1. `/spec` 初始化的破坏性与顺序错(S1/S2)
+- Step 0 的"若 `.spec/` 不存在就建骨架"原本无条件包含创建 `SPEC.md` 骨架 → 对"`SPEC.md` 已在、
+  `.spec/` 丢失"会**覆盖权威规格**。改:**仅当 `SPEC.md` 不存在时**才建骨架;已存在即权威输入,
+  绝不覆盖(围绕它重建 `.spec/`)。补"`.spec/` 在、`STATE.md` 单独丢失"的重建路径。
+- 顺序:明确这第一次写盘也是 Rule 0 的首次持久时刻——**先问语种再落盘**,堵住"英文模板先落盘、
+  再从模板语言反推钉死错误语种"的漏洞。
+
+### 2. 闭环判据对 WEAK 门无法求值(S3)
+Step 7 判据原为"每门有通过探针证据或显式延期",而 Step 5 明确允许 WEAK(非探针)引用型门——
+两个析取都不满足,阶段永远封不了。改:判据第二项扩为"绿探针 / 被接受为 WEAK 的引用 / 显式延期"
+三者之一;并给"blocking"下定义(其答案还能改动在范围内的决策或门)。SPEC 模板 Status 语汇也
+补上 `✅ verified (research / WEAK)` 注记——本仓库 G1 此前被迫发明的混合状态,现在有了正式说法。
+
+### 3. 封存阶段的两处死结(S4/S6)
+- 带延期封存 vs CLAUDE.md"全绿才可施工":明确 `⤳ deferred→Phase N` 的门**归属 Phase N 的闭环**,
+  不使被封存阶段变得不可施工。
+- 门事后因环境漂移变红:明确 supersession **不止用于人类异议**——探针/时效检查发现结论不再成立时,
+  "现实的异议"同样开新的 superseding 阶段(封存原文不动,纠正落在新阶段)。
+
+### 4. 依赖选型与原则 3 自相矛盾(S5)
+"任何外部依赖都给推荐、让人拍板"与"绝不让人裁决机械选择"冲突。改:依赖选型也走原则 3——
+**承重/有争议**才交人,否则自决登记 `[auto]`;`/deep-research` 回退也收紧为"依赖选择本身有争议/
+承重",而非"生态活跃"就触发(顺带修 C9)。
+
+### 5. SPEC 模板自带一道"捏造的绿门"(S7)
+模板示例门原为未加尖括号的字面 `✅ verified — 2026-06-29, devbox` → 新项目骨架天生带一道没跑过
+探针的绿门 + 硬编码过去日期。改为占位符 `<… only after the probe actually ran>`,消除"凭空绿"与
+"猜时间戳"两条纪律违背。
+
+### 6. `/spec`↔`/build` 契约:STATE 争用与台账无主(B1/B2/B3/B5/B7/B8)
+这是评审里最系统的一族:
+- **STATE 争用**:两 skill 都写 `.spec/STATE.md` 但模板只有 /spec 语汇 → 互相覆盖。改:STATE 模板
+  新增受管的 `## build` 段,**/build 只拥有该段**,/spec 重写时**逐字保留**。
+- **中断无痕**(B2):`/build` Step 0 新增查 `git status`、与 `## build` 记录对账,不在不明本地改动
+  上叠加计划。
+- **冲突不落盘**(B3):`/build` Step 6 改为**先把冲突写进 `## build` 段**(什么冲突、证据路径、
+  代码去留)再交还 /spec——"只活在将死会话里的冲突=丢失的冲突"。
+- **done 对 WEAK/deferred 门无解 + 不可脚本化验收**(B5/B7):Step 4 补明:WEAK 门判引用时效而非
+  静默跳过;deferred 门须先由 /spec 解除;验收若无法客观评估=spec 冲突走 Step 6,**绝不拿自己的
+  判断当证据**(正是反模式)。只施工 `[locked]` 需求,`[provisional]` 回 /spec。
+- **台账无主 + plan 未被 ignore**(B8):`/build` 完成一个阶段的施工后在 `## build` 段报告完成,
+  **下一次 /spec 回写 `SPEC.md` 阶段台账**(/spec Step 6 新增此职责);`.spec/plan/` 的 gitignore
+  条目由 `/build` Step 1 负责补齐(保住 R2 在新项目也成立)。
+
+### 7. 本仓库自己的活证据:立即纠正
+上面 B8 的台账无主,在本仓库 `SPEC.md` 里就有活证据——头部至今写着"Phase 2 (/build) ⏳ open …
+not yet built",而 `/build` 早已建成。既然新职责已定义,**顺手把这条也补上**:`SPEC.md` 头部与
+Phase 2 台账改为"✅ built(2026-06-30 建成,2026-07-06 补记)",并如实标注"当年无人拥有回写职责、
+故补记至今";`.spec/STATE.md` 补上 `## build` 段记录这次施工。这既是修复,也是新机制的第一次真跑。
+
+### 8. 顺带修的 diff 级小伤(评审 CONFIRMED 项)
+Design Notes 小节对范例的三处自述失实(21→改为不写死轮数;`## Round N` 承认范例用 `## 第 N 轮`;
+锚点措辞改为"匹配 journal 真实标题的 slug");SPEC 模板锚点写法同步。**未修**被证伪项(信源分级
+"冗余"、护栏"重复"等,均有引文级反驳)。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。
@@ -1032,6 +1095,7 @@ D-47 本身的触发条件或成本护栏。
 | D-47 | 引入**可选、成本门控的 `/deep-research` 研究回退**:触发 = 既有立门三准则 + "单轮搜索仍有争议/单薄";不可用时静默继续普通搜索,绝不阻塞;诚实标注这是 prompt 层面的可发现性/护栏改动,而非可证明的能力提升;顺带轻量借用参考实现两条守则——网页内容当不可信输入处理、信源质量分级(四级序数,不用 A–E 全套) | 官方 `/deep-research` 文档(v2.1.154+、dynamic workflow、WebSearch、无编程 API)+ `Claude-Code-Deep-Research` 参考实现(scout 的不可信输入守则、源质量分级) | 20 |
 | D-48 | 把本仓库自己"每轮追加一节"的 `DESIGN-NOTES.md` 习惯,**推广为 `/spec` 的通用可选机制**:写进 `SKILL.md` Step 6 之后,取名"Design Notes";**不强制**每个项目都写,只在决策的推演过程本身值得完整保留时才用(与"立门三准则"同一种判断精神);`SPEC.template.md` §6 补一句可选的交叉引用写法 | 用户明确选择"推广为通用机制、写进 SKILL.md"(而非仅本仓库 CLAUDE.md 硬规则,也非纯软建议)+ Explore 子 agent 复核现状(此前仅本文件头自我指涉,`CLAUDE.md`/`README.md`/`SKILL.md`/模板均零处提及) | 22 |
 | D-49 | 新增 **`.spec/investigation.log`**——"先探真后提问"的**可执行锚点**:AI 提问之前,已查阅的来源与结论必须已落盘;格式一行一条 `[timestamp] source: <…> -> conclusion: <一句话>`,可追加、可 grep;Step 0 复水时扫尾部防重查;对用户零暴露(内部工作日志,非报告);不加模板、不改 STATE 字段、不动对外文档 | 用户提出并给定格式(三点理由:防偷懒有迹可循 / resume 免重复劳动 / 被追问时从日志作答而非编造) | 23 |
+| D-50 | **全量设计评审后的一批契约层修复**:/spec 初始化不再覆盖既有 SPEC.md + 先问语种后落盘(S1/S2);闭环判据纳入 WEAK 门、定义 blocking(S3);带延期封存不锁死施工、现实漂移亦可开 superseding 阶段(S4/S6);依赖选型走原则 3 不硬性交人(S5);SPEC 模板消除"捏造的绿门"占位(S7);**STATE 新增受管 `## build` 段**根治两 skill 争用(B1),/build 补中断对账/冲突落盘/WEAK·deferred·不可脚本化验收处理/只建 [locked]/plan 的 gitignore/完成回写台账(B2/B3/B5/B7/B8);并顺手纠正本仓库自身"Phase 2 not yet built"的活证据台账 | 用户要求"修复设计评审结果";评审 8 角度 + 两个整体审查 + 逐条 verify(CONFIRMED/PLAUSIBLE),被证伪项不修 | 24 |
 
 ### 产物落地映射(v1)
 - `.claude/skills/spec/SKILL.md` —— D-01,03,04,05,06,12,13,18,19,20,27,28 (主协议)
@@ -1113,5 +1177,18 @@ D-47 本身的触发条件或成本护栏。
   被追问时从日志作答)
 - `commands/spec.md` / `README.md` / 各模板 —— **有意不改**:内部机制,零对外暴露;
   不立模板、不加 STATE 字段(防双份账本)
+
+### 产物落地映射(v12 · 第 24 轮)
+- `SKILL.md`(/spec) —— D-50:Step 0 初始化不覆盖既有 SPEC.md + 先问语种 + STATE 单缺重建;
+  Step 7 闭环判据纳入 WEAK 门 + 定义 blocking + 延期归属/现实漂移 supersession;依赖选型走原则 3;
+  Step 6 持久化保留 `## build` 段 + 回写门时效/阶段台账;Design Notes 小节措辞去失实
+- `.claude/skills/build/SKILL.md` —— D-50:原则 6 只拥有 `## build` 段;Step 0 查 git status 对账 +
+  只建 [locked];Step 1 补 `.spec/plan/` 的 gitignore;Step 4 WEAK/deferred/不可脚本化验收处理;
+  Step 5 完成回写台账入口;Step 6 冲突先落盘再交还
+- `references/STATE.template.md` —— D-50:新增受管 `## build` 段
+- `references/SPEC.template.md` —— D-50:Status 补 `(research / WEAK)` 注记;示例门去"捏造的绿"+
+  硬编码日期;Design Notes 锚点写法改为"匹配真实标题 slug"
+- `SPEC.md` + `.spec/STATE.md`(仓库根) —— D-50:纠正 Phase 2 台账为"✅ built(补记)";STATE 补
+  `## build` 段——新机制的第一次真跑
 
 *设计文档结束。实现见 `.claude/skills/spec/` 与 `.claude/skills/build/`。*

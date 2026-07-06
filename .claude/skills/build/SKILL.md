@@ -53,20 +53,34 @@ block construction on it. *(This repo's pin: English.)*
    command. Default checkpoints: show the regenerated plan for approval → apply
    code → run gates to green → approve before commit. (The human can switch to
    autonomous-to-green or plan-only handoff.)
-6. **Filesystem is memory; resumable.** Track build progress in `.spec/STATE.md`
-   (which requirements are built/remaining). Re-running `/build` resumes cleanly.
+6. **Filesystem is memory; resumable.** Track build progress in the **`## build`
+   section of `.spec/STATE.md`** — `/build` owns *only* that section (built /
+   remaining / next / any conflict handed to `/spec`) and never rewrites `/spec`'s
+   own fields (current_phase, current_step, done/pending). Re-running `/build`
+   resumes cleanly.
 
 ## The loop — one bounded chunk per invocation
 
 ### Step 0 — Rehydrate & target
 Read `CLAUDE.md` → `SPEC.md`, `.spec/STATE.md`, `.spec/knowledge/`, and the gates
 table. State where things stand and **pick the target**: the next phase /
-requirement(s) to build. If `SPEC.md` is missing or has open blocking questions,
+requirement(s) to build. Only `[locked]` requirements are buildable — a
+`[provisional→Phase N]` requirement isn't settled yet; route it back to `/spec`
+first. **Check the worktree too** (`git status`): uncommitted changes from an
+interrupted run are part of "where things stand" — reconcile them against the
+`## build` section's record (resume them, or revert with the human's OK) before
+regenerating a plan; never plan on top of unexplained local changes. And glance
+at the gates' Last-checked stamps: a green that predates a changed world is worth
+re-running **before** construction, not discovered red at Step 4. If `SPEC.md` is
+missing or has open blocking questions,
 stop and send the human to `/spec` first (nothing to build against yet).
 
 ### Step 1 — Regenerate the ephemeral plan
 From the targeted requirements + decisions + knowledge, derive a **design + tasks**
-plan into gitignored scratch (`.spec/plan/<target>.md`) or in-context. This is
+plan into gitignored scratch (`.spec/plan/<target>.md`) or in-context. If writing
+to scratch, **first make sure `.spec/plan/` is actually ignored** — add the
+`.gitignore` entry if it's missing (this is what keeps R2 true in a fresh
+project). This is
 working scaffolding — terse, disposable, regenerated next run. Do **not** add it as
 a tracked source of truth.
 
@@ -84,16 +98,29 @@ acceptance.
 ### Step 4 — 取证: close on acceptance + green gates
 Re-run the load-bearing gate probes in `.spec/probes/` and the requirements'
 acceptance checks. **Done only if all green.** A red probe = not done: fix and
-re-run, or — if the spec itself is wrong — Step 6 (route to `/spec`). Capture
+re-run, or — if the spec itself is wrong — Step 6 (route to `/spec`). A **WEAK
+(non-probed) cited gate** has no probe to re-run — judge its citation's staleness
+instead of silently skipping it; a **`⤳ deferred→Phase N` gate** must have been
+resolved by `/spec` before Phase N's construction can close. If a requirement's
+acceptance **can't be objectively evaluated as written** (prose no check can
+exercise), that is itself a spec conflict — Step 6, so `/spec` sharpens the
+acceptance; never substitute your own judgment as "evidence". Capture
 fresh evidence to `.spec/evidence/` (real UTC time).
 
 ### Step 5 — Checkpoint: approve & commit
 Show the diff + the green gate results. On approval, commit the **code** (never the
-ephemeral plan). Update `.spec/STATE.md` (built / remaining / next).
+ephemeral plan). Update the `## build` section of `.spec/STATE.md` (built /
+remaining / next); when this completes a phase's construction (all its targeted
+requirements green), say so there — the next `/spec` run records it in `SPEC.md`'s
+phases ledger (you never edit `SPEC.md` yourself).
 
 ### Step 6 — Conflict → `/spec` (not a silent patch)
-If a gate can't be met or a decision is wrong, stop, summarize the conflict, and
-hand back to `/spec`. The spec is reconciled there, then `/build` resumes.
+If a gate can't be met or a decision is wrong, **first write the conflict into
+the `## build` section of `.spec/STATE.md`** — what contradicts what, the evidence
+path, and what state the code was left in (committed / reverted / left dirty:
+say which) — then stop, summarize it for the human, and hand back to `/spec`. The
+spec is reconciled there, then `/build` resumes. A conflict that lives only in
+the dying session's context is a conflict lost.
 
 ## Guardrails
 - **Never enshrine the plan** — it's regenerated, gitignored, disposable.

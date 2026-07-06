@@ -26,3 +26,10 @@ time in UTC (run the platform's date command; never guess).
 
 ## next_action
 <the single next thing to do>
+
+## build
+<!-- owned by /build; /spec preserves this section verbatim when rewriting -->
+- built: <requirements/phases constructed, with dates — or none yet>
+- remaining: <…>
+- next: <…>
+- conflict: <none | what contradicts what · evidence path · code state left behind>

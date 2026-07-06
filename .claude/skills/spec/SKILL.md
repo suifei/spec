@@ -210,9 +210,16 @@ stand** in one short status line, e.g.:
 Also note each record's **age** (its timestamp vs the current OS time) and flag
 anything that looks stale — by judgment (see Time above) — for the human.
 
-If `.spec/` doesn't exist, initialize it (create `.spec/`, a fresh `STATE.md`
+If `.spec/` doesn't exist, initialize it: create `.spec/` and a fresh `STATE.md`
 from `references/STATE.template.md`, and a `SPEC.md` skeleton from
-`references/SPEC.template.md`), then proceed.
+`references/SPEC.template.md` **only if no `SPEC.md` exists yet** — an existing
+`SPEC.md` is authoritative input and is **never overwritten** (Rule 0's
+infer-the-pin branch covers it; rebuild `.spec/` around it instead). On a truly
+fresh project this first write is also Rule 0's first-persist moment — ask the
+artifact-language question **before** creating these files. If `.spec/` exists
+but `STATE.md` alone is missing, recreate it from the template by reconstructing
+progress out of `SPEC.md`'s phases ledger and Decision Log; touch nothing else.
+Then proceed.
 
 ### Step 1 — Investigate / 探真 (= research) — *before* asking
 Investigation is research: use **every** avenue to find the truth, then reason it
@@ -277,13 +284,17 @@ through. A runnable probe (Step 5) is one of these avenues, not the whole of it.
 
 **Dependency selection (standard flow):** for any external dependency — search
 the library **and its peers**, capture **stable + latest versions + alternatives**,
-give a **recommendation**, let the **human decide**, then **pin the version** and
-**persist the library's necessary knowledge/docs** to `.spec/knowledge/<lib>.md`.
-The decision (which lib, which pinned version) goes in `SPEC.md`; the detailed
-docs stay in the knowledge cache (referenced from `SPEC.md`). For a contested or
-fast-moving ecosystem (conflicting benchmarks, a rapidly-forked landscape), the
-same optional `/deep-research` fallback above applies before finalizing the
-recommendation.
+and give a **recommendation**. Then: if the choice is genuinely **load-bearing or
+contested** (the gate-test spirit — it shapes a contract, an architecture, or a
+declared constraint), let the **human decide**; otherwise **decide it yourself and
+register `[auto]`** — Principle 3 applies to dependencies too, so never make the
+human adjudicate a mechanical pick with a de-facto standard. Either way, **pin the
+version** and **persist the library's necessary knowledge/docs** to
+`.spec/knowledge/<lib>.md`. The decision (which lib, which pinned version) goes in
+`SPEC.md`; the detailed docs stay in the knowledge cache (referenced from
+`SPEC.md`). For a dependency choice that is itself contested or load-bearing (not
+merely "an active ecosystem"), the same optional `/deep-research` fallback above
+applies before finalizing the recommendation.
 
 ### Step 2 — Present findings & closure status
 Report back like the requirements analyst you are, concisely: the **suspected core
@@ -349,7 +360,13 @@ redesign, defer to a later phase, or proceed with eyes open.
 Update, as a whole: `SPEC.md` (vision, scope, **load-bearing gates** with their
 evidence, requirements, **Decision Log**, **phases ledger**, open questions),
 `.spec/knowledge/`, `.spec/probes` + `.spec/evidence`, and **`.spec/STATE.md`**
-(current step, done, pending, next_action). **Stamp every record you write with
+(current step, done, pending, next_action). When rewriting `STATE.md`, **preserve
+any `## build` section verbatim** — it is owned by `/build` (its progress, and any
+conflict it recorded for you to reconcile). Fold newer evidence back into the
+spec, too: if `.spec/evidence/` holds a fresher run of a gate's probe (e.g. from
+`/build`'s done-check), refresh that gate's Last-run/Status row; and when the
+build section reports a phase's construction complete, record that in the phases
+ledger. **Stamp every record you write with
 real OS time (see Time above) — never a guessed timestamp.** Ensure `CLAUDE.md` has the managed
 authority block (create if missing; replace only between the markers) so all
 later work reads `SPEC.md` first:
@@ -376,24 +393,34 @@ show that trail to an audience beyond "just trust the row" (an open-source
 project's contributors, a regulated project's auditors, or the project
 reconsidering its own foundational contract/process). **Only for that kind of
 decision**, maintain `docs/DESIGN-NOTES.md`: a living, append-only journal where
-each new round of discussion adds one dated `## Round N` section (never edit a
-past one — a reconsideration adds a new round citing "supersedes Round K"), plus
-a distilled Decision Log table at the end that cross-references `SPEC.md`'s own
-entries. This is **not** a second mandatory artifact for every project —
-routine decisions stay in `SPEC.md`'s Decision Log alone; reach for this
-companion only when a decision earns it by the same load-bearing spirit as a
-gate (worth preserving in full, not just its conclusion). This repo's own
-`docs/DESIGN-NOTES.md` is a live, 21-round example of the pattern.
+each new round of discussion adds one dated round section — `## Round N`, or its
+pinned-language equivalent (this repo's journal uses `## 第 N 轮 · <date>`) —
+never editing a past one; a reconsideration adds a new round citing "supersedes
+Round K". A distilled Decision Log table at the end gives each decision an ID
+that `SPEC.md`'s own entries can cite. This is **not** a second mandatory
+artifact for every project — routine decisions stay in `SPEC.md`'s Decision Log
+alone; reach for this companion only when a decision earns it (worth preserving
+in full, not just its conclusion). This repo's own `docs/DESIGN-NOTES.md` is a
+live example of the pattern.
 
 ### Step 7 — Closure & phases (emergent)
-**Closure = every decision in scope confirmed ∧ every gate has passing probe
-evidence (or an explicit, recorded deferral) ∧ no blocking open question remains.**
+**Closure = every decision in scope confirmed ∧ every gate carries its strongest
+appropriate evidence — a green probe, a cited finding accepted as WEAK (Step 5),
+or an explicit, recorded deferral — ∧ no blocking open question remains.**
+(*Blocking* = its answer could still change an in-scope decision or gate; a
+question deferred to a later phase doesn't block this one.)
 On closure, **seal the current phase** (mark it done in `SPEC.md` and `STATE.md`)
 — *the spec is established to that point.* Phases are **not pre-planned**: each
 closure *is* a phase. Later, when the human brings an idea the current spec can't
 satisfy, open the next phase and drive it to closure. **Sealed phases are
 read-only**; disagreeing with a sealed conclusion doesn't edit it — it opens a new
-phase that explicitly cites `supersedes 阶段K 的第X条`.
+phase that explicitly cites `supersedes 阶段K 的第X条`. Two clarifications that
+keep this workable: a gate recorded `⤳ deferred→Phase N` **belongs to Phase N's
+closure**, not the sealed phase's — sealing with a deferral doesn't make the
+sealed phase unbuildable; and supersession isn't only for *human* disagreement —
+if a staleness check or probe re-run shows a sealed conclusion no longer holds,
+**reality's disagreement opens the superseding phase the same way** (the sealed
+text stays untouched; the correction lives in the new phase).
 
 Report status (current step / done / pending / next) on closure or whenever you
 stop.

@@ -1,7 +1,7 @@
 # /spec → /build — Specification (this repo)
 
-> **Version:** v1 · **Updated:** 2026-06-30 · **Artifact language:** English — pinned 2026-06-30 (declared: global open-source audience; not re-asked)
-> **Closure:** Phase 1 (`/spec`, Gate 1) ✅ sealed · Phase 2 (`/build`, Gate 1.5) ⏳ open (spec settled, not yet built)
+> **Version:** v1 · **Updated:** 2026-07-06 · **Artifact language:** English — pinned 2026-06-30 (declared: global open-source audience; not re-asked)
+> **Closure:** Phase 1 (`/spec`, Gate 1) ✅ sealed · Phase 2 (`/build`, Gate 1.5) ✅ built (constructed 2026-06-30; ledger recorded late, 2026-07-06)
 >
 > Authoritative, highest-priority reference for this repo. Maintained by `/spec`.
 > Load-bearing gates are backed by evidence — a runnable probe where the truth is
@@ -127,9 +127,15 @@ Status ∈ {unverified, ✅ verified, ❌ refuted, ⤳ deferred→Phase N}.
   its implementation in `.claude/skills/spec/`.
 - **Supersedes:** none.
 
-### Phase 2 — `/build` (Gate 1.5) · status: **open** (spec settled, not yet built)
+### Phase 2 — `/build` (Gate 1.5) · status: **built** (constructed 2026-06-30; recorded 2026-07-06)
 - **Goal:** the construction skill specified above — ephemeral plan, gate-closed,
-  conforms to `SPEC.md`. Next action: build it per this spec.
+  conforms to `SPEC.md`. Built as `.claude/skills/build/SKILL.md` +
+  `.claude/commands/build.md`, per R1–R5; G2 probe green (2026-06-30T04:26Z, vm).
+- **Ledger note (2026-07-06):** construction completed 2026-06-30 but this ledger
+  was never updated — no step owned the post-build write-back. That gap is now a
+  defined duty (D-50: `/build` reports completion in `STATE.md`'s `## build`
+  section; the next `/spec` run records it here). This entry is that record,
+  made late and marked as such.
 - **Supersedes:** none (fills the previously-undefined gap between `/spec` and code).
 
 ## 8. Open Questions (genuine forks — the human's to own)
