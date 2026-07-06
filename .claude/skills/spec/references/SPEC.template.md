@@ -89,6 +89,9 @@ green (or explicitly deferred) with no blocking open question. Sealed = read-onl
 ### Phase 1 — <name> · status: <open|sealed YYYY-MM-DD>
 - **Goal:** <what this closure establishes>
 - **Gates:** G1  · **Key decisions:** D1, D2 (see Decision Log)
+- **Construction:** <not started | ✅ built YYYY-MM-DD (recorded YYYY-MM-DD)> —
+  written back by `/spec` from `STATE.md`'s `## build` section; a separate axis
+  from spec closure (a phase can be sealed but not yet built)
 - **Supersedes:** <none | "阶段K 的第X条 — 因 …">
 
 ## 8. Open Questions (the closure gate)

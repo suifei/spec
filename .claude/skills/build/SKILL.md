@@ -87,7 +87,10 @@ a tracked source of truth.
 ### Step 2 — Checkpoint: propose
 Show the plan (and the requirements/acceptance it targets). Default mode pauses for
 the human's OK before writing code. (Skip the pause only if the human chose
-autonomous mode.)
+autonomous mode.) Once approved, **write an in-progress marker into the `## build`
+section** (target + plan scope + approval timestamp) *before* constructing — so an
+interrupted run leaves a record Step 0's reconciliation can actually reconcile
+against. Clear the marker at Step 5.
 
 ### Step 3 — Construct
 Write product code per the plan, conforming to the spec's decisions, the **spec

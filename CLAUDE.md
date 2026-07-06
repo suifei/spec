@@ -57,10 +57,16 @@ The repo also provides **`/build`** — **Gate 1.5**, the construction layer tha
 *reads* `SPEC.md` and writes the code from it, keeping the design/tasks plan
 **ephemeral** (regenerated each run, never enshrined) so it can't drift, and closing
 construction only when each requirement's acceptance holds and the load-bearing
-gates are green. (`.claude/skills/build/` + `.claude/commands/build.md`.) Gate 2
+gates are green. (`.claude/skills/build/` + `.claude/commands/build.md`.) The third
+command, **`/yolo`**, is `/build`'s autonomous-to-green mode plus a self-terminating
+loop (schedules itself via Claude Code's `/loop`/cron when available, code-reviews
+each round, deletes its own loop when nothing buildable remains, and stops early on
+a genuine fork / spec conflict / no-progress) — it changes `/build`'s *pace*, never
+its *rules*. (`.claude/skills/yolo/` + `.claude/commands/yolo.md`.) Gate 2
 (skill extraction) remains Claude Code's built-in skill-builder and is out of scope.
 
-Run `/spec` to create/update/reconcile the spec; run `/build` to construct from it.
+Run `/spec` to create/update/reconcile the spec; run `/build` to construct from it;
+run `/yolo` to let construction loop autonomously to green.
 
 > This repo **dogfoods itself**: its own `SPEC.md` + `.spec/` (produced by a real
 > `/spec` run) specify the `/spec → /build` pipeline — Phase 1 (`/spec`) sealed,

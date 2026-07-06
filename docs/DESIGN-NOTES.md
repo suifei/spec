@@ -889,10 +889,10 @@ D-01…D-46,而非在 `SPEC.md` 里逐条建模;历史上凡是触及协议本�
 但是不要你单独设计一个 /deep-research 的指令让用户去输入,而是用户调用/spec的时候内置能力。"
 
 ### 1. 复核:D-47 的原始措辞是否已经满足这一点
-`SKILL.md` 第 240 行起的 skills/MCP 条款,整份 `SKILL.md` 的语法主体就是"对执行 agent 下达的
+`SKILL.md` Step 1 的 skills/MCP 条款,整份 `SKILL.md` 的语法主体就是"对执行 agent 下达的
 指令"(通篇用"you"指代执行者),所以"use available skills/MCP…including
-`/deep-research`…"在结构上**本来就是**说给 agent 听、由 agent 自己去调用——这与第 244 行"delegate
-heavy reads to a sub-agent"是同一种语气,从未意味着要人类去做。但原措辞**没有明说**"绝不能把这一步
+`/deep-research`…"在结构上**本来就是**说给 agent 听、由 agent 自己去调用——这与同一步骤中"delegate
+heavy reads to a sub-agent"条目是同一种语气,从未意味着要人类去做。但原措辞**没有明说**"绝不能把这一步
 暴露成让人类自己去敲的东西",对一个第一次读这份 `SKILL.md` 的执行 agent 而言,存在被误读成"建议用户
 去跑 `/deep-research`"的空间——这正是用户点出的真实缺口,不是无的放矢的重复。
 
@@ -1040,6 +1040,72 @@ Design Notes 小节对范例的三处自述失实(21→改为不写死轮数;`##
 
 ---
 
+## 第 25 轮 · 2026-07-06 — 第二轮评审(PR #20 净 diff)后的六项修复
+
+PR #20 合并后又跑了一轮 /code-review(重点审最后两个 commit 的净效果),暴露 6 项——其中前两项
+是第 24 轮修复自己引入的("修 STATE 漏了 SPEC.md"这一类半拉子收尾),照单全修:
+
+1. **`SPEC.md` §8 Q2 残留**:Q2 仍标 `deferred→build`,而 STATE 已写"已解决"。修:Q2 改
+   `decided 2026-06-30 (recorded 2026-07-06)`,注明 `.spec/plan/` gitignored scratch、ignore
+   条目是 /build Step 1 的职责(D-50)。
+2. **sealed/built 用词分裂**:STATE 注释说 "phase sealed",SPEC.md 只写 "built",且 "built"
+   不是 Step 7 定义的阶段状态词。修:明确**规格闭环(sealed)与施工完成(built)是两条轴**——
+   SPEC.md 头部与 Phase 2 台账改为 `sealed (spec settled …) · construction ✅ built …`;
+   `SPEC.template.md` 阶段条目新增 `Construction:` 行(由 /spec 从 `## build` 段回写),
+   把这条轴变成正式词汇而不是临时发明。
+3. **第 21 轮引注行号写下即错**:改为按步骤引用("Step 1 的 skills/MCP 条款"、"同一步骤中"),
+   行号这种会腐烂的引用方式不再用于本 journal。
+4. **`/build` 施工中仍无检查点**(第 24 轮只修了"下次入场对账",没修根因):Step 2 批准计划后、
+   动工前,先把 in-progress 标记(目标+计划范围+批准时间)写进 `## build` 段,Step 5 清除——
+   中断的 run 从此留下可对账的记录。
+5. **investigation.log 无界增长**:补一句生命周期——它是工作痕迹不是档案,阶段封存(Step 7)时,
+   结论已沉淀进 knowledge/SPEC 的条目可压缩掉,保证复水扫描的尾部有界。
+6. **绕过 /spec 直改 SPEC.md 的先例问题**:本轮把 Q2/状态词一并按 /spec 该做的方式补齐并记录在
+   案,视为对上次直改的**追认与收尾**;此外注:README 文件树补列了 `.spec/investigation.log`
+   (标注 internal)——**部分修正 D-49 的"README 有意不改"**:该文件会真实出现在用户仓库里,
+   清单如实列出是透明,不列才是误导;D-49 的"零暴露"指 /spec 不在报告里主动展示它,不指隐藏
+   其存在。
+
+---
+
+## 第 26 轮 · 2026-07-06 — `/yolo`:第三个核心指令(自主施工循环,自我终结)
+
+用户给出真实体验:Claude Code 的 `/loop [interval] <prompt>` 会创建一个 Cron(CronCreate),
+比如输入 `/loop 1m /build 继续,确认无任何后续任务请删除loop任务,并code-review`,agent 会调度
+任务、逐轮自动继续 /build、自动管理上下文,确认没有后续任务时自动 CronDelete 删掉循环。由此,
+人类使用这套 skill 的理想形态是三句话:**`/spec <需求>` → `/build <任务>` → `/yolo`**——
+`/yolo` 就是上面那条 /loop 命令的正式替代,作为仓库的**第三个核心指令**。
+
+### 1. 定位:不是第三个 Gate,是 /build 的"油门"
+`/yolo` 不新增流水线阶段——它就是 `/build` 早已预留的 **autonomous-to-green 模式**(R4/D6
+"propose-then-apply 默认,可切换")加一个**自我终结的循环**。调用 `/yolo` 本身 = 人类对
+`/build` 各确认点的一次性预授权。因此它**只改节奏,不改规则**:SPEC.md 权威、done=验收+门绿、
+冲突回 /spec,全部原样继承。
+
+### 2. 关键设计:终结条件是这个指令可信的全部
+一个不会自己停的自主循环比没有循环更糟。四个硬性终结条件(任一命中即 CronDelete + 收尾报告):
+- **做完了**:无可施工的 `[locked]` 需求残留,验收+门绿有据——报告建了什么、绿灯证据、沿途
+  修掉的评审发现;
+- **该人上了**:spec 冲突/真叉/验收无法客观评估——记进 `## build`、删循环、交还 /spec 或人类
+  (**绝不对着同一堵墙每分钟撞一次**);
+- **卡死了**:连续两轮同一失败、无新信息——删循环、诚实报告卡在哪、试过什么;
+- **人说停**:立即停,不辩解。
+"删循环"本身写进 done 的定义——被遗忘的 cron 对着已完成(或已卡死)的仓库空转,是 /yolo
+唯一真正的害处来源。
+
+### 3. 降级与复用
+优先用环境原生调度器(`/loop` → CronCreate,任务 id 记进 `## build` 段,断线重连也能接管);
+没有调度器就同一套 tick 逻辑内联跑——行为等价,只是没有 cron。每轮 tick:复水 → 施工到绿 →
+`/code-review`(不可用则同标准自评)→ 修确证项 → 提交 → 打点 `## build`(真实 UTC)。
+与 D-47 的 `/deep-research` 同款哲学:能力具名、触发有界、不可用静默降级、绝不硬依赖。
+
+### 4. 影响面(全部同步)
+skill + command 新建;两个安装器(`install.sh`/`install.ps1`)从"装 2+2"改为"装 3+3";
+README(定位段、Install、Usage、Files 树)、CLAUDE.md(第三指令一句话)、USER-GUIDE §1.3
+(分工表加一行 + "理想日常形态"一句)全部同步。Gate 2(skill 提取)边界不变。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。
@@ -1096,6 +1162,8 @@ Design Notes 小节对范例的三处自述失实(21→改为不写死轮数;`##
 | D-48 | 把本仓库自己"每轮追加一节"的 `DESIGN-NOTES.md` 习惯,**推广为 `/spec` 的通用可选机制**:写进 `SKILL.md` Step 6 之后,取名"Design Notes";**不强制**每个项目都写,只在决策的推演过程本身值得完整保留时才用(与"立门三准则"同一种判断精神);`SPEC.template.md` §6 补一句可选的交叉引用写法 | 用户明确选择"推广为通用机制、写进 SKILL.md"(而非仅本仓库 CLAUDE.md 硬规则,也非纯软建议)+ Explore 子 agent 复核现状(此前仅本文件头自我指涉,`CLAUDE.md`/`README.md`/`SKILL.md`/模板均零处提及) | 22 |
 | D-49 | 新增 **`.spec/investigation.log`**——"先探真后提问"的**可执行锚点**:AI 提问之前,已查阅的来源与结论必须已落盘;格式一行一条 `[timestamp] source: <…> -> conclusion: <一句话>`,可追加、可 grep;Step 0 复水时扫尾部防重查;对用户零暴露(内部工作日志,非报告);不加模板、不改 STATE 字段、不动对外文档 | 用户提出并给定格式(三点理由:防偷懒有迹可循 / resume 免重复劳动 / 被追问时从日志作答而非编造) | 23 |
 | D-50 | **全量设计评审后的一批契约层修复**:/spec 初始化不再覆盖既有 SPEC.md + 先问语种后落盘(S1/S2);闭环判据纳入 WEAK 门、定义 blocking(S3);带延期封存不锁死施工、现实漂移亦可开 superseding 阶段(S4/S6);依赖选型走原则 3 不硬性交人(S5);SPEC 模板消除"捏造的绿门"占位(S7);**STATE 新增受管 `## build` 段**根治两 skill 争用(B1),/build 补中断对账/冲突落盘/WEAK·deferred·不可脚本化验收处理/只建 [locked]/plan 的 gitignore/完成回写台账(B2/B3/B5/B7/B8);并顺手纠正本仓库自身"Phase 2 not yet built"的活证据台账 | 用户要求"修复设计评审结果";评审 8 角度 + 两个整体审查 + 逐条 verify(CONFIRMED/PLAUSIBLE),被证伪项不修 | 24 |
+| D-51 | **第二轮评审六项修复**:SPEC.md Q2 残留补记为 decided;**规格闭环(sealed)与施工完成(built)正式分为两条轴**(模板阶段条目新增 `Construction:` 行,由 /spec 从 `## build` 段回写);journal 弃用行号引注改按步骤引用;/build Step 2 批准后先写 in-progress 标记再动工(补上第 24 轮漏掉的根因);investigation.log 补生命周期(阶段封存时可压缩已沉淀条目,尾部有界);README 文件树如实列出 investigation.log(**部分修正 D-49**:零暴露≠隐藏存在) | 第二轮 /code-review(6 项,前 2 项为第 24 轮修复自身引入) | 25 |
+| D-52 | **新增第三个核心指令 `/yolo`**:= `/build` 的 autonomous-to-green 模式(R4/D6 预留的切换)+ 自我终结循环——优先 `/loop`→CronCreate 调度(任务 id 记入 `## build`),每 tick 施工到绿 + code-review + 修确证项 + 打点;四个硬终结条件(做完/该人上/连续两轮无进展/人叫停)任一命中即 CronDelete,删循环写进 done 定义;无调度器时同逻辑内联降级;**只改节奏不改规则**(SPEC 权威、门收口、冲突回 /spec 全部继承);安装器改装 3+3,README/CLAUDE/USER-GUIDE 同步 | 用户给出 /loop 真实体验与三句话理想形态(`/spec`→`/build`→`/yolo`),指定为第三核心指令 | 26 |
 
 ### 产物落地映射(v1)
 - `.claude/skills/spec/SKILL.md` —— D-01,03,04,05,06,12,13,18,19,20,27,28 (主协议)
@@ -1191,4 +1259,22 @@ Design Notes 小节对范例的三处自述失实(21→改为不写死轮数;`##
 - `SPEC.md` + `.spec/STATE.md`(仓库根) —— D-50:纠正 Phase 2 台账为"✅ built(补记)";STATE 补
   `## build` 段——新机制的第一次真跑
 
-*设计文档结束。实现见 `.claude/skills/spec/` 与 `.claude/skills/build/`。*
+### 产物落地映射(v13 · 第 25 轮)
+- `SPEC.md`(仓库根) —— D-51:Q2 补记 decided;头部与 Phase 2 状态改为
+  `sealed … · construction ✅ built …` 双轴表述
+- `.spec/STATE.md` —— D-51:current_step 注释与 SPEC.md 对齐(spec sealed / construction built)
+- `references/SPEC.template.md` —— D-51:阶段条目新增 `Construction:` 行(/spec 从 `## build` 回写)
+- `.claude/skills/build/SKILL.md` —— D-51:Step 2 批准后写 in-progress 标记,Step 5 清除
+- `SKILL.md`(/spec) —— D-51:investigation.log 条目补生命周期(封存时压缩,尾部有界)
+- `docs/DESIGN-NOTES.md` 第 21 轮 —— D-51:行号引注改按步骤引用(仅修引用方式,不改任何结论)
+- `README.md` —— D-51:文件树补 `.spec/investigation.log`(internal)与 `## build` 段注记
+
+### 产物落地映射(v14 · 第 26 轮)
+- `.claude/skills/yolo/SKILL.md` + `.claude/commands/yolo.md` —— D-52:新建(定位、循环、四终结
+  条件、降级、护栏)
+- `scripts/install.sh` / `scripts/install.ps1` —— D-52:装 3+3(spec/build/yolo)
+- `README.md` —— D-52:定位段、Install、Usage(含"理想日常形态")、Files 树
+- `CLAUDE.md` —— D-52:第三指令说明 + "run /yolo" 一句
+- `docs/USER-GUIDE.zh-CN.md` —— D-52:§1.3 分工表加 `/yolo` 行 + 规则不变说明
+
+*设计文档结束。实现见 `.claude/skills/spec/`、`.claude/skills/build/` 与 `.claude/skills/yolo/`。*

@@ -1,8 +1,8 @@
 # /spec progress
 
-- **updated:** 2026-07-06T02:50Z   # real OS time, UTC
+- **updated:** 2026-07-06T09:36Z   # real OS time, UTC
 - **current_phase:** 2
-- **current_step:** 闭环   # Phase 2 (/build) built + recorded; phase sealed
+- **current_step:** 闭环   # Phase 2 spec sealed; construction built + recorded (matches SPEC.md ledger)
 - **core_problem:** define the missing Gate 1.5 — a /build skill that constructs code from the authoritative SPEC.md without re-introducing drift (ephemeral plan; gate-closed)
 
 ## done
