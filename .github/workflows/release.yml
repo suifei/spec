@@ -62,22 +62,23 @@ jobs:
           echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
 
       - name: Create Release from Tag
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ${{ steps.package.outputs.zip }}
-          tag_name: ${{ steps.tag.outputs.tag }}
-          name: "Skills ${{ steps.tag.outputs.tag }}"
-          generate_release_notes: false
-          body: |
-            ## /spec + /build Skills Package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          ZIP="${{ steps.package.outputs.zip }}"
+
+          gh release create "$TAG" \
+            --title "Skills ${TAG}" \
+            --notes "## /spec + /build Skills Package
 
             Extract this zip into your project root — it installs the
-            `.claude/skills/` and `.claude/commands/` files that Claude Code
-            needs for the `/spec` and `/build` commands.
+            \`.claude/skills/\` and \`.claude/commands/\` files that Claude Code
+            needs for the \`/spec\` and \`/build\` commands.
 
             ### Contents
 
-            ```
+            \`\`\`
             .claude/
             ├── skills/
             │   ├── spec/
@@ -88,20 +89,21 @@ jobs:
             └── commands/
                 ├── spec.md
                 └── build.md
-            ```
+            \`\`\`
 
             ### Quick Install
 
             **PowerShell**
-            ```powershell
-            iwr -UseBasicParsing https://github.com/suifei/spec/releases/download/${{ steps.tag.outputs.tag }}/spec-skills-${{ steps.tag.outputs.tag }}.zip -OutFile skills.zip
+            \`\`\`powershell
+            iwr -UseBasicParsing https://github.com/suifei/spec/releases/download/${TAG}/spec-skills-${TAG}.zip -OutFile skills.zip
             Expand-Archive -Path skills.zip -DestinationPath . -Force
-            ```
+            \`\`\`
 
             **Bash**
-            ```bash
-            curl -fsLO https://github.com/suifei/spec/releases/download/${{ steps.tag.outputs.tag }}/spec-skills-${{ steps.tag.outputs.tag }}.zip
+            \`\`\`bash
+            curl -fsLO https://github.com/suifei/spec/releases/download/${TAG}/spec-skills-${TAG}.zip
             unzip -o skills.zip
-            ```
+            \`\`\`
 
-            Then open Claude Code in your project and run `/spec` to start.
+            Then open Claude Code in your project and run \`/spec\` to start." \
+            "$ZIP"
