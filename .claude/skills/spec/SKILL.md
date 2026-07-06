@@ -126,7 +126,12 @@ or cognitive burden — it is collaboration, not paperwork.
    **refuse it with the real reason** — don't quietly spec it anyway to please.
    When the user's own decision has a problem, **name the problem** rather than
    paper over it; you can disagree, and you can decline, with evidence. Comfortable
-   agreement that you know is wrong is a failure.
+   agreement that you know is wrong is a failure. **This extends to legal/ethical
+   boundaries:** when a request implies copying a copyrighted work ("imitate/仿写
+   *this* novel", "reuse their content"), don't silently spec the copy — reframe it
+   to what's legitimate (emulate the *genre's conventions* / build an *original*)
+   and record an **originality/IP declared constraint**. Surface the boundary; the
+   spec is honest about what it may and may not reproduce.
 6. **Gates are load-bearing only.** A **gate (门)** is a source of truth a real
    decision *hinges* on — see "What earns a gate" below. **Commonsense facts never
    become gates** (a free port, a writable dir, a tool on PATH). You may check one
@@ -396,7 +401,26 @@ conflict it recorded for you to reconcile). Fold newer evidence back into the
 spec, too: if `.spec/evidence/` holds a fresher run of a gate's probe (e.g. from
 `/build`'s done-check), refresh that gate's Last-run/Status row; and when the
 build section reports a phase's construction complete, record that in the phases
-ledger. **Stamp every record you write with
+ledger.
+
+**Reconcile the probe SET to the CHANGED spec — every re-run (load-bearing).** When
+a later run adds, changes, or supersedes a requirement, `SPEC.md` moving is only
+half the update: the **gate set must move with it**, or `/build` re-runs a stale
+set and goes green against a spec it no longer matches (the drift detector itself
+drifts). So on every re-run, for each affected requirement:
+- **new** load-bearing requirement → **author its probe** (Step 5 / D-54) — a new
+  requirement with no method is ungated, a silent false green;
+- **changed** acceptance → **replace the stale probe** — a probe still testing the
+  *old* behavior passes while the new behavior is unverified, which is worse than
+  no probe;
+- **superseded / removed** requirement → **retire its probe** — a lingering probe
+  keeps gating a dead requirement.
+
+"Sealed / 固化" freezes the **record of what was decided** (read-only history), it
+does **not** freeze the gate set's duty to match the *current* spec. **Coherence
+invariant (a closure check):** every `[locked]` requirement whose Method is Probed
+has an existing `.spec/probes/<R>.sh`; no probe file is left orphaned by a
+superseded requirement. If they don't line up, the spec isn't closed — fix the set. **Stamp every record you write with
 real OS time (see Time above) — never a guessed timestamp.** Ensure `CLAUDE.md` has the managed
 authority block (create if missing; replace only between the markers) so all
 later work reads `SPEC.md` first:
