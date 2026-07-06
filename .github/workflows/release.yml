@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set tag name
         id: tag
@@ -30,6 +32,14 @@ jobs:
             TAG="${{ github.ref_name }}"
           fi
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag if missing (workflow_dispatch)
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          if ! git tag -l | grep -q "^${TAG}$"; then
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
 
       - name: Package skills
         id: package
