@@ -1,0 +1,101 @@
+name: Release Skills Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (e.g. v2026-07-06)'
+        required: false
+        default: 'v2026-07-06'
+
+jobs:
+  package-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set tag name
+        id: tag
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${{ github.event.inputs.tag_name }}"
+          else
+            TAG="${{ github.ref_name }}"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Package skills
+        run: |
+          ZIP="spec-skills-${{ steps.tag.outputs.tag }}.zip"
+          zip -r "$ZIP" \
+            .claude/skills/spec/ \
+            .claude/skills/build/ \
+            .claude/commands/spec.md \
+            .claude/commands/build.md
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+        id: package
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          release_name: "Skills ${{ steps.tag.outputs.tag }}"
+          draft: false
+          prerelease: false
+          body: |
+            ## /spec + /build Skills Package
+
+            Extract this zip into your project root — it installs the
+            `.claude/skills/` and `.claude/commands/` files that Claude Code
+            needs for the `/spec` and `/build` commands.
+
+            ### Contents
+
+            ```
+            .claude/
+            ├── skills/
+            │   ├── spec/
+            │   │   ├── SKILL.md
+            │   │   └── references/
+            │   └── build/
+            │       └── SKILL.md
+            └── commands/
+                ├── spec.md
+                └── build.md
+            ```
+
+            ### Quick Install
+
+            **PowerShell**
+            ```powershell
+            iwr -UseBasicParsing https://github.com/suifei/spec/releases/download/${{ steps.tag.outputs.tag }}/spec-skills-${{ steps.tag.outputs.tag }}.zip -OutFile skills.zip
+            Expand-Archive -Path skills.zip -DestinationPath . -Force
+            ```
+
+            **Bash**
+            ```bash
+            curl -fsLO https://github.com/suifei/spec/releases/download/${{ steps.tag.outputs.tag }}/spec-skills-${{ steps.tag.outputs.tag }}.zip
+            unzip -o skills.zip
+            ```
+
+            Then open Claude Code in your project and run `/spec` to start.
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.package.outputs.zip }}
+          asset_name: ${{ steps.package.outputs.zip }}
+          asset_content_type: application/zip
