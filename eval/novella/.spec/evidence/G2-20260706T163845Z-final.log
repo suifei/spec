@@ -1,0 +1,11 @@
+== probe G2: main thread advances every <=2 chapters ==
+when: 2026-07-06T16:38:45Z
+where: vm / Linux 6.18.5 x86_64
+----
+  ch1: thread advances
+  ch2: thread advances
+  ch3: thread advances
+  ch4: thread advances
+  ch5: thread advances
+----
+RESULT: GREEN — no main-thread stall

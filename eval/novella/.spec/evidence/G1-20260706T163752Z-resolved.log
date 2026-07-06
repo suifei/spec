@@ -1,0 +1,10 @@
+== probe G1: mystery anchors resolved by deadline ==
+when: 2026-07-06T16:37:52Z
+where: vm / Linux 6.18.5 x86_64
+----
+  chapters present: up to ch3
+  wait M1 (planted ch1, due ch5) — not due yet
+  OK   M2 (planted ch1, due ch3) — paid off
+  wait M3 (planted ch2, due ch4) — not due yet
+----
+RESULT: GREEN — every due mystery is paid off by its deadline
