@@ -17,6 +17,12 @@ SKILL.md Step 1), reason it through, and probe reality where a load-bearing trut
 can be exercised. Then **resolve what you can and register the reasoning +
 conclusion** in `SPEC.md` — most questions end here, with no human decision.
 
+This rule has an executable anchor: the sources you consulted and the conclusions
+you drew must already be in `.spec/investigation.log` (SKILL.md Step 1) **before**
+a question reaches the human. A question with no logged trail behind it is, by
+definition, a question you haven't earned yet; and if the human asks "why are you
+asking me this," the answer comes from that log, not from improvisation.
+
 Bring a question to the human in **only two cases**:
 
 1. **Genuinely undecidable.** After exhausting every source *and* deep reasoning,

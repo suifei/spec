@@ -942,6 +942,41 @@ D-47 本身的触发条件或成本护栏。
 
 ---
 
+## 第 23 轮 · 2026-07-06 — `.spec/investigation.log`:给"先探真后提问"补一个可执行的锚点
+
+用户指出:Rule 0(先穷尽调查再提问)已经是既有要求,**但缺少一个可执行的锚点**——纯靠"应该先查"
+这句话,AI 可以偷懒、可以现场编造"我查过了"。用户给出的方案:新增一条内部规则,**AI 在提问之前,
+必须把已查阅的来源和结论记进 `.spec/investigation.log`**。三点理由(用户原述):
+1. 让 AI 自己有迹可循、防止偷懒——像实验记录本,做了什么一笔一笔在案;
+2. resume 时下一轮对话能读取上一轮的调查记录,避免重复劳动;
+3. 用户追问"你为什么问我这个"时,AI 从日志提取摘要回答,而不是现场编造。
+
+格式由用户直接给定,刻意轻量——一行一条、三要素(时间戳/来源/结论)、可追加、可 grep:
+
+```
+[timestamp] source: <项目文件/网络搜索/MCP/代码库> -> conclusion: <一句话>
+```
+
+"简单、可追加、可搜索——像种子标签一样,信息够用了就停。"(用户原话)
+
+### 落地
+- `SKILL.md`:固定位置清单新增 `.spec/investigation.log`(与 STATE.md 同目录,随 `.spec/` 一并
+  入库,跨机器 resume 也能续上);Step 0 复水时扫描日志尾部,避免重查;Step 1 新增
+  "Log the trail as you go" 条目——明确这是 AI 自己的工作日志、不是给人看的报告(绝不主动
+  展示,满足极简要求),并写死那条硬规则:**日志里没有调查痕迹,就没资格提问**。
+- `references/questioning.md`:Rule 0 补"可执行锚点"一段——问题到达人类之前,来源与结论必须
+  已在日志里;被追问"为什么问我这个"时,答案来自日志而非临场发挥。
+- **有意不做**:不新增模板文件(一行一条的格式直接写在 SKILL.md 里就够了,单独立模板反而
+  过度工程);不改 `commands/spec.md`/`README.md`(这是内部机制,对外零暴露);不给 STATE.md
+  加字段(日志本身就是持久状态,再登记一遍就是双份账本)。
+
+### 顺带说明
+本轮恰好回应了同日一次全面设计评审中发现的"调查过程不可恢复"一族问题(评审发现:Design Notes
+无复水集成、`/build` 中断后无痕迹等)——investigation.log 正是这一族问题在"调查"这条线上的
+对症解法:过程性状态落盘,而不是留在会话记忆里。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。
@@ -996,6 +1031,7 @@ D-47 本身的触发条件或成本护栏。
 | D-46 | **Windows 路径改为纯 PowerShell**:真实用户反馈 cmd.exe 命令贴进 PowerShell 直接报错(根因=现代 Windows 默认 shell 通常是 PowerShell,而非 cmd.exe);删除 `install.cmd`,改用 `scripts/install.ps1`(`irm|iex` 范式,PS 5.1+ 内置能力零依赖);安装指示统一为 `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "..."`,可从任意 shell 调用,**从根上消除"用户搞不清自己在哪个 shell"的问题**,而非仅在文档里提醒——**用户随后在真实 Windows 上跑通,四个目标文件全部装到位,无报错**(见第 19 轮第 4 节) | 用户真实报错 + 用户拍板 | 19 |
 | D-47 | 引入**可选、成本门控的 `/deep-research` 研究回退**:触发 = 既有立门三准则 + "单轮搜索仍有争议/单薄";不可用时静默继续普通搜索,绝不阻塞;诚实标注这是 prompt 层面的可发现性/护栏改动,而非可证明的能力提升;顺带轻量借用参考实现两条守则——网页内容当不可信输入处理、信源质量分级(四级序数,不用 A–E 全套) | 官方 `/deep-research` 文档(v2.1.154+、dynamic workflow、WebSearch、无编程 API)+ `Claude-Code-Deep-Research` 参考实现(scout 的不可信输入守则、源质量分级) | 20 |
 | D-48 | 把本仓库自己"每轮追加一节"的 `DESIGN-NOTES.md` 习惯,**推广为 `/spec` 的通用可选机制**:写进 `SKILL.md` Step 6 之后,取名"Design Notes";**不强制**每个项目都写,只在决策的推演过程本身值得完整保留时才用(与"立门三准则"同一种判断精神);`SPEC.template.md` §6 补一句可选的交叉引用写法 | 用户明确选择"推广为通用机制、写进 SKILL.md"(而非仅本仓库 CLAUDE.md 硬规则,也非纯软建议)+ Explore 子 agent 复核现状(此前仅本文件头自我指涉,`CLAUDE.md`/`README.md`/`SKILL.md`/模板均零处提及) | 22 |
+| D-49 | 新增 **`.spec/investigation.log`**——"先探真后提问"的**可执行锚点**:AI 提问之前,已查阅的来源与结论必须已落盘;格式一行一条 `[timestamp] source: <…> -> conclusion: <一句话>`,可追加、可 grep;Step 0 复水时扫尾部防重查;对用户零暴露(内部工作日志,非报告);不加模板、不改 STATE 字段、不动对外文档 | 用户提出并给定格式(三点理由:防偷懒有迹可循 / resume 免重复劳动 / 被追问时从日志作答而非编造) | 23 |
 
 ### 产物落地映射(v1)
 - `.claude/skills/spec/SKILL.md` —— D-01,03,04,05,06,12,13,18,19,20,27,28 (主协议)
@@ -1069,5 +1105,13 @@ D-47 本身的触发条件或成本护栏。
 - `references/questioning.md` / `references/STATE.template.md` / `references/knowledge.template.md` /
   `.claude/commands/spec.md` / `README.md` —— **有意不改**:Design Notes 是 Step 6(持久化)的
   可选延伸,不影响调查/提问/状态枚举/命令入口这几处已有的措辞
+
+### 产物落地映射(v11 · 第 23 轮)
+- `SKILL.md` —— D-49:固定位置清单新增 `.spec/investigation.log`;Step 0 复水扫日志尾部;
+  Step 1 新增 "Log the trail as you go" 条目(格式、内部性、"无痕迹不提问"硬规则)
+- `references/questioning.md` —— D-49:Rule 0 补"可执行锚点"段(提问前日志必须先落盘;
+  被追问时从日志作答)
+- `commands/spec.md` / `README.md` / 各模板 —— **有意不改**:内部机制,零对外暴露;
+  不立模板、不加 STATE 字段(防双份账本)
 
 *设计文档结束。实现见 `.claude/skills/spec/` 与 `.claude/skills/build/`。*

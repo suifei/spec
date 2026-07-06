@@ -159,6 +159,7 @@ minimal: **timestamps on everything + judgment**, not format gymnastics.
 ```
 SPEC.md                         # the spec — authoritative, at repo root
 .spec/STATE.md                  # progress ledger — rehydrate from this every run
+.spec/investigation.log         # append-only trail: consulted source → conclusion (internal; see Step 1)
 .spec/knowledge/<topic>.md      # persisted reconnaissance (deps, prior art, facts)
 .spec/probes/<gate>.sh          # executable probes (truth-finding)
 .spec/evidence/<gate>-<ts>.log  # captured probe output
@@ -197,7 +198,9 @@ Do a **small, safe-to-stop chunk** each run: persist, update `STATE.md`, then
 either continue or stop. Re-running `/spec` always resumes cleanly.
 
 ### Step 0 — Rehydrate (always first)
-Read `.spec/STATE.md` (if present), `SPEC.md`, and the `.spec/knowledge/` index.
+Read `.spec/STATE.md` (if present), `SPEC.md`, and the `.spec/knowledge/` index;
+scan the tail of `.spec/investigation.log` (if present) so questions the last
+run already investigated aren't re-explored from scratch.
 Reconstruct: current phase, current step, the core problem as understood so far,
 what's done, what's pending, the next action. **Tell the human where things
 stand** in one short status line, e.g.:
@@ -261,6 +264,16 @@ through. A runnable probe (Step 5) is one of these avenues, not the whole of it.
 - **Read → compress → forget:** distill findings into `.spec/knowledge/<topic>.md`
   (see `references/knowledge.template.md`) and discard the raw material from
   working context. The cache *is* the compression.
+- **Log the trail as you go (`.spec/investigation.log`).** The moment a consulted
+  source yields a conclusion, append one line:
+  `[<UTC timestamp>] source: <project file | web | MCP | codebase | knowledge | probe> -> conclusion: <one sentence>`
+  Append-only, one line per record, greppable — your own working log, not a
+  report for the human (never surface it unprompted). It exists so that (a) a
+  resumed run scans what was already checked instead of re-investigating, (b)
+  every question you bring to the human (Step 3) is backed by an on-disk trail
+  of what you already ruled out — **if the log doesn't show the investigation,
+  you're not ready to ask** — and (c) if the human asks "why are you asking me
+  this," you answer from the log, not from memory.
 
 **Dependency selection (standard flow):** for any external dependency — search
 the library **and its peers**, capture **stable + latest versions + alternatives**,
