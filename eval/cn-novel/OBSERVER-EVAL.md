@@ -91,5 +91,23 @@ canon / conservation / foreshadow-payoff / main-thread / coherence — all green
 - **No new skill defect surfaced** in this increment — `/build`'s gate-check discipline and the canon
   gate family (D-56) functioned as intended at scale.
 
-Honest scope: building **incrementally** toward 30 (11 done) — quality prose + a live gate set over a
-growing manuscript is the real test; the remaining chapters continue the same gated loop.
+## Phase C complete — `/yolo` drove ch012–ch030 to green (30/30)
+
+Run under **`/yolo`** (the scope is bounded + gate-closable, so its D-EVAL-3 precondition holds and it has a
+real finish line). The loop constructed ch012–ch030 in gated batches and self-terminated when the 30-chapter
+arc closed with every gate green (evidence: `.spec/evidence/yolo-done-30ch-*.log`):
+
+- **All gates green over the full 30 chapters:** canon / conservation / foreshadow / main-thread / coherence.
+- **Three deadline-bound foreshadows all paid off on time** (F1 ch9, F2 ch14, F3 ch26); **F4** planted ch27
+  for the next volume shows as `wait` (due ch40) — the phased-gate (D-EVAL-2) behaving correctly across a
+  volume boundary.
+- 境界 monotone 淬体1→凝罡1; star-force conserved chapter by chapter across 30 chapters.
+- New canon entities (沈砚 / 幽戍星 / 蚀影) had to be **registered in the glossary before use** — the canon
+  gate enforces that discipline (an unregistered `CANON` name goes red). The instrument-the-artifact
+  discipline (D-EVAL-1) working as designed.
+- **No new skill defect surfaced** across the full `/yolo` run — the D-56 / D-57 fixes held at 30-chapter
+  scale. `/yolo`'s termination was well-defined precisely because `/spec` had drawn a bounded arc.
+
+Net: the three skills ran a **complete, non-programming, consistency-heavy project end to end** — spec →
+gated construction → autonomous-to-green loop — catching real cross-chapter drift along the way, with the
+whole sample and evidence preserved.

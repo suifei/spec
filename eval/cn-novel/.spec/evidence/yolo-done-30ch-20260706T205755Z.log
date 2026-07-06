@@ -1,0 +1,12 @@
+== /yolo done-check: 30 chapters ==
+2026-07-06T20:57:57Z
+--- G-canon ---
+RESULT: GREEN — no canon contradiction
+--- G-conservation ---
+RESULT: GREEN — 账目守恒
+--- G2-foreshadow ---
+RESULT: GREEN
+--- G3-mainthread ---
+RESULT: GREEN
+--- _coherence ---
+RESULT: GREEN — every locked requirement is gated (or deferred); no orphan gates
