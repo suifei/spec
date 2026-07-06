@@ -64,6 +64,14 @@ pure `Invoke-WebRequest` + `Expand-Archive` if `git` isn't on PATH); the Linux/m
 one uses `git` if present, else `curl` + `tar`. Re-running either upgrades in place.
 Then open Claude Code in that directory and run `/spec`.
 
+Prefer a **pinned, offline copy**? Every tagged release ships a
+`spec-skills-<tag>.zip` on the [Releases](https://github.com/suifei/spec/releases)
+page — download it and extract into your project root:
+
+```bash
+unzip -o spec-skills-*.zip        # or, PowerShell: Expand-Archive -Path spec-skills-*.zip -DestinationPath . -Force
+```
+
 ## How it works
 
 ```
