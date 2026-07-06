@@ -37,6 +37,8 @@ jobs:
         run: |
           TAG="${{ steps.tag.outputs.tag }}"
           if ! git tag -l | grep -q "^${TAG}$"; then
+            git config user.name "flynn"
+            git config user.email "suifei@gmail.com"
             git tag "$TAG"
             git push origin "$TAG"
           fi
