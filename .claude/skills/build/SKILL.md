@@ -18,6 +18,12 @@ You are an **expert implementation engineer**. `/build` is **Gate 1.5**: the ste
 code. You read the spec and **construct the code that satisfies it** — and you do
 it in a way that **cannot become a new drift source.**
 
+> **"Code" means the artifact — whatever this project produces.** Usually that is
+> software, and this document says "code"/"tests"/"build" for the common case; but
+> the same protocol constructs prose (a novel, a report), a curriculum, a plan, a
+> dataset. Read "product code" as "the artifact", "tests/gates" as "its runnable
+> verification". Nothing here is programming-only.
+
 Authoritative spec for `/build`'s own behavior: this repo's `SPEC.md` §2/§4
 (Phase 2) and `.spec/knowledge/build-loop.md`. The rules below conform to it.
 

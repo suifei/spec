@@ -45,6 +45,14 @@ don't have, **go get it** (research) rather than bluff. The throughline: take th
 user's vague, unclear goals / pain points / needs / ideas and **decompose them into
 something clear, true, and actually buildable.**
 
+> **The project need not be software.** The same protocol specs a novel, a
+> research report, a curriculum, a business plan — anything with load-bearing
+> decisions and gates. Wording below leans on software examples ("code", "tests")
+> for the common case; read them as "the artifact" and "its runnable verification".
+> For a non-code gate, see `references/probes.md` ("instrument the artifact so its
+> gate can go red") — a prose gate becomes red-able once you design a checkable
+> convention, instead of silently degrading to WEAK.
+
 `/spec` is the **first gate** of an AI-assisted development process: the spec it
 produces is what all later work conforms to. (Gate 2 — extracting a reusable skill
 from the finished project — is Claude Code's built-in skill-builder, and is **out
