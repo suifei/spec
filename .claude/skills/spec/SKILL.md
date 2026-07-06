@@ -347,7 +347,26 @@ For each **gate** (load-bearing only — see "What earns a gate"), capture the
 strongest evidence appropriate. When the truth is environment-/behavior-specific,
 that means a **real, executable probe** (see `references/probes.md`): it must be
 able to **go red** (negative control) — a probe that can't fail is vacuous and
-rejected; never "verify" with a tautology like an always-green suite. When the
+rejected; never "verify" with a tautology like an always-green suite.
+
+**Author the *method* for every load-bearing acceptance, not just its description.**
+A requirement's acceptance is itself a gate: recording *what* to accept without
+*how* it is verified leaves prose that a builder will "verify" by reading code and
+eyeballing — which passes written-but-unreached code and silently-skipped
+behaviors. So resolve each load-bearing acceptance into **Probed** (a red-able
+`.spec/probes/<R>.sh` with a negative control), **OPEN** (no red-able check
+constructible ⇒ requirement stays visibly unclosed), or **WEAK** (un-scriptable
+quality ⇒ cited/judge sign-off) — **never prose alone** (see `references/probes.md`,
+"Every load-bearing acceptance needs a method"). Pick the probe's **modality
+silently** — it's derived, not a preference: user-visible/interaction behavior ⇒
+**drive the running product end-to-end** (e.g. Playwright) observed at the real
+entrypoint; a function contract ⇒ unit; a service/API contract ⇒ integration. The
+negative control must break the **wiring/reachability** (delete the mount/route/
+call site → red), not only the logic. Decide and register `[auto]`; escalate to
+the human **only** on the genuine-fork residue that already qualifies under
+Principle 3 / Step 3 — a subjective bar only they can set, or "no test harness
+exists here and standing one up is a real cost." "Build passes / all tests pass"
+is never a behavioral acceptance. When the
 truth isn't scriptable (e.g. a researched fact, a standard, a legal sign-off), a
 **cited finding** backs it, marked WEAK (non-probed) with its named source — this
 holds whether the citation came from ordinary search or a `/deep-research`

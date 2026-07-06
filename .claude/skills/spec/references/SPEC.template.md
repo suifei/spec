@@ -56,7 +56,12 @@ probe-passing.
 
 ## 4. Requirements
 Numbered, verifiable. Use SHALL/MUST. Tag `[locked]` (evidence-backed) or `[provisional→Phase N]`.
-- **R1.** `[locked]` The system SHALL <…>. *Acceptance:* <observable check / probe>
+Each load-bearing acceptance pairs **what** with **how it's verified** — a *Method*
+that is `.spec/probes/<R>.sh` (Probed), `OPEN` (no red-able check yet — stays
+unclosed), or `WEAK(cited)` (un-scriptable). Never prose alone; "build/tests pass"
+is not an acceptance. UI/interaction behavior ⇒ an **E2E** method observed at the
+real entrypoint, not a component read in isolation. (See `references/probes.md`.)
+- **R1.** `[locked]` The system SHALL <…>. *Acceptance:* <observable behavior at the real entrypoint>. *Method:* `.spec/probes/R1.sh` (E2E | unit | integration) — neg-control breaks the wiring, not just the logic.
 - **R2.** `[provisional→Phase 2]` The system SHALL <…>. *Unlocked by:* <trigger>
 
 ## 5. Dependencies (chosen tech)
