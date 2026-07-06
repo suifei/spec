@@ -21,7 +21,7 @@ jobs:
           TAG="${{ github.ref_name }}"
           ZIP="spec-skills-${TAG}.zip"
 
-          # List exactly the 10 distributable files - no staging dir needed
+          # List exactly the 11 distributable files - no staging dir needed
           zip -r "$ZIP" \
             .claude/skills/spec/SKILL.md \
             .claude/skills/spec/references/probes.md \
@@ -52,7 +52,7 @@ jobs:
 
           gh release create "$TAG" \
             --title "Skills ${TAG}" \
-            --notes '## /spec + /build Skills Package
+            --notes '## /spec + /build + /yolo Skills Package
 
             Extract this zip into your project root.
 
@@ -78,12 +78,12 @@ jobs:
 
             **PowerShell**
             ```powershell
-            Expand-Archive -Path skills.zip -DestinationPath . -Force
+            Expand-Archive -Path spec-skills-*.zip -DestinationPath . -Force
             ```
 
             **Bash**
             ```bash
-            unzip -o skills.zip
+            unzip -o spec-skills-*.zip
             ```
 
             Then run `/spec` in Claude Code.' \
