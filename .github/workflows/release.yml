@@ -45,11 +45,13 @@ jobs:
         id: package
         run: |
           STAGE="$RUNNER_TEMP/stage"
-          mkdir -p "$STAGE"
+          mkdir -p "$STAGE/.claude/skills/spec"
+          mkdir -p "$STAGE/.claude/skills/build"
+          mkdir -p "$STAGE/.claude/commands"
 
           # Copy only the distributable files — nothing else
-          cp -r .claude/skills/spec   "$STAGE/.claude/skills/spec"
-          cp -r .claude/skills/build  "$STAGE/.claude/skills/build"
+          cp -r .claude/skills/spec/*   "$STAGE/.claude/skills/spec/"
+          cp -r .claude/skills/build/*  "$STAGE/.claude/skills/build/"
           cp   .claude/commands/spec.md  "$STAGE/.claude/commands/spec.md"
           cp   .claude/commands/build.md "$STAGE/.claude/commands/build.md"
 
