@@ -58,7 +58,11 @@ deliberate or narrate. Do these in order, as actual tool calls:
    missing or has open blocking questions (→ send the human to `/spec`); or no
    buildable `[locked]` work exists (say so — nothing to loop); or `## build`
    (cross-check `CronList`) already shows a live loop (**one loop at a time** —
-   report the existing one, don't start a second).
+   report the existing one, don't start a second); or the target scope has **no
+   bounded, gate-closable "done"** — an open-ended spec (whether "write a great
+   novel" or "make it fast") gives the loop no finish line to reach, so it can
+   only ever stop at no-progress/human, never at "done". That is a `/spec`
+   problem, not a pace problem: send it back to bound the scope before looping.
 2. **Fire the loop — the fixed move.** Invoke the `loop` skill with args
    `1m <the loop prompt below>` (equivalently, call `CronCreate` with cron
    `*/1 * * * *` and that prompt). The prompt is **fixed and self-contained**:

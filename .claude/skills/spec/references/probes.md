@@ -96,6 +96,37 @@ while a listed behavior is unimplemented (that is exactly how a missing behavior
 slips through). Each behavior in the acceptance list earns its own red-able check;
 a green build is a floor, never evidence that behavior *B* works.
 
+## Non-code artifacts: instrument first, then the gate can go red
+
+The artifact is not always code. It may be prose (a novel, a report), a
+curriculum, a plan, a dataset. These have load-bearing gates too — "every planted
+mystery is paid off before its deadline chapter", "every learning objective is
+assessed", "every claim is sourced" — but they are **not machine-checkable by
+default**, so the naive move is to shrug and mark them all WEAK, quietly losing a
+gate that *could* have gone red.
+
+**So for a non-code gate, the first step is to instrument the artifact** — design
+a small, machine-checkable convention the probe can scan. In prose that means
+lightweight tags in invisible comments (e.g. `<!-- ANCHOR:M2 deadline=6 -->` where
+the setup is planted, `<!-- PAYOFF:M2 -->` where it lands); the probe greps them
+and goes red on a dangling anchor. The convention is the price of a red-able prose
+gate. A project unwilling to instrument keeps that gate **WEAK** (a named
+human/LLM-judge read) — an honest degrade, chosen with eyes open, not a silent
+collapse. Instrumenting the artifact is the non-code analog of wiring code to a
+real entrypoint: without it, the gate cannot observe the thing it claims to prove.
+
+## Phased gates: a long-range obligation is "pending", not red — but never forgotten
+
+Some obligations come due far from where they are declared — a mystery planted in
+chapter 1 resolved by chapter 40, a migration promised for a later release. Its
+probe must be **position/time-phased**: **not red before its deadline** (an unmet
+obligation that isn't due yet is not a failure), yet **tracked so it can't lapse**
+— record every open obligation as a ledger entry (`id`, declared-at, due-at,
+status open/closed) that the probe reads, so a due-and-unmet one goes red on the
+dot and a not-yet-due one reports "pending". Losing the ledger is how a
+1000-chapter payoff silently evaporates: the check must carry the obligation
+across the whole span, not just the chapter it was planted in.
+
 ## Every probe must
 
 1. Be a standalone script: `set -euo pipefail`; **exit 0 = pass, non-zero = fail**.

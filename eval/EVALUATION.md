@@ -88,3 +88,19 @@ user driving a novel/curriculum/plan could read this as "not for me." *Recommend
 The pipeline is **not** a programming-only tool. The four gaps above are refinements — naming the
 moves a careful executor already had to make — and are proposed as the next iteration, not shipped
 blindly. Preserved sample: the whole `novella/` project, including the red→green evidence trail.
+
+---
+
+## Resolution — all four fixed (2026-07-06, D-55)
+
+The four findings were applied to the skills (rules unchanged — only the non-code moves named):
+
+| Finding | Fix | Where |
+|---------|-----|-------|
+| D-EVAL-1 | "Instrument the artifact so its gate can go red" named as an explicit step (prose tagging as example) | `references/probes.md` |
+| D-EVAL-2 | Phased gates: a long-range obligation is "pending, not red" until its deadline, tracked in an open-loop ledger so it can't lapse | `references/probes.md` |
+| D-EVAL-3 | `/yolo` stops before looping if the scope has no bounded, gate-closable "done" (routes back to `/spec`) | `yolo/SKILL.md` Setup |
+| D-EVAL-4 | "The artifact is whatever the project produces (code, prose, plan…)" note; read "code/tests" as "the artifact / its verification" | `spec/SKILL.md`, `build/SKILL.md` |
+
+**Regression (re-run after the fixes):** G1 & G2 negative-control self-tests still go red *and* green;
+the full novella manuscript is still G1 GREEN + G2 GREEN. The sample stands; the fixes broke nothing.
