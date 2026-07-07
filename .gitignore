@@ -3,3 +3,7 @@ __pycache__/
 
 # /build's ephemeral design/tasks plan — regenerated each run, never a source of truth
 .spec/plan/
+.local/
+.plans/
+examples/media-ocr/
+*.zip
