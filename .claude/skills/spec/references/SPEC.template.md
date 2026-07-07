@@ -56,12 +56,15 @@ probe-passing.
 
 ## 4. Requirements
 Numbered, verifiable. Use SHALL/MUST. Tag `[locked]` (evidence-backed) or `[provisional→Phase N]`.
-Each load-bearing acceptance pairs **what** with **how it's verified** — a *Method*
-that is `.spec/probes/<R>.sh` (Probed), `OPEN` (no red-able check yet — stays
-unclosed), or `WEAK(cited)` (un-scriptable). Never prose alone; "build/tests pass"
-is not an acceptance. UI/interaction behavior ⇒ an **E2E** method observed at the
-real entrypoint, not a component read in isolation. (See `references/probes.md`.)
-- **R1.** `[locked]` The system SHALL <…>. *Acceptance:* <observable behavior at the real entrypoint>. *Method:* `.spec/probes/R1.sh` (E2E | unit | integration) — neg-control breaks the wiring, not just the logic.
+Each load-bearing requirement carries three fields: **Intent** (the purpose it protects —
+*what would count as violating it*, tagged `[auto]` if you derived it or `[human]` if the human
+set it), **Acceptance** (the observable *what*), and **Method** (the *how it's verified*:
+`.spec/probes/<R>.sh` Probed, `OPEN` — no red-able check yet, or `WEAK(cited)` — un-scriptable).
+Intent is first-class because it is what the independent review verifies against (proxy-vs-intent,
+`references/probes.md`/D-59) and what the consistency lens elicits (`references/consistency-lens.md`);
+never leave it as implicit prose. Never Acceptance alone; "build/tests pass" is not an acceptance.
+UI/interaction behavior ⇒ an **E2E** method at the real entrypoint. (See `references/probes.md`.)
+- **R1.** `[locked]` The system SHALL <…>. *Intent:* `[auto|human]` <the purpose; what a violation looks like>. *Acceptance:* <observable behavior at the real entrypoint>. *Method:* `.spec/probes/R1.sh` (E2E | unit | integration) — neg-control breaks the wiring, not just the logic.
 - **R2.** `[provisional→Phase 2]` The system SHALL <…>. *Unlocked by:* <trigger>
 
 ## 5. Dependencies (chosen tech)

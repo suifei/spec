@@ -50,8 +50,11 @@ makes the rest verifiable.
    **Never dump the eight laws as a questionnaire.**
 3. **Turn each surfaced dimension into a gate family** — a red-able probe where the truth is mechanical
    (canon/conservation/closure/reachability/boundary can often be instrumented, see `probes.md`), an
-   **independent intent-level review** where it isn't (genuine progress/quality), each recorded with its
-   human-stated intent. Then it's an ordinary gate, held to the three-part test in `SKILL.md`.
+   **independent intent-level review** where it isn't (genuine progress/quality). Write the dimension's
+   purpose into the requirement's first-class **Intent field** (tagged `[auto]` if you derived it,
+   `[human]` if elicited) — that recorded intent is exactly what the independent review verifies against
+   (D-59); do not leave it as implicit prose. Then it's an ordinary gate, held to the three-part test in
+   `SKILL.md`.
 4. **Stay open — the basis is well-grounded, not complete.** The human may name a load-bearing dimension
    it doesn't cover (an aesthetic bar, an ethical/legal constraint, a domain invariant). Add it as a
    first-class dimension; the lens is a starting scaffold, not a ceiling.
