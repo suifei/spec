@@ -77,10 +77,11 @@ deliberate or narrate. Do these in order, as actual tool calls:
    > acceptance — and commit the code on green (never the plan); (3) review this
    > round's diff; **for generated / quality-or-quantity work, the review must be an
    > INDEPENDENT clean-context reviewer** (a fresh sub-agent, or `/code-review`) that
-   > reads only `SPEC.md` + the artifact and asks *"is each requirement's intent
-   > genuinely met, or only its letter?"* — reasoning from purpose (metric-gaming /
-   > padding / faked requirements are non-exhaustive examples, not a checklist),
-   > citing offending passages — **never a self-review by this loop's own context**,
+   > reads only `SPEC.md` + the artifact and asks *"is each requirement's **recorded
+   > Intent** genuinely met, or only its letter?"* — reasoning from that stated
+   > purpose (metric-gaming / padding / faked requirements are non-exhaustive
+   > examples, not a checklist), citing offending passages — **never a self-review
+   > by this loop's own context**,
    > which would pass its own shortcuts; fix verified findings,
    > re-running gates if a fix touched anything gated; (4) checkpoint `## build`
    > with a real UTC timestamp; then **end the turn** so the schedule fires the

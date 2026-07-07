@@ -407,6 +407,16 @@ that means a **real, executable probe** (see `references/probes.md`): it must be
 able to **go red** (negative control) — a probe that can't fail is vacuous and
 rejected; never "verify" with a tautology like an always-green suite.
 
+**Record each load-bearing requirement's *Intent* as a first-class field (with
+provenance).** Alongside Acceptance (the *what*) and Method (the *how*), write the
+**Intent** — the purpose the requirement protects, stated as *what would count as
+violating it* — and tag its provenance `[auto]` (you derived it) or `[human]` (the
+human set it, e.g. via the consistency-lens elicitation). Intent is not decoration:
+it is the thing the independent review checks against (proxy-vs-intent, D-59) and
+the thing the lens elicits (D-60); left as implicit prose it drifts and can't be
+verified against. A `[human]`-set intent must not be silently overwritten by a later
+`[auto]` derivation — that's a spec conflict for the human, not a self-decision.
+
 **Author the *method* for every load-bearing acceptance, not just its description.**
 A requirement's acceptance is itself a gate: recording *what* to accept without
 *how* it is verified leaves prose that a builder will "verify" by reading code and

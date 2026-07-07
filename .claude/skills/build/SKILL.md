@@ -143,12 +143,14 @@ batch that touched a generative-quality or gameable-quantity gate**, run an
   `## build` state — never the generating context, which would pass its own
   shortcuts.
 - **Intent-anchored + cited** — its single question is *"is the requirement's
-  **intent** genuinely met, or only its letter?"* It reasons from purpose and finds
-  where the measure was satisfied but the intent wasn't, quoting the offending
-  passage. Metric-gaming, padding/filler, skipped or faked requirements, hollow
-  output that technically passes are **non-exhaustive examples that prime it, not a
-  checklist** — the next miss will look different. A bare "looks fine" is not
-  evidence.
+  **Intent** genuinely met, or only its letter?"*, checked against the requirement's
+  **recorded Intent field** in `SPEC.md` (not an intent it guesses). It reasons from
+  that stated purpose and finds where the measure was satisfied but the intent
+  wasn't, quoting the offending passage. Metric-gaming, padding/filler, skipped or
+  faked requirements, hollow output that technically passes are **non-exhaustive
+  examples that prime it, not a checklist** — the next miss will look different. A
+  bare "looks fine" is not evidence. (If a requirement has no recorded Intent, that
+  is a spec gap → Step 6 / `/spec`, not something the reviewer invents.)
 - **Gates done, with fixes** — a review that finds a defect blocks done: fix (or
   regenerate the offending part), re-run gates, re-review. Capture the sign-off as
   WEAK evidence in `.spec/evidence/`. This is the deliberate exception to
