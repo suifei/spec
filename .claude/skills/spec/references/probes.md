@@ -160,6 +160,50 @@ POV person, one tense, terminology drawn from the glossary, a rank that never
 regresses — is a **red-able sub-gate**. Split them: probe the consistency half, mark
 only the taste half WEAK.
 
+## When the builder optimizes the metric: gameable gates + independent review
+
+A gate that a **generator is being asked to satisfy** is different from a gate that
+merely *observes* a truth. If the acceptance is a **quantity/threshold the builder
+optimizes toward** — "≥4000 chars per chapter", "≥80% coverage", "N examples" — the
+probe can go red *and yet be satisfied by degenerate output*: padding, filler,
+repeated tokens, a metric hit with nothing real behind it. (A real case: told "each
+chapter ≥4000 characters", an autonomous writer padded every line with `——` dashes
+to clear the count — the probe stayed green while the prose became noise.) This is
+Goodhart's law: **the moment a measure becomes the target a generator optimizes, it
+stops being a good measure.** Two consequences:
+
+1. **A quantity/threshold gate must carry anti-degeneracy guards, and the negative
+   control must be the cheap cheat itself.** The count is a **floor, never a quality
+   gate.** Pair it, in the same probe, with mechanical guards that the obvious cheat
+   trips: a cap on any single character's/token's frequency, a cap on repeated
+   punctuation or separator runs (the `——` cheat → red), a floor on lexical
+   diversity (unique-token ratio). Build the probe's red by *padding to length* and
+   confirm it fails; if padding passes, the gate is vacuous.
+2. **Generative quality/authenticity is unscriptable ⇒ it needs an INDEPENDENT
+   adversarial review, never a self-review.** No script judges "is this real
+   writing / a real solution, or a shell that games the metric." That is a **WEAK**
+   gate — but a WEAK gate an autonomous loop will *silently skip* unless it is made
+   part of "done." So make it one, with a discipline that keeps the AI reviewer
+   honest (the reason the pipeline distrusted AI review in the first place):
+   - **Independent, clean context.** The reviewer is **not** the context that
+     produced the artifact — that context has an incentive to pass itself, and it
+     remembers its own shortcuts. Use a fresh reviewer that reads **only** `SPEC.md`
+     + the artifact + the current build state. (Mechanism is unspecified: a native
+     sub-agent by default; an equivalent headless process is fine. Never a
+     self-review by the generating context.)
+   - **Adversarial, with a red-flag checklist.** Its job is to *find* the failure —
+     metric-gaming, padding/filler, skipped or faked requirements, off-canon or
+     degenerate output — not to bless it.
+   - **Cited evidence, not a verdict.** It must quote the offending passages/lines;
+     a bare "looks fine" is not evidence (words never are). Capture the review as a
+     WEAK sign-off in `.spec/evidence/`.
+
+**Defense in depth, both gate "done".** The mechanical anti-degeneracy probe is
+cheap, deterministic, and catches crude gaming; the independent review catches the
+subtle failures a probe can't (4000 *real* characters that are still filler,
+off-canon, or plot-holed). Neither alone suffices, and a green count with no review
+is exactly how a metric-gamed artifact ships.
+
 ## Every probe must
 
 1. Be a standalone script: `set -euo pipefail`; **exit 0 = pass, non-zero = fail**.
