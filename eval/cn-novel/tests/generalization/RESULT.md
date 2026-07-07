@@ -45,3 +45,25 @@ produced **no false positive** on the genuine chapter.
   independence (never self-review) + adversarial intent-anchoring + cited evidence + a mechanical floor
   underneath (defense in depth). That is the strongest form available when quality is unscriptable — it
   converts an un-winnable exploit-enumeration game into one independent, motivated, auditable judgment.
+
+---
+
+## Round 2 — the ADVERSARIAL reviewer test (a determined cheat)
+
+A cheat written *specifically to beat the reviewer*: fluent, on-canon, correctly styled, with every
+surface feature of a real chapter (setting, dialogue, an action beat, a system message, a resolute
+closing) — but **subtly hollow**: it advances nothing. Placed among two genuine chapters, anonymised
+(`adversarial/ch1..ch3`), reviewer not told which was the decoy.
+
+- Mechanical probe: **GREEN on all three** (no `——`, normal distribution) — fully blind.
+- Independent intent-review verdict:
+  - **ch2 = FAIL** (the decoy) — caught it and named the sharpest tell: the system line **"运转如常"**
+    (capability unchanged), every "fact" a restatement of known lore, the rune "又缓缓散去" (no residue),
+    the close an *intention not an event* → "start state = end state".
+  - **ch1 = PASS**, **ch3 = PASS** — each with a cited concrete delta (enemy can command residuals
+    across deep space; a second mole using a dead man's identity). **No false positive.**
+
+**Reading:** the structural guarantee held against a *determined* fluent-hollow cheat that the mechanical
+layer passed completely. Still one trial with in-house fixtures — a structural guarantee, not a proof; a
+subtler adversary could still slip, which is why the design keeps a mechanical floor + independence +
+cited evidence rather than trusting any single reviewer's mood.
