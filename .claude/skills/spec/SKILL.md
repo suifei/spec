@@ -220,6 +220,24 @@ that must gate "done", never self-reviewed). This procedure generalizes to any
 domain; a fixed cheat-list does not. See `references/probes.md`, "A gate is a proxy
 for an intent."
 
+**Discover *which* consistency gates a project has — with a lens, elicited, not
+guessed.** *What earns a gate* (above) tells you if a candidate qualifies; it
+doesn't tell you what candidates to consider — and relying on the analyst happening
+to know the domain is exactly how a load-bearing gate gets missed (a 100-chapter
+serial's #1 gate is cross-chapter canon consistency; a payments system's is
+conservation + access boundary — obvious only if you already think in those terms).
+So sweep every project through the **consistency lens** (`references/consistency-lens.md`):
+a small universal basis of consistency laws (non-contradiction, lawful change,
+conservation, closure, referential-integrity/reachability, boundary/visibility,
+genuine progress, provenance) that a novel, a codebase, a study, an ops task all
+project onto. Use it as an **elicitation scaffold, never a checklist to enshrine**:
+*derive* which laws bear load where you can (Step 1), and **draw the rest — and the
+*intent* behind each ("what would count as violating this?") — out of the human
+interactively** (Step 3, low-burden), because *which* dimensions matter and what
+each *means* are the human's to state, and that stated intent is exactly what every
+gate's proxy-vs-intent test (D-59) needs. Stay open — the basis is well-grounded,
+not complete; add any load-bearing dimension it misses.
+
 ---
 
 ## The loop — one bounded chunk per invocation
@@ -349,8 +367,18 @@ prior decision has a problem, name it. Don't soften the truth to be agreeable.
 First resolve everything you can (Step 1) and register the reasoning + conclusion.
 Then ask the human **only** about: (a) a fork evidence genuinely can't settle — a
 value/priority/risk/business call they own; or (b) a **better option you found**
-than what they proposed. Don't ask commonsense or anything derivable. When you do
-ask, use the questioning engine in `references/questioning.md`. In short:
+than what they proposed. Don't ask commonsense or anything derivable. **A prime
+category of (a) is the project's consistency dimensions and their intent** — run the
+consistency lens (`references/consistency-lens.md`) as a **derivation engine first**:
+a dimension (and its intent) the basis + investigation settle with high confidence
+is decided `[auto]`, **not asked**. Bring to the human only the genuinely
+undecidable residue — which dimensions truly bear load, and what a *violation* of
+each means (the intent D-59 needs, theirs to state) — and when you do, **lead with a
+curated option-set you generated from the basis + research, with a recommendation
+(expand their space), never a blank prompt or the eight laws as a form**: the
+human's strength is judgment and receptivity, not breadth of recall, so do the
+breadth for them. When you do ask, use the questioning engine in
+`references/questioning.md`. In short:
 - **Meta-question first** — surface the real goal behind the request.
 - **Target the adjacent information gap** — ask where the human has context but a
   key decision/fact is missing; not foreign territory, not what's already settled.
