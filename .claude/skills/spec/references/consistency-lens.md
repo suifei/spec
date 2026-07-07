@@ -35,11 +35,19 @@ makes the rest verifiable.
 1. **Derive what you can (investigation, Step 1).** From the domain, mark which laws obviously bear
    load. *Don't ask what you can tell* — a serial novel obviously has canon (1), closure (4), progress
    (7); a payments system obviously has conservation (3) and boundary (6). Register `[auto]`.
-2. **Elicit the rest — and the intent — as genuine forks (Step 3, low burden).** For dimensions you
-   can't derive, and for the **intent** behind each ("what would count as *violating* this?"), ask a
-   **small focused batch** per `references/questioning.md`. The intent is the human's to state; it feeds
-   every gate's proxy-vs-intent test (D-59). **This is a differential you think with, not a questionnaire
-   you dump** — never hand the human all eight; ask only the load-bearing ones you couldn't settle.
+2. **Ask only the genuine residue — and ask by *expanding options*, not interrogating.** The lens is a
+   **derivation engine first, an elicitation aid only for the residue.** A dimension (and its intent)
+   that the basis + your investigation settle with **high confidence is decided and registered `[auto]`
+   — you do NOT ask it.** The human's attention is spent only on what is *genuinely* undecidable: which
+   dimensions truly bear load here, and what a *violation* of each means (the intent D-59 needs — theirs
+   to state). And when you do ask, **lead with a curated option-set you generated from the basis +
+   research — candidate dimensions, candidate intents, framings they may not have considered — with a
+   recommendation**, not a blank prompt. The human's strength is judgment, imagination, and receptivity,
+   **not** recall of consistency theory or breadth of prior art; do the breadth *for* them and let them
+   choose / react / extend. (This is Step 3(b) — "a better option you found" — applied to the lens, and
+   `questioning.md`'s "beginner → recommendation + example" generalized: even an expert has bounded
+   breadth versus your sweep, so offering well-formed options serves them better than an open question.)
+   **Never dump the eight laws as a questionnaire.**
 3. **Turn each surfaced dimension into a gate family** — a red-able probe where the truth is mechanical
    (canon/conservation/closure/reachability/boundary can often be instrumented, see `probes.md`), an
    **independent intent-level review** where it isn't (genuine progress/quality), each recorded with its

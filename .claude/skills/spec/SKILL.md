@@ -369,11 +369,16 @@ Then ask the human **only** about: (a) a fork evidence genuinely can't settle �
 value/priority/risk/business call they own; or (b) a **better option you found**
 than what they proposed. Don't ask commonsense or anything derivable. **A prime
 category of (a) is the project's consistency dimensions and their intent** — run the
-consistency lens (`references/consistency-lens.md`) as your differential, derive
-what you can, and elicit the load-bearing dimensions you couldn't settle *and what
-each one means* ("what would count as violating this?"); that stated intent is the
-human's to give and is what every gate's proxy-vs-intent test needs. When you do
-ask, use the questioning engine in `references/questioning.md`. In short:
+consistency lens (`references/consistency-lens.md`) as a **derivation engine first**:
+a dimension (and its intent) the basis + investigation settle with high confidence
+is decided `[auto]`, **not asked**. Bring to the human only the genuinely
+undecidable residue — which dimensions truly bear load, and what a *violation* of
+each means (the intent D-59 needs, theirs to state) — and when you do, **lead with a
+curated option-set you generated from the basis + research, with a recommendation
+(expand their space), never a blank prompt or the eight laws as a form**: the
+human's strength is judgment and receptivity, not breadth of recall, so do the
+breadth for them. When you do ask, use the questioning engine in
+`references/questioning.md`. In short:
 - **Meta-question first** — surface the real goal behind the request.
 - **Target the adjacent information gap** — ask where the human has context but a
   key decision/fact is missing; not foreign territory, not what's already settled.
