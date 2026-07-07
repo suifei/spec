@@ -70,17 +70,25 @@ deliberate or narrate. Do these in order, as actual tool calls:
    carry the whole tick contract itself, not a reference to this document:
    > **`/build` — continue construction autonomously to green.** Do NOT pause at
    > `/build`'s propose/commit checkpoints (this loop is the standing approval).
-   > Each firing: (1) rehydrate from `.spec/STATE.md` `## build`; (2) if
-   > buildable `[locked]` work remains, run the `/build` cycle to green — plan →
-   > construct → re-run gates + acceptance — and commit the code on green (never
-   > the plan); (3) code-review this round's diff (invoke `/code-review` if it
-   > exists, else self-review at the same bar) and fix the verified findings,
+   > Each firing: (1) **re-read `SPEC.md` + the targeted acceptance + anti-patterns
+   > from disk** (don't trust retained context — it erodes across a long loop), then
+   > rehydrate from `.spec/STATE.md` `## build`; (2) if buildable `[locked]` work
+   > remains, run the `/build` cycle to green — plan → construct → re-run gates +
+   > acceptance — and commit the code on green (never the plan); (3) review this
+   > round's diff; **for generated / quality-or-quantity work, the review must be an
+   > INDEPENDENT clean-context reviewer** (a fresh sub-agent, or `/code-review`) that
+   > reads only `SPEC.md` + the artifact and asks *"is each requirement's intent
+   > genuinely met, or only its letter?"* — reasoning from purpose (metric-gaming /
+   > padding / faked requirements are non-exhaustive examples, not a checklist),
+   > citing offending passages — **never a self-review by this loop's own context**,
+   > which would pass its own shortcuts; fix verified findings,
    > re-running gates if a fix touched anything gated; (4) checkpoint `## build`
    > with a real UTC timestamp; then **end the turn** so the schedule fires the
-   > next round. When no buildable `[locked]` work remains — or on a spec
-   > conflict, a genuine fork, or two firings that hit the same failure with no
-   > new information — do NOT build: **delete this loop** (`CronList` →
-   > `CronDelete` its id) and write the final report instead.
+   > next round. When no buildable `[locked]` work remains — **and the phase's
+   > independent review has signed off** — or on a spec conflict, a genuine fork, or
+   > two firings that hit the same failure with no new information — do NOT build:
+   > **delete this loop** (`CronList` → `CronDelete` its id) and write the final
+   > report instead.
 3. **Record** the returned job id in `## build`, announce the contract in one or
    two lines (what runs each minute, when it self-stops), then **end the turn.**
    A session-only cron fires only while the REPL is idle, so the loop physically
@@ -97,21 +105,25 @@ to prevent.
 
 ### Each firing (what the schedule runs; the same cycle, inline, on fallback)
 The loop prompt above *is* the tick — this restates it for the inline path and
-for clarity. In order: rehydrate from `## build` and reconcile the worktree
-(interrupted-tick residue handled per `/build` Step 0); if buildable targets
-remain, run `/build` **autonomous-to-green** and commit on green (never the
-plan); code-review the diff and fix verified findings, re-running gates if the
-fixes touched anything gated; checkpoint `## build` (real UTC — every tick, even
-a no-op). Then let the schedule fire the next round (inline: go straight into
-the next tick). Evaluate the termination conditions each firing.
+for clarity. In order: **re-read `SPEC.md` + acceptance + anti-patterns from disk**
+(retained context erodes across a long loop), rehydrate from `## build`, reconcile
+the worktree (interrupted-tick residue handled per `/build` Step 0); if buildable
+targets remain, run `/build` **autonomous-to-green** and commit on green (never the
+plan); review the diff — **independent clean-context reviewer for generated/quality
+work, never a self-review** — and fix verified findings, re-running gates if the
+fixes touched anything gated; checkpoint `## build` (real UTC — every tick, even a
+no-op). Then let the schedule fire the next round (inline: go straight into the
+next tick). Evaluate the termination conditions each firing.
 
 ### Termination — the delete is part of "done"
 A firing that meets any condition below does **not** build: it deletes the loop
 (`CronList` → `CronDelete` its id — or just ends, if running inline) and writes
 a final report.
 - **Done:** no buildable `[locked]` work remains — every targeted requirement's
-  acceptance holds and gates are green (evidence captured). Report what was
-  built, the green results, and the review findings fixed along the way.
+  acceptance holds, gates are green, **and the phase's independent review has
+  signed off** (green gates alone are not done for generated/quality work — a probe
+  can pass metric-gamed output). Evidence captured. Report what was built, the green
+  results, and the review findings fixed along the way.
 - **Blocked on a human:** spec conflict / genuine fork / unevaluable acceptance —
   recorded in `## build`, loop deleted, handed to `/spec` or the human. Say
   plainly what's needed to resume.

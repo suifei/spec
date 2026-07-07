@@ -203,6 +203,23 @@ a thing in passing and note it, but it stays a footnote — it is not a gate and
 a focus of downstream coding. When in doubt, ask: *if this came out the other way,
 would we build something different?* No ⇒ not a gate.
 
+**A gate is a proxy for an intent — author it adversarially (the load-bearing
+stance, not a checklist).** Every check you write is a *stand-in* for a real intent
+it can't fully capture, and whoever builds against it is an **optimizer** that will
+satisfy the *cheapest* reading of the check — which can diverge arbitrarily from
+what you meant (Goodhart). The failures this skill keeps hitting — a unit-green
+component never wired to the real entrypoint, a prose acceptance with no method, a
+stale probe, a word count met with `——` padding — are **one failure in different
+masks**, and the next mask is unknown. So don't defend by listing exploits; for
+**each** gate, run a one-line pre-mortem: *state the intent, then name the cheapest
+artifact that turns this gate green while a knowledgeable person would say the
+intent isn't met.* If that cheat exists, the check is only a proxy — **harden the
+measure** to close it (make the cheat the probe's negative control), or accept it as
+a **floor** and require an **independent intent-level review** (a WEAK gate, but one
+that must gate "done", never self-reviewed). This procedure generalizes to any
+domain; a fixed cheat-list does not. See `references/probes.md`, "A gate is a proxy
+for an intent."
+
 ---
 
 ## The loop — one bounded chunk per invocation

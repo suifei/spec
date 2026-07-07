@@ -47,10 +47,18 @@ block construction on it. *(This repo's pin: English.)*
    record is `SPEC.md` (above) + code & tests (below) + git history — not the plan.
    This is the deliberate divergence from persist-everything tools (Spec Kit/Kiro):
    the persisted middle layer is the drift surface; we don't keep one.
-3. **Done = acceptance + green gates (R3).** Construction is "done" **only** when
-   each targeted requirement's acceptance holds **and** the load-bearing gates are
-   green — by **re-running** `.spec/probes/`. Never self-certify "looks finished."
-   A red gate blocks done. (This is the load-bearing invariant — repo gate G2.)
+3. **Done = green gates + (for generative/quality work) an independent review.**
+   Construction is "done" **only** when each targeted requirement's acceptance holds
+   and the load-bearing gates are green — by **re-running** `.spec/probes/`. A red
+   gate blocks done. **But green gates alone are not done when the artifact is
+   something you *generated* against a metric** (prose, generated content, anything
+   with a quantity/quality acceptance): a probe can go green on **metric-gamed**
+   output (padding, filler, a threshold hit with nothing real behind it — see
+   `/spec`'s `references/probes.md`, "When the builder optimizes the metric"). For
+   such requirements, done **also** requires an **independent, clean-context,
+   adversarial review** that signs off with cited evidence — a reviewer that is
+   **not** this build's own context (which has every incentive to pass itself).
+   Never self-certify "looks finished."
 4. **No silent contradiction — route conflicts to `/spec` (R1).** If reality
    contradicts the spec (a gate can't be met, a decision turns out wrong, a
    requirement is infeasible), **stop and hand back to `/spec`** to reconcile. Do
@@ -69,8 +77,14 @@ block construction on it. *(This repo's pin: English.)*
 
 ### Step 0 — Rehydrate & target
 Read `CLAUDE.md` → `SPEC.md`, `.spec/STATE.md`, `.spec/knowledge/`, and the gates
-table. State where things stand and **pick the target**: the next phase /
-requirement(s) to build. Only `[locked]` requirements are buildable — a
+table. **Actually re-read them from disk every run — do not trust retained
+context.** On a long or compacted build the acceptance criteria and anti-patterns
+are exactly what erodes from the window first, and a build that has forgotten the
+spec drifts (and rationalizes shortcuts). The filesystem is the source of truth;
+re-hydrate the *full* targeted requirements + their Methods + the anti-patterns
+before constructing. (Re-reading is cheap hygiene — necessary, but note it does
+**not** by itself stop metric-gaming; see principle 3 / Step 4.) State where things
+stand and **pick the target**: the next phase / requirement(s) to build. Only `[locked]` requirements are buildable — a
 `[provisional→Phase N]` requirement isn't settled yet; route it back to `/spec`
 first. **Check the worktree too** (`git status`): uncommitted changes from an
 interrupted run are part of "where things stand" — reconcile them against the
@@ -102,7 +116,9 @@ against. Clear the marker at Step 5.
 Write product code per the plan, conforming to the spec's decisions, the **spec
 line** (don't re-litigate contract-level choices in code), and the **anti-patterns**.
 Keep changes scoped to the target. Write/extend tests for each requirement's
-acceptance.
+acceptance. **Never satisfy a gate's letter while violating its intent** —
+metric-gaming, padding to a count, filler, a threshold hit with nothing real
+behind it is a defect, not a pass; the review in Step 4 hunts for exactly this.
 
 ### Step 4 — 取证: close on acceptance + green gates
 Re-run the load-bearing gate probes in `.spec/probes/` and the requirements'
@@ -115,6 +131,29 @@ acceptance **can't be objectively evaluated as written** (prose no check can
 exercise), that is itself a spec conflict — Step 6, so `/spec` sharpens the
 acceptance; never substitute your own judgment as "evidence". Capture
 fresh evidence to `.spec/evidence/` (real UTC time).
+
+**Independent review gates done for generated / quality-or-quantity work.** Green
+probes are necessary, not sufficient, when the artifact was *generated against a
+metric* — a probe can pass on metric-gamed output. So at **phase-close, and on any
+batch that touched a generative-quality or gameable-quantity gate**, run an
+**independent, clean-context, adversarial review** *before* declaring done:
+- **Independent** — a reviewer that is **not** this build's own context (spawn a
+  fresh clean-context reviewer; a native sub-agent by default, an equivalent
+  headless process is fine). It reads **only** `SPEC.md` + the artifact + the
+  `## build` state — never the generating context, which would pass its own
+  shortcuts.
+- **Intent-anchored + cited** — its single question is *"is the requirement's
+  **intent** genuinely met, or only its letter?"* It reasons from purpose and finds
+  where the measure was satisfied but the intent wasn't, quoting the offending
+  passage. Metric-gaming, padding/filler, skipped or faked requirements, hollow
+  output that technically passes are **non-exhaustive examples that prime it, not a
+  checklist** — the next miss will look different. A bare "looks fine" is not
+  evidence.
+- **Gates done, with fixes** — a review that finds a defect blocks done: fix (or
+  regenerate the offending part), re-run gates, re-review. Capture the sign-off as
+  WEAK evidence in `.spec/evidence/`. This is the deliberate exception to
+  "probes-only": generative quality is unscriptable, so an *honest* AI review
+  (independent, adversarial, evidence-backed) is the only gate for it.
 
 **A load-bearing acceptance with no red-able *method* is an incomplete gate, not
 an assumed pass.** If the acceptance is prose with no `.spec/probes/<R>.sh` to

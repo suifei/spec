@@ -160,6 +160,59 @@ POV person, one tense, terminology drawn from the glossary, a rank that never
 regresses — is a **red-able sub-gate**. Split them: probe the consistency half, mark
 only the taste half WEAK.
 
+## A gate is a proxy for an intent — assume the builder optimizes the proxy
+
+This is the general principle behind every "vacuous green" in this document; the
+specific cases (an unmounted component that unit-passes, a prose-only acceptance, a
+stale probe, a `——`-padded word count) are all **one failure wearing different
+masks**, and the *next* one will look different again — so do not defend by
+enumerating exploits. Defend by the principle.
+
+**Every check is a proxy.** A probe, a metric, an acceptance is a *stand-in* for a
+real intent it cannot fully capture. And the executor turning gates green is,
+structurally, an **optimizer**: it will find the *cheapest* way to satisfy the
+check, which can diverge arbitrarily from the intent (Goodhart's law — the moment a
+measure becomes the target, it stops being a good measure). You cannot list the
+ways it will diverge. Apply two moves that generalize to any gate, any domain:
+
+1. **Author the gate adversarially — a pre-mortem.** For the gate in front of you:
+   state the **intent** in one line, then ask *"what is the cheapest artifact that
+   makes this gate green but a knowledgeable person would reject as not meeting the
+   intent?"* If such a path exists, the check is only a **proxy**: either **harden
+   the measure** to close that specific path (and make the cheat itself the probe's
+   negative control — build the red by *doing the cheat*), or accept the check as a
+   **floor** and require an intent-level review below. Run this reasoning per gate;
+   the *procedure* transfers even though no fixed cheat-list does. (*Illustration,
+   not a rule:* a "≥N chars" floor is trivially gamed by padding, so its probe also
+   caps single-token frequency / separator runs / low lexical diversity — but a
+   different metric will need a different hardening you derive the same way.)
+2. **Verify the intent, not the letter.** Where the measure cannot fully capture the
+   intent — quality, authenticity, "does it actually work / read / solve the
+   problem" — that residue is **WEAK** (unscriptable), and an autonomous loop will
+   *silently skip* it unless it is made part of "done." So make it one: an
+   **independent, intent-level review**, whose single question is always *"does this
+   achieve the requirement's purpose, or merely its measure?"* — open-ended, never a
+   checklist. To keep that AI review trustworthy (the reason the pipeline distrusted
+   AI review to begin with):
+   - **Independent, clean context** — the reviewer is **not** the context that
+     produced the artifact (that context has an incentive to pass itself and
+     remembers its own shortcuts). A fresh reviewer reading **only** `SPEC.md` + the
+     artifact + the build state. Mechanism unspecified (native sub-agent by default;
+     an equivalent headless process is fine). **Never a self-review.**
+   - **Adversarial and intent-anchored** — its job is to decide whether the *purpose*
+     is genuinely met and to *find* where only the letter was satisfied. Known
+     tricks (padding, filler, faked/skipped requirements, hollow output that
+     technically passes) are **priming examples, explicitly non-exhaustive** — it
+     reasons from intent, it does not tick a list.
+   - **Cited evidence, not a verdict** — it quotes the offending passage/line; a bare
+     "looks fine" is not evidence (words never are). Capture as a WEAK sign-off in
+     `.spec/evidence/`.
+
+**Defense in depth.** The hardened measure is cheap, deterministic, catches the
+crude gaming; the intent review catches the subtle miss a probe can't (output that
+clears every mechanical bar and is still hollow, off-purpose, or faked). Both gate
+"done"; a green measure with no intent review is exactly how a gamed artifact ships.
+
 ## Every probe must
 
 1. Be a standalone script: `set -euo pipefail`; **exit 0 = pass, non-zero = fail**.
