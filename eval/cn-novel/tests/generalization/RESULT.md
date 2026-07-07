@@ -67,3 +67,28 @@ closing) — but **subtly hollow**: it advances nothing. Placed among two genuin
 layer passed completely. Still one trial with in-house fixtures — a structural guarantee, not a proof; a
 subtler adversary could still slip, which is why the design keeps a mechanical floor + independence +
 cited evidence rather than trusting any single reviewer's mood.
+
+---
+
+## Round 3 — information boundary (law 6), the least scriptable law — verified against a RECORDED Intent (D-61)
+
+The hardest case: a *foreknowledge overreach*. R9's mechanical floor treats 陆沉's rebirth-memory as
+licensed, so it cannot judge whether a given "memory" exceeds his author-set bound — that is purely the
+WEAK intent-review's job, and it must verify against R9's **recorded** Intent (limited & drifting; only
+big lived/heard events; no fine detail he couldn't have witnessed). Three chapters, blind, one a subtle
+overreach dressed as natural foreknowledge.
+
+- Mechanical floor `G-infoboundary.sh`: **GREEN** (blind — no tagged uses, and by design it can't judge
+  the foreknowledge bound).
+- Independent intent-review, given R9's recorded Intent:
+  - **ch2 = FAIL** — quoted the over-reach: exact words of a *triple-sealed private meeting* he could not
+    have witnessed, an exact date, impossible micro-detail (candle direction, a half jade-seal), and
+    "分毫不差 / 不必再查 / 错不了" — the opposite of the fuzzy, drift-aware memory the bound requires.
+  - **ch1 = PASS** (coarse, "只知会来", drift-aware) · **ch3 = PASS** (lived it but distant/uncertain,
+    gives a direction not an answer). **No false positive.**
+
+**Reading:** the WEAK intent-review carried the least-scriptable law by **reasoning from the recorded
+Intent field** — validating D-61 (the reviewer checks against a recorded intent, not a guessed one) and
+D-59 (verify intent, not letter) on the hardest terrain. Same honest caveat stands: one trial, in-house
+fixtures — a structural guarantee (independent + against a recorded human-set intent + cited + a
+mechanical floor for the crude cases), not a proof.
