@@ -22,6 +22,10 @@
   境界单调 淬体1→凝罡1;星力账目逐章守恒。新增 canon 实体(沈砚/幽戍星/蚀影)均先入 glossary 再上场
   ——门强制此纪律(未登记的 CANON 名会变红)。**本轮 /yolo 全程未暴露新 skill 缺陷**,D-56/D-57 修复
   在 30 章规模上稳定成立。证据:.spec/evidence/yolo-done-30ch-*.log。
-- remaining: 第一卷(30 章)施工完成;R5(WEAK 通读)与 R6(OPEN 意外性)俟读者信号;下卷续 F4。
-- next: `/spec` 可回写 Phase 1 construction=built;或续下一卷。
+- built(第二卷): 2026-07-06 — `/yolo` 续写 ch031–ch040(归墟卷开篇,共至 **40 章**)。终检全绿:
+  G-canon / G-conservation / G2-foreshadow / G3-mainthread / _coherence。**F4(玉牌渊源)于 ch40 按期回收**;
+  F5(ch35 埋,deadline55)pending。境界续单调 凝罡1→凝罡4;账目逐章守恒;新 canon 实体 苏挽先入 glossary。
+  跨卷一致性(前 30 章设定/人设/数值)全程未破。证据:.spec/evidence/yolo-vol2-40ch-*.log。
+- remaining: 第二卷续(F5 需 ch55 前回收);R5/R6 俟读者信号。
+- next: 续 ch041 起,或按需收束第二卷。
 - conflict: none
