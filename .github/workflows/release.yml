@@ -33,7 +33,8 @@ jobs:
             .claude/skills/yolo/SKILL.md \
             .claude/commands/spec.md \
             .claude/commands/build.md \
-            .claude/commands/yolo.md
+            .claude/commands/yolo.md \
+            CLAUDE_template.md
 
           # Verify zip contents
           echo "=== ZIP contents ==="
@@ -60,6 +61,7 @@ jobs:
 
             ```
             .claude/
+            ├── CLAUDE_template.md
             ├── skills/
             │   ├── spec/
             │   │   ├── SKILL.md
