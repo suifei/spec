@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Guidance for AI agents working in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 <!-- BEGIN SPEC-AUTHORITY (managed by /spec) -->
 ## Specification authority
@@ -72,3 +72,47 @@ run `/yolo` to let construction loop autonomously to green.
 > `/spec` run) specify the `/spec → /build` pipeline — Phase 1 (`/spec`) sealed,
 > Phase 2 (`/build`) built. In a *fresh* project, `SPEC.md` and `.spec/` don't exist
 > until you run `/spec` for the first time.
+
+## Working in this repo
+
+**This is a prompt/skill repository, not a code project.** The "source" is the Markdown
+skill definitions under `.claude/`: `skills/{spec,build,yolo}/SKILL.md` (the protocols)
+plus `skills/spec/references/*.md` (`probes.md`, `questioning.md`, `consistency-lens.md`,
+and the `*.template.md` files), with thin `commands/*.md` wrappers. There is no
+compile/build/lint step — changing behavior means editing those prompts, and the real
+substance lives in `SKILL.md` + `references/`, not the command wrappers. Don't hand-edit
+inside the `<!-- BEGIN/END SPEC-AUTHORITY -->` markers above — that block is managed by `/spec`.
+
+**Verification = runnable probes; there is no test framework.** A gate is a shell script
+that must be able to *fail*:
+- Run one: `bash .spec/probes/<gate>.sh` — **exit 0 = green (pass), non-zero = red (fail)**.
+- Negative control: `bash .spec/probes/<gate>.sh --selftest` — a probe must go **red on the
+  broken case and green on the good case**; a probe that can't go red is vacuous and rejected.
+- This repo dogfoods its own pipeline; its load-bearing gate is `.spec/probes/G2-done-by-gate.sh`.
+
+**`eval/` is the behavior test-suite for the skills.** `eval/novella/` and `eval/cn-novel/`
+are real `/spec`→`/build`→`/yolo` runs on non-code (fiction) projects, each with its own
+`SPEC.md` + `.spec/probes/`. Regression after a skill change = re-run every eval probe and its
+self-test, e.g. `for p in eval/*/.spec/probes/*.sh; do bash "$p" --selftest; done`, plus each
+probe without `--selftest` over its project's `manuscript/`. `eval/cn-novel/tests/generalization/`
+holds the anti-cheat evidence (`RESULT.md`, `README.md`).
+
+**The gate/verification model to preserve when editing the skills** (see `references/probes.md`,
+`references/consistency-lens.md`):
+- Every load-bearing requirement carries **Intent** (`[auto]` derived / `[human]` set — *what
+  counts as a violation*) + **Acceptance** + **Method** (a red-able `.spec/probes/<R>.sh`
+  Probed, or `OPEN`, or `WEAK` cited/judged). Never prose alone; a bare word count / "tests pass"
+  is not an acceptance.
+- A gate is a **proxy for an intent** — author it adversarially (what's the cheapest artifact that
+  passes while missing the point?). Generated/quality work also requires an **independent,
+  intent-anchored review** (a fresh clean context, never a self-review) that checks the *recorded
+  Intent*.
+
+**Change discipline.** When you change a skill's *rules*, add a dated round and a `D-NN` Decision
+to `docs/DESIGN-NOTES.md` (the consolidated Decision Log at the end), and keep `SPEC.md` / `.spec/`
+in sync — the repo holds itself to its own pipeline. Development happens on a branch → PR → merge.
+
+**Release & install.** Pushing a `v*` git tag triggers `.github/workflows/release.yml`, which zips
+the distributable files (the `.claude/skills` + `commands` + `CLAUDE_template.md`) into a GitHub
+Release (a maintainer action — tag pushes are restricted). `scripts/install.sh` and
+`scripts/install.ps1` install those files into a user's own project.
