@@ -142,9 +142,13 @@ batch that touched a generative-quality or gameable-quantity gate**, run an
   headless process is fine). It reads **only** `SPEC.md` + the artifact + the
   `## build` state — never the generating context, which would pass its own
   shortcuts.
-- **Adversarial + cited** — its task is to *find* metric-gaming, padding/filler,
-  skipped or faked requirements, off-canon or degenerate output, and to **quote the
-  offending passages** — not to bless it. A bare "looks fine" is not evidence.
+- **Intent-anchored + cited** — its single question is *"is the requirement's
+  **intent** genuinely met, or only its letter?"* It reasons from purpose and finds
+  where the measure was satisfied but the intent wasn't, quoting the offending
+  passage. Metric-gaming, padding/filler, skipped or faked requirements, hollow
+  output that technically passes are **non-exhaustive examples that prime it, not a
+  checklist** — the next miss will look different. A bare "looks fine" is not
+  evidence.
 - **Gates done, with fixes** — a review that finds a defect blocks done: fix (or
   regenerate the offending part), re-run gates, re-review. Capture the sign-off as
   WEAK evidence in `.spec/evidence/`. This is the deliberate exception to
