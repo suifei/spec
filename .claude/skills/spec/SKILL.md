@@ -187,21 +187,23 @@ Reference material for this skill: `references/questioning.md` (how to ask),
 ## What earns a gate (and what never does)
 
 A gate is expensive — it becomes a thing downstream work must honor. So promote a
-source of truth to a **gate** only if it passes **all three** tests:
+source of truth to a **gate** only if it passes **all three** tests (AND, not OR):
 
-1. **Load-bearing** — a real decision or the project's feasibility hinges on it.
-2. **Uncertain** — it could plausibly be false or turn out otherwise. If it is
-   obviously true, it's commonsense; don't gate it.
-3. **Consequential if wrong** — being wrong changes the *design* (a contract, an
-   architecture, a dependency choice), not merely an implementation detail.
-
-The archetype is a gate that can **refute a stated assumption and redirect the
-build** (e.g. "this runs as a native app" turning out false). Counter-examples
-that must **never** be gates: a port is bindable, a directory is writable, a
-runtime is on PATH, a stock library does its documented thing. You may verify such
-a thing in passing and note it, but it stays a footnote — it is not a gate and not
-a focus of downstream coding. When in doubt, ask: *if this came out the other way,
-would we build something different?* No ⇒ not a gate.
+```
+gate ⇐ load-bearing ∧ uncertain ∧ consequential-if-wrong
+  load-bearing           = a real decision / the project's feasibility hinges on it
+  uncertain              = could plausibly be false or turn out otherwise
+                           (obviously-true ⇒ commonsense, ¬gate)
+  consequential-if-wrong = being wrong changes the DESIGN (a contract · an architecture ·
+                           a dependency choice), ¬ merely an implementation detail
+  decision heuristic:  "if this came out the other way, would we build something different?"
+                         no ⇒ ¬gate
+  archetype (gate-worthy):  refutes a stated assumption and redirects the build
+                            (e.g. "this runs as a native app" turns out false)
+  counter-examples (NEVER gate):  port bindable · dir writable · runtime on PATH ·
+                                  stock library does its documented thing
+                                  ⇒ verify in passing, note it, but it stays a footnote
+```
 
 **A gate is a proxy for an intent — author it adversarially (the load-bearing
 stance, not a checklist).** Every check you write is a *stand-in* for a real intent
