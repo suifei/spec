@@ -64,7 +64,7 @@ everything that *is* decidable, drafting, persisting. Keep the human surface dea
 simple; keep the machinery under the hood. `/spec` must never become an operational
 or cognitive burden — it is collaboration, not paperwork.
 
-## Rule 0 — Output language (highest priority, overrides everything below)
+## Rule 0 — Output language (top priority for output *form*; subordinate to evidence & honesty)
 
 **The artifact language is a pinned, one-time choice — ask once, then never again.**
 
@@ -84,11 +84,15 @@ or cognitive burden — it is collaboration, not paperwork.
   exists** (e.g. an older project predating this rule): infer the pin from the
   existing document's language, record it as the constraint now, and proceed —
   still just one silent one-time action, not a question.
-- **Translate on mismatch, proactively.** If existing `SPEC.md`/`.spec/` content is
-  in a different language than the pinned one (e.g. the pin changed, or content was
-  authored before a pin existed), translate it to match — iteratively/chunked for a
-  large spec (track progress in `STATE.md`) — leaving it in **one coherent
-  language**. Never rewrite a past timestamp while translating (append-only holds).
+- **Translate on mismatch, proactively — but cost-gate a large one.** If existing
+  `SPEC.md`/`.spec/` content is in a different language than the pinned one (e.g. the
+  pin changed, or content was authored before a pin existed), translate it to match,
+  leaving it in **one coherent language**. For a *small* spec, just do it. For a
+  **large** one (a repin that would re-translate most of a big `SPEC.md`/`.spec/`),
+  don't silently churn the whole corpus: tell the human the rough scope (e.g. "≈N
+  sections / K lines to re-translate") and get a go-ahead, then translate
+  iteratively/chunked (track progress in `STATE.md`). Never rewrite a past timestamp
+  while translating (append-only holds).
 - **Keep language-neutral tokens verbatim:** code, identifiers, file paths,
   commands, URLs, ISO-8601 timestamps, and established technical terms (gloss in
   parentheses if it helps). Never "translate" code or probe scripts.
@@ -107,7 +111,7 @@ or cognitive burden — it is collaboration, not paperwork.
    and MCP, the material the human pointed at — combined with deep reasoning and
    verification. A **runnable probe is one instrument** of investigation (the
    strongest evidence for an environment-/behavior-specific truth), **not** its
-   definition. Never narrow "投真" to "run a check script."
+   definition. Never narrow "探真" to "run a check script."
 3. **Decide what's decidable; escalate only true forks.** Default: you resolve the
    question yourself and **register the key reasoning path + the conclusion** in
    `SPEC.md` — *no human decision needed*. Bring a call to the human in **only two
@@ -139,9 +143,20 @@ or cognitive burden — it is collaboration, not paperwork.
    do not build the project around whether a port is free.*
 7. **Spec governs the contract surface only** (the "spec line" — see below). Stay
    high-altitude; let execution own the HOW.
-8. **One document, whole.** `SPEC.md` is the single source; rewrite it as a whole,
-   never fragment it.
-9. **Don't implement.** `/spec` only specifies and verifies readiness — it does
+8. **One document, coherent.** `SPEC.md` is the single source; keep it internally
+   coherent as one document, never fragmented. Rewriting is section-scoped, not
+   destructive: **rewrite the non-sealed parts; a *sealed* phase's recorded text is
+   moved verbatim, not re-authored** (sealed = read-only, Step 7) — "rewrite as a
+   whole" means the *file stays one coherent whole*, not that sealed history is
+   rewritten each run.
+9. **Right-size the ceremony (simplicity is a feature).** The full apparatus
+   (`STATE.md`, `investigation.log`, a phases ledger, probes) is for projects with
+   load-bearing uncertainty. For a genuinely small one — a single-file script, a
+   one-off, a throwaway — `/spec` may degrade to the minimum: a short `SPEC.md`
+   (Vision + Scope + at most one real gate), skipping the ledger/log/phases scaffolding
+   until the project grows enough to need them. Don't impose heavy machinery on a
+   problem that doesn't have the uncertainty to justify it.
+10. **Don't implement.** `/spec` only specifies and verifies readiness — it does
    not write product code.
 
 ## Time — every record carries real time, and you reason about it
@@ -190,14 +205,14 @@ A gate is expensive — it becomes a thing downstream work must honor. So promot
 source of truth to a **gate** only if it passes **all three** tests (AND, not OR):
 
 ```
-gate ⇐ load-bearing ∧ uncertain ∧ consequential-if-wrong
+gate = load-bearing AND uncertain AND consequential-if-wrong   (all three, not any one)
   load-bearing           = a real decision / the project's feasibility hinges on it
   uncertain              = could plausibly be false or turn out otherwise
-                           (obviously-true ⇒ commonsense, ¬gate)
+                           (obviously-true = commonsense, NOT a gate)
   consequential-if-wrong = being wrong changes the DESIGN (a contract · an architecture ·
-                           a dependency choice), ¬ merely an implementation detail
+                           a dependency choice), NOT merely an implementation detail
   decision heuristic:  "if this came out the other way, would we build something different?"
-                         no ⇒ ¬gate
+                         no  = NOT a gate
   archetype (gate-worthy):  refutes a stated assumption and redirects the build
                             (e.g. "this runs as a native app" turns out false)
   counter-examples (NEVER gate):  port bindable · dir writable · runtime on PATH ·
@@ -515,9 +530,9 @@ in full, not just its conclusion). This repo's own `docs/DESIGN-NOTES.md` is a
 live example of the pattern.
 
 ### Step 7 — Closure & phases (emergent)
-**Closure = every decision in scope confirmed ∧ every gate carries its strongest
+**Closure = every decision in scope confirmed, and every gate carries its strongest
 appropriate evidence — a green probe, a cited finding accepted as WEAK (Step 5),
-or an explicit, recorded deferral — ∧ no blocking open question remains.**
+or an explicit, recorded deferral — and no blocking open question remains.**
 (*Blocking* = its answer could still change an in-scope decision or gate; a
 question deferred to a later phase doesn't block this one.)
 On closure, **seal the current phase** (mark it done in `SPEC.md` and `STATE.md`)

@@ -1518,12 +1518,42 @@ done 重述是 D-53 有意自足,非漂移),并补了 GLM 漏掉的关键反证:
 
 ---
 
+## 第 38 轮 · 2026-07-08 — 收尾 GLM 评审剩余项 P1/P2/P3(D-66/67/68)
+
+第 37 轮修了承重两处(P0+P4),本轮把 GLM 评审的其余项一次做完。
+
+- **P1(D-66)闭环缺口。** ①done 定义**单一权威化**:`build` 原则 3 标注为唯一权威,`/yolo` 原则 1 与命令
+  包装改为**引用**而非重述(循环 prompt 因 D-53 自足除外)。②新增自 coherence 探针 `.spec/probes/G3-done-coherence.sh`
+  ——断言 `build`/`yolo` 的 done 都含"验收+门绿+独立评审"三要素,漏一即红(`--selftest` 真红/绿;真跑非空)。
+  ③`STATE.template` 的 `current_phase` 单标量升为 `active_phases` 列表(阶段重叠/DAG 可表达),并把原则 8
+  "整篇重写"与"封存只读"调和为"重写未封存部分、封存段整搬不改"。④新增回写 coherence 探针
+  `.spec/probes/G4-writeback-coherence.sh`——`STATE ## build` 报了 built 而 `SPEC` 阶段台账无"construction…built"
+  即红,把第 30 轮那次"建完 6 天没回写"的 S1-3 缺口在管线内抓住(`--selftest` 真红/绿;真跑非空)。G3/G4 登入
+  `SPEC.md`§3 门表。
+- **P2(D-67)成本与安全网。** ①`/yolo` 加**硬天花板**(默认 ~20 tick,或调度器暴露的成本/token 预算)+
+  **"无实质推进即停"**(不再只认"同一失败两轮":几轮只有装样子的改动、无门 red→green/无需求闭合=停),落原则
+  4/5、Guardrails、终结条件表、以及**自足循环 prompt**(D-53 要求 prompt 自带天花板)。②`investigation.log`
+  防伪:本欲加探针,但核实真实日志的 source 多为"reasoning/knowledge/user brief"**非路径/URL**,机械校验会误杀
+  合法推理条——故改为 `questioning.md` **规则加强**(source 为文件/URL 须给可解析真引用、为推理须命名真实链条,
+  反"事后补装饰性空行"),不立会误伤或空洞的探针(诚实取舍,写明理由)。
+- **P3(D-68)打磨。** `投真→探真` 笔误;`∨/∧/⇐` 数学符号在 `spec/SKILL`、`yolo/SKILL`、`SPEC.template` 三处
+  换 `and/or/=`(落实 D-62 的人类可编辑性,对 GLM 该点让步);Rule 0 头"overrides everything"降为"output
+  form 优先、从属于证据与诚实",并给翻译加**大规格成本门**(整库重译前先告知人类规模、获批再分块);加**小项目
+  逃生阀**(单文件/一次性产出可只写 Vision+一门,跳过台账/日志/阶段——"simplicity is a feature"从口号变机制)。
+
+回归:仓库 3 门(G2/G3/G4)+ 10 条 eval 探针,真跑 + `--selftest` 全绿;三处技能文件 `∨/∧/⇐` 归零。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。
 
 | ID | 决策 | 依据 / 来源 | 轮次 |
 |----|------|------------|------|
+| D-68 | **P3 打磨**(GLM 评审收尾):`投真→探真` 笔误;`∨/∧/⇐` 三处技能文件换 `and/or/=`(落实 D-62 人类可编辑性,对 GLM 该点让步、非"defensible as-is");Rule 0 头 "overrides everything"→"output form 优先、从属证据与诚实" + 翻译加大规格成本门(整库重译前告知规模获批);加小项目逃生阀(单文件/一次性可只 Vision+一门,跳过台账/日志/阶段)。回归全绿 | GLM-5.2 评审 S3-8/9;用户"将所有做完" | 38 |
+| D-67 | **P2 成本与安全网**(GLM 评审收尾):`/yolo` 加硬天花板(默认 ~20 tick 或成本预算)+ "无实质推进即停"(不只认同一失败两轮;只有装样子改动=停),落原则 4/5/Guardrails/终结表/自足循环 prompt;`investigation.log` 防伪改为 `questioning.md` 规则加强(source 为文件/URL 须可解析、为推理须命名真实链条)——**不立探针**因真实 source 多为 reasoning/knowledge、机械校验会误杀合法条(诚实取舍) | GLM-5.2 评审 S2-6/7;用户"将所有做完" | 38 |
+| D-66 | **P1 闭环缺口**(GLM 评审收尾):①done 定义单一权威(`build` 原则3)+ 新增自 coherence 探针 `G3-done-coherence.sh`(断言 build/yolo 的 done 含"验收+门绿+独立评审",漏一即红);②`STATE.template` `current_phase`→`active_phases` 列表(阶段 DAG 可表达)+ 原则8"整篇重写"与"封存只读"调和;③新增回写 coherence 探针 `G4-writeback-coherence.sh`(STATE ## build 报 built 而 SPEC 台账无 construction…built 即红,内部抓住 S1-3 那次 6 天未回写)。G3/G4 登 `SPEC.md`§3;两探针 `--selftest` 真红/绿、真跑非空 | GLM-5.2 评审 S1-3/4/5;用户"将所有做完" | 38 |
 | D-65 | **让 rigor 承重环节自身诚实(GLM-5.2 评审)**:核验后承认两条承重指控——(S0-1)仓库唯一 dogfood 门 `G2-done-by-gate.sh` 按本仓自己的"破接线非破逻辑"判据是**恒绿的逻辑同义反复**(硬编码 JS、负控是另一内联函数);(S0-2)独立评审闭环**无任何探针强制**。且补 GLM 漏掉的反证:真正的行为 dogfood 是 `eval/`(可变红探针 + selftest + 真 red→green + 盲评抓诱饵),G2 只是示例。**P0(a)**:G2 如实标注 illustrative + 补真 `--selftest`;`SPEC.md`§3/R3/D3、`CLAUDE.md`、`STATE.md` 改为"行为证据在 eval/、G2 示例"。**P0(b)**:评审须写 `.spec/evidence/review-<Rn>-<ts>.md` 引 SPEC+制品双锚点;新增 `eval/cn-novel/.spec/probes/_review-coherence.sh`(从 SPEC 派生独立评审需求、缺留痕/未引证即红、selftest 红-on-missing/绿-on-cited);**为防探针自身空洞**,用真 general-purpose 评审对 R8/R9 真跑落真引证留痕→探针真跑绿且非空。**P4**:`probes.md`Honest-limit + `build`原则3 补"反作弊闭环是概率性、依赖执行模型、非机械保证;留痕使其可审计非确定"。纠正 GLM 两处(∨/∧ 属 D-62 认可的箭头常见符号→P3;yolo 循环 prompt 的 done 重述是 D-53 有意自足)。P1/P2/P3 明确留后续 | 用户转述 GLM-5.2 设计评审;Opus 逐条核验 + Explore 复核 eval/ | 37 |
 | D-64 | **独立评审须从磁盘自读源**(独立性硬化):对新起的干净子代理,"不信保留上下文"自动满足,但真正有价值的是"从磁盘自读"这一半——原文只说评审者"reads only SPEC.md + the artifact",没要求它**自己从磁盘读**。产出方若开个干净子代理却把**粉饰过的产物副本**粘进提示,独立性即被架空。故三处评审契约补:评审者**从磁盘自读 SPEC.md + 产物(给*路径*,非产出方转述/粘贴的内容;删改副本会瓦解独立性)**——把"从磁盘水化"原则落到评审输入来源,堵"借干净子代理走后门自审"的缝。落 `yolo`/`build`/`probes`,回归全绿 | 用户追问"`/build` Step 0 从磁盘重新水化是否也该用于独立评审" | 36 |
 | D-63 | **独立评审子代理钉死 `general-purpose` 类型**(修幻觉 bug):三处描述独立评审子代理的文字未指定合法 agent 类型(`yolo`:"a fresh sub-agent, or `/code-review`";`build`/`probes`:"native sub-agent, mechanism unspecified"),模型给 Agent 工具填 `subagent_type` 时被"reviewer"/`/code-review` 一带,幻觉出不存在的 `code-reviewer` 类型而报错。澄清:`/code-review`=命令/skill,`code-reviewer`=塞给 Agent 工具的 `subagent_type`,两者不同机制。修:三处都钉死**通用可用的 `general-purpose`** 子代理,并显式警告"勿假设存在专门 `code-reviewer`/`reviewer` agent、那样会报错;`/code-review` skill 若装了可用",保留机制开放性但堵掉填空幻觉。落 `yolo`/`build`/`probes` 三处,回归全绿 | 用户实测 `/yolo` 报 `Agent type 'code-reviewer' not found`(环境仅 general-purpose/Explore/Plan 等) | 36 |

@@ -10,7 +10,12 @@ time in UTC (run the platform's date command; never guess).
 # /spec progress
 
 - **updated:** <YYYY-MM-DDTHH:MMZ>   # real OS time, UTC
-- **current_phase:** <N>
+- **active_phases:** <[N]>   # usually one; a LIST when phases overlap — e.g. [2, 3] while
+  # Phase 2 is still building and Phase 3 is superseding an earlier phase's item. Sealed
+  # phases are NOT listed (they're read-only, done). Supersession is a small DAG, not a
+  # single cursor: record it per-phase in SPEC.md (`Supersedes:`), and list every phase
+  # still in flight here. (`current_phase: <N>` — the older single-value form — is fine
+  # when exactly one phase is active.)
 - **current_step:** <探真(研究) | 呈现 | 提问 | 决策 | 取证 | 写入 | 闭环>
   # 探真 = investigate/research (Step 1); 取证 = gather a load-bearing gate's evidence (Step 5)
 - **core_problem:** <one line — the core problem as understood so far>

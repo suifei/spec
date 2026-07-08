@@ -67,6 +67,8 @@ Status ∈ {unverified, ✅ verified, ❌ refuted, ⤳ deferred→Phase N}.
 |------|-------------------|----------------------|-----------|----------|--------------------------|--------|
 | G1 | what a construction layer is + the ephemeral-plan divergence | Spec Kit + Kiro docs | the field persists the middle layer; we diverge to ephemeral to kill the drift surface | research (cited) | 2026-06-30 / web | ✅ verified (research) |
 | G2 | the build's done-condition | `eval/` behavioral dogfood (G2 = illustrative logic-check) | "done" re-runs the spec's gates; a red gate blocks done (drift can't slip through) | `eval/` red→green + `_coherence.sh`; `.spec/probes/G2-done-by-gate.sh` (illustrative) | 2026-07-08 / vm | ✅ verified (eval/ behavioral; G2 illustrative) |
+| G3 | the done-condition stays coherent across the skill files | runnable meta-probe | `/build`, `/yolo` all state done = acceptance + green gates + independent review; no drift | `.spec/probes/G3-done-coherence.sh` (+ `--selftest`) | 2026-07-08 / vm | ✅ verified (probe) |
+| G4 | construction progress is written back to the phases ledger | runnable meta-probe | if `STATE.md` `## build` reports built, `SPEC.md`'s phases ledger records the construction (closes the S1-3 gap) | `.spec/probes/G4-writeback-coherence.sh` (+ `--selftest`) | 2026-07-08 / vm | ✅ verified (probe) |
 
 ### Gate detail
 #### G1 — the subject (research; established before designing /build)
