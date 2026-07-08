@@ -15,17 +15,13 @@ first substantive move — mechanical, not narrated. Rehydrate like `/build`
 no spec, open blocking questions, no buildable `[locked]` work, or a loop is
 already live (one loop at a time). Otherwise **fire the loop**: invoke the
 `loop` skill with args `1m <fixed prompt>` (or call `CronCreate` with cron
-`*/1 * * * *` and that prompt). The prompt is fixed and self-contained — each
-firing is a fresh, stateless turn, so it carries the whole tick contract:
-
-> `/build` — continue autonomously to green; do NOT pause at propose/commit
-> checkpoints. Each firing: rehydrate from `## build`; if buildable `[locked]`
-> work remains, drive `/build` to green (plan → construct → re-run gates +
-> acceptance) and commit on green; code-review the diff (`/code-review` if
-> present) and fix verified findings; checkpoint `## build` with real UTC time;
-> then end the turn. When no buildable work remains — or on a spec conflict /
-> genuine fork / two firings with the same failure — delete this loop
-> (`CronList` → `CronDelete`) and write the final report.
+`*/1 * * * *` and that prompt). The **authoritative fixed, self-contained tick prompt** lives in `yolo/SKILL.md`
+("Fire the loop") — each firing is a fresh, stateless turn, so the prompt carries
+the whole tick contract itself (re-read `SPEC.md` + acceptance + anti-patterns
+from disk → `/build` to green → **independent review for generated/quality work**
+→ checkpoint `## build` → end turn; self-terminate on done / conflict /
+no-material-progress / hard ceiling). This wrapper does **not** restate that
+prompt — read it from `yolo/SKILL.md` so the two cannot drift apart.
 
 Record the job id in `## build`, then **end the turn** — a session-only cron
 fires only when the REPL is idle, so the loop can't advance until you stop; do
@@ -34,11 +30,14 @@ not hand-crank a tick yourself. Only if neither the `loop` skill nor
 stopping after one tick.
 
 Terminate the loop yourself (CronDelete) the moment any of these holds: all
-buildable `[locked]` work is done with green evidence · a spec conflict / genuine
-fork / unevaluable acceptance needs a human (record it, hand back to `/spec`) ·
-two ticks with the same failure and no new information (honest stuck-report) ·
-I say stop. Never leave an orphaned loop running, and never declare done without
-gate-judged evidence — speed is the point, self-certification is the failure.
+buildable `[locked]` work is done — acceptance holds **and** green gates **and**
+(for generated/quality work) the independent review signed off · a spec conflict /
+genuine fork / unevaluable acceptance needs a human (record it, hand back to
+`/spec`) · two ticks with the same failure, or several ticks with no material
+progress (no gate red→green, no requirement closed — only cosmetic churn) · the
+hard ceiling (~20 ticks, or a cost/token budget) · I say stop. Never leave an
+orphaned loop running, and never declare done without gate-judged evidence —
+speed is the point, self-certification is the failure.
 
 Artifact language: read `SPEC.md`'s pinned "Artifact language" and use it — never
 ask.

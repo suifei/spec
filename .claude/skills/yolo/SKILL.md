@@ -51,10 +51,15 @@ never ask; code/paths/URLs/timestamps verbatim.
    tick, re-reviewing, and committing is a stall too, even though each tick "did
    something" — it never trips "same failure," yet burns money forever. Report where
    it's stuck and what was tried.
-5. **A hard ceiling, always.** Independently of progress, the loop carries a hard cap —
-   a tick count (default ~20) and, where the scheduler exposes one, a cumulative
-   cost/token budget. On hitting either, **stop and hand back to the human** with a
-   status summary; never let an autonomous loop run unbounded. An infinite (or
+5. **A hard ceiling, always — and structurally enforced.** Independently of
+   progress, the loop carries a hard cap: a tick count (default 20, override via
+   `CEILING` env) recorded as the `ticks:` field in `## build` each firing, and,
+   where the scheduler exposes one, a cumulative cost/token budget. On hitting
+   either, **stop and hand back to the human** with a status summary; never let an
+   autonomous loop run unbounded. The ceiling is not honor-system in a
+   fresh-context-per-firing loop: `.spec/probes/G9-tick-monotonic.sh` enforces
+   `ticks` ≤ ceiling and never going backwards (a tick overwriting the counter with
+   a stale value is the ceiling-silently-inflates risk). An infinite (or
    infinitely-expensive) loop is exactly the harm `/yolo` must fail safe against.
 
 ## The loop
@@ -91,10 +96,11 @@ deliberate or narrate. Do these in order, as actual tool calls:
    > remains, run the `/build` cycle to green — plan → construct → re-run gates +
    > acceptance — and commit the code on green (never the plan); (3) review this
    > round's diff; **for generated / quality-or-quantity work, the review must be an
-   > INDEPENDENT clean-context reviewer** — spawn a fresh **`general-purpose`**
-   > sub-agent (the always-available agent type; do **not** assume a specialized
-   > `code-reviewer`/`reviewer` agent exists — that call errors out), or invoke the
-   > `/code-review` skill if it is installed — that
+   > INDEPENDENT reviewer** — default **L1**: spawn a fresh **`general-purpose`**
+   > sub-agent (always-available; do **not** assume a specialized
+   > `code-reviewer`/`reviewer` agent exists — that call errors out); escalate to
+   > **L2** (a different model / human / `/code-review` on a different engine) for
+   > high-stakes generative quality, or when L1 passed output that smells gamed. It
    > **reads `SPEC.md` + the artifact from disk itself** (give it the *paths*, not
    > content this loop pastes in — a relayed copy would defeat the independence) and
    > asks *"is each requirement's **recorded
@@ -111,8 +117,9 @@ deliberate or narrate. Do these in order, as actual tool calls:
    > independent review has signed off** — or on a spec conflict, a genuine fork, or
    > two firings with the same failure and no new info, or several firings with **no
    > material progress** (no gate red→green, no requirement closed — only cosmetic
-   > churn), or the **hard ceiling** (record a tick count in `## build`; stop at ~20
-   > ticks or a cost budget and hand back to the human) — do NOT build:
+   > churn), or the **hard ceiling** (increment the `ticks:` field in `## build`;
+   > stop at the `CEILING` (default 20) or a cost budget and hand back to the
+   > human) — do NOT build:
    > **delete this loop** (`CronList` → `CronDelete` its id) and write the final
    > report instead.
 3. **Record** the returned job id in `## build`, announce the contract in one or
@@ -156,7 +163,7 @@ condition ─▶ delete loop + report
   stuck      = two firings · same failure · no new info   OR   several firings · no material progress
                (no gate red→green, no requirement closed — only cosmetic churn)
                ─▶ honest stuck-report: what failed · what was tried · best hypothesis
-  ceiling    = hard cap hit (default ~20 ticks, or a cost/token budget)
+  ceiling    = hard cap hit (default 20 ticks via `CEILING` env, or a cost/token budget)
                ─▶ stop and hand back to the human with a status summary (fail safe, never unbounded)
   human-stop = the human says stop   ─▶ immediately, no argument
 ```
