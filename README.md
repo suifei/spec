@@ -190,6 +190,7 @@ CLAUDE.md                              # declares SPEC.md the supreme, read-firs
 docs/DESIGN-NOTES.md                   # full design rationale: discussion rounds + decision log
 docs/PAPER.md                          # academic paper (English): design, method, empirical study, with figures/tables
 docs/PAPER-short.md                    # short-paper (English): conference-style condensation of PAPER.md
+docs/PAPER.zh-CN.md                    # academic paper (Chinese): full translation of PAPER.md, with figures/tables
 docs/USER-GUIDE.zh-CN.md               # usage manual (Chinese): when to use it, scenarios, strategy, philosophy
 docs/RESEARCH-REPORT.zh-CN.md          # research report (Chinese): background, pain points, decision context
 
@@ -217,4 +218,5 @@ For an academic treatment — the drift and hollow-green problems, the
 Intent/Acceptance/Method + falsifiable-probe + intent-review model, the consistency
 lens, and the empirical study (dogfooding, non-programming evaluation, adversarial
 review, representation blind-study) — see `docs/PAPER.md` (with figures/tables), or
-`docs/PAPER-short.md` for a conference-style condensation.
+`docs/PAPER-short.md` for a conference-style condensation. A full Chinese
+translation is in `docs/PAPER.zh-CN.md`(中文全文).
