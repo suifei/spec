@@ -212,9 +212,14 @@ ways it will diverge. Apply two moves that generalize to any gate, any domain:
      tricks (padding, filler, faked/skipped requirements, hollow output that
      technically passes) are **priming examples, explicitly non-exhaustive** — it
      reasons from intent, it does not tick a list.
-   - **Cited evidence, not a verdict** — it quotes the offending passage/line; a bare
-     "looks fine" is not evidence (words never are). Capture as a WEAK sign-off in
-     `.spec/evidence/`.
+   - **Cited evidence, not a verdict — leave an auditable trace** — it quotes the
+     offending (or, on a pass, the corroborating) passage/line; a bare "looks fine" is not
+     evidence (words never are). Write the sign-off to `.spec/evidence/review-<Rn>-<ts>.md`
+     citing **both** (1) the requirement + its recorded **Intent** in `SPEC.md`, and (2) the
+     artifact location (section/line/quote). This makes the review *auditable*: no trace ⇒ the
+     review can't be shown to have happened — a coherence probe over `.spec/evidence/review-*.md`
+     goes **red** on a done review-requiring requirement with a missing/uncited trace (reference
+     implementation: `eval/cn-novel/.spec/probes/_review-coherence.sh`).
 
 **Defense in depth.** The hardened measure is cheap, deterministic, catches the
 crude gaming; the intent review catches the subtle miss a probe can't (output that
@@ -291,3 +296,13 @@ A negative control fixes *per-probe* vacuity. It does **not** prove you probed
 *everything* — coverage completeness is unprovable. `SPEC.md` is a **lower bound
 on verified truth**, not a correctness proof. State this; don't let a green board
 be over-trusted.
+
+**And the same limit applies to this pipeline's own anti-cheat closure — say so.**
+The independent-review + done-gating that guards generated/quality work is
+**probabilistic, dependent on the executor model actually following these
+instructions — not a mechanical guarantee.** A determined or budget-starved
+optimizer can still satisfy the cheapest reading (run the review for show, or
+skip it). The review-trace probe (above) makes the closure **auditable, not
+certain** — no trace ⇒ red, but a present trace proves a review happened, not
+that it was honest. Hold this pipeline to the same standard it holds user
+projects: a lower bound on verified truth, not a correctness proof.

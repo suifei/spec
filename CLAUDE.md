@@ -88,7 +88,10 @@ that must be able to *fail*:
 - Run one: `bash .spec/probes/<gate>.sh` — **exit 0 = green (pass), non-zero = red (fail)**.
 - Negative control: `bash .spec/probes/<gate>.sh --selftest` — a probe must go **red on the
   broken case and green on the good case**; a probe that can't go red is vacuous and rejected.
-- This repo dogfoods its own pipeline; its load-bearing gate is `.spec/probes/G2-done-by-gate.sh`.
+- This repo dogfoods its own pipeline. Its **behavioral** dogfood is `eval/` (real red-able probes
+  + `--selftest`, captured red→green logs, `_coherence.sh` catching stale probe sets);
+  `.spec/probes/G2-done-by-gate.sh` is an **illustrative** logic-check of the done-rule (a prompt skill
+  has no importable `done()`), not the behavioral gate.
 
 **`eval/` is the behavior test-suite for the skills.** `eval/novella/` and `eval/cn-novel/`
 are real `/spec`→`/build`→`/yolo` runs on non-code (fiction) projects, each with its own

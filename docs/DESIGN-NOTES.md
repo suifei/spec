@@ -1488,12 +1488,43 @@ by default, mechanism unspecified"。模型执行时要给 Agent 工具填 `suba
 
 ---
 
+## 第 37 轮 · 2026-07-08 — 让 rigor 的承重环节自身诚实(GLM-5.2 评审 · D-65)
+
+外部(GLM-5.2)对三 skill 做了一次尖锐设计评审,核心指控:**这套 skill 用最严苛的"可变红探针 + 负控 +
+反 Goodhart"要求用户项目,却用纯 prompt 荣誉制要求自己,而它唯一的 dogfood 承重门 G2 按它自己的标准是个
+恒绿的同义反复**。逐条对着文件核验(自证一次"独立、引证、不盲从"的纪律):~80% 属实,承重的几条成立;也
+纠正了 GLM 两处(∨/∧ 在箭头块里是 D-62 认可的"常见符号",非被否的数学臂——留 P3;`/yolo` 循环 prompt 的
+done 重述是 D-53 有意自足,非漂移),并补了 GLM 漏掉的关键反证:**仓库真正的行为 dogfood 是 `eval/`**(9 条
+可变红探针 + `--selftest`、真 red→green 日志、`_coherence.sh` 抓陈旧门集、盲评三轮抓到对抗诱饵),G2 只是
+一个 illustrative 逻辑检查。本轮(P0+P4)是**诚实修,非新机器**:
+
+- **P0(a) 停止夸大 G2、把行为真相指向 `eval/`。** `/build` 是 prompt skill、无可导入的 `done()`,G2 只能
+  *建模* done 规则、其"负控"是另一个内联函数而非破坏接线——按本仓 `probes.md` 自己的"破接线非破逻辑"判据,
+  它是逻辑检查、非行为门。故:G2 头部如实标注 illustrative + 补真 `--selftest`;`SPEC.md` §3 门表/G2 详情/R3
+  验收/D3 证据、`CLAUDE.md`、`.spec/STATE.md` 全部改为"行为证据在 `eval/`,G2 为示例"。
+- **P0(b) 补上唯一缺的探针:独立评审的可审计留痕。** 评审契约原只说"capture as WEAK evidence",无探针强制。
+  现规定评审写 `.spec/evidence/review-<Rn>-<ts>.md`,须引 **SPEC 锚点 + 制品锚点**;新增
+  `eval/cn-novel/.spec/probes/_review-coherence.sh`:从 SPEC 派生"方法含独立评审"的 [locked] 需求,缺留痕/未
+  引证即 **红**,`--selftest` 红-on-missing/绿-on-cited。**为避免探针自身空洞(重蹈 G2)**,用真
+  `general-purpose` 评审(从磁盘读,D-64)对 cn-novel 的 R8/R9 真跑一次,落 `review-R8/R9-*.md` 真引证——探针
+  真跑 **绿且非空**。`build` Step4 / `yolo` 循环 prompt 各加一句指向该留痕。
+- **P4 把本仓自己的诚实免责用在自己身上。** `probes.md`"Honest limit" + `build` 原则 3 补:反作弊闭环是
+  **概率性的、依赖执行模型真去做诚实评审,非机械保证**;留痕探针使其*可审计、非确定*——有留痕证明"评审发生过",
+  不证明"评审诚实"。与本仓对 `SPEC.md` 说的"已验证之真的下界、非正确性证明"同一标准。
+
+**明确留待后续**:P1(done 定义单一权威化 + 自 coherence 探针 + STATE 多阶段 + 回写 coherence)、P2(`/yolo`
+硬成本上限 + `investigation.log` 抽检)、P3(`投真→探真` 笔误、∨/∧→`and`/`or`、Rule 0 措辞降级 + 翻译成本门、
+小项目逃生阀)。定性:把"对用户严、对自己松"的最大设计气味,从承重的两处(G2 夸大 + 评审无探针)先修实。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。
 
 | ID | 决策 | 依据 / 来源 | 轮次 |
 |----|------|------------|------|
+| D-65 | **让 rigor 承重环节自身诚实(GLM-5.2 评审)**:核验后承认两条承重指控——(S0-1)仓库唯一 dogfood 门 `G2-done-by-gate.sh` 按本仓自己的"破接线非破逻辑"判据是**恒绿的逻辑同义反复**(硬编码 JS、负控是另一内联函数);(S0-2)独立评审闭环**无任何探针强制**。且补 GLM 漏掉的反证:真正的行为 dogfood 是 `eval/`(可变红探针 + selftest + 真 red→green + 盲评抓诱饵),G2 只是示例。**P0(a)**:G2 如实标注 illustrative + 补真 `--selftest`;`SPEC.md`§3/R3/D3、`CLAUDE.md`、`STATE.md` 改为"行为证据在 eval/、G2 示例"。**P0(b)**:评审须写 `.spec/evidence/review-<Rn>-<ts>.md` 引 SPEC+制品双锚点;新增 `eval/cn-novel/.spec/probes/_review-coherence.sh`(从 SPEC 派生独立评审需求、缺留痕/未引证即红、selftest 红-on-missing/绿-on-cited);**为防探针自身空洞**,用真 general-purpose 评审对 R8/R9 真跑落真引证留痕→探针真跑绿且非空。**P4**:`probes.md`Honest-limit + `build`原则3 补"反作弊闭环是概率性、依赖执行模型、非机械保证;留痕使其可审计非确定"。纠正 GLM 两处(∨/∧ 属 D-62 认可的箭头常见符号→P3;yolo 循环 prompt 的 done 重述是 D-53 有意自足)。P1/P2/P3 明确留后续 | 用户转述 GLM-5.2 设计评审;Opus 逐条核验 + Explore 复核 eval/ | 37 |
 | D-64 | **独立评审须从磁盘自读源**(独立性硬化):对新起的干净子代理,"不信保留上下文"自动满足,但真正有价值的是"从磁盘自读"这一半——原文只说评审者"reads only SPEC.md + the artifact",没要求它**自己从磁盘读**。产出方若开个干净子代理却把**粉饰过的产物副本**粘进提示,独立性即被架空。故三处评审契约补:评审者**从磁盘自读 SPEC.md + 产物(给*路径*,非产出方转述/粘贴的内容;删改副本会瓦解独立性)**——把"从磁盘水化"原则落到评审输入来源,堵"借干净子代理走后门自审"的缝。落 `yolo`/`build`/`probes`,回归全绿 | 用户追问"`/build` Step 0 从磁盘重新水化是否也该用于独立评审" | 36 |
 | D-63 | **独立评审子代理钉死 `general-purpose` 类型**(修幻觉 bug):三处描述独立评审子代理的文字未指定合法 agent 类型(`yolo`:"a fresh sub-agent, or `/code-review`";`build`/`probes`:"native sub-agent, mechanism unspecified"),模型给 Agent 工具填 `subagent_type` 时被"reviewer"/`/code-review` 一带,幻觉出不存在的 `code-reviewer` 类型而报错。澄清:`/code-review`=命令/skill,`code-reviewer`=塞给 Agent 工具的 `subagent_type`,两者不同机制。修:三处都钉死**通用可用的 `general-purpose`** 子代理,并显式警告"勿假设存在专门 `code-reviewer`/`reviewer` agent、那样会报错;`/code-review` skill 若装了可用",保留机制开放性但堵掉填空幻觉。落 `yolo`/`build`/`probes` 三处,回归全绿 | 用户实测 `/yolo` 报 `Agent type 'code-reviewer' not found`(环境仅 general-purpose/Explore/Plan 等) | 36 |
 | D-01 | 抛弃 OpenSpec 的多命令流水线,改为**单一 `/spec` 命令**(类 `/init`) | 简单、单一职责、可被人反复利用 | 1–2 |

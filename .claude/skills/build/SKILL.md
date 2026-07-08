@@ -56,9 +56,11 @@ block construction on it. *(This repo's pin: English.)*
    output (padding, filler, a threshold hit with nothing real behind it — see
    `/spec`'s `references/probes.md`, "When the builder optimizes the metric"). For
    such requirements, done **also** requires an **independent, clean-context,
-   adversarial review** that signs off with cited evidence — a reviewer that is
-   **not** this build's own context (which has every incentive to pass itself).
-   Never self-certify "looks finished."
+   adversarial review** that signs off with a cited, auditable evidence trace — a
+   reviewer that is **not** this build's own context (which has every incentive to
+   pass itself). Never self-certify "looks finished." (Honest limit: this closure is
+   *auditable, not certain* — it depends on the executor actually running an honest
+   review; see `references/probes.md`, "Honest limit".)
 4. **No silent contradiction — route conflicts to `/spec` (R1).** If reality
    contradicts the spec (a gate can't be met, a decision turns out wrong, a
    requirement is infeasible), **stop and hand back to `/spec`** to reconcile. Do
@@ -156,8 +158,10 @@ batch that touched a generative-quality or gameable-quantity gate**, run an
   bare "looks fine" is not evidence. (If a requirement has no recorded Intent, that
   is a spec gap → Step 6 / `/spec`, not something the reviewer invents.)
 - **Gates done, with fixes** — a review that finds a defect blocks done: fix (or
-  regenerate the offending part), re-run gates, re-review. Capture the sign-off as
-  WEAK evidence in `.spec/evidence/`. This is the deliberate exception to
+  regenerate the offending part), re-run gates, re-review. Capture the sign-off as an
+  **auditable trace** — `.spec/evidence/review-<Rn>-<ts>.md` citing the requirement's
+  Intent + the artifact location (see `references/probes.md`; a done review-requiring
+  requirement with no cited trace is a red coherence-probe finding). This is the deliberate exception to
   "probes-only": generative quality is unscriptable, so an *honest* AI review
   (independent, adversarial, evidence-backed) is the only gate for it.
 
