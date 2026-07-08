@@ -188,6 +188,8 @@ scripts/install.ps1                    # one-line installer (Windows, run via po
 scripts/install.sh                     # one-line installer (Linux/macOS/WSL/Git Bash)
 CLAUDE.md                              # declares SPEC.md the supreme, read-first reference
 docs/DESIGN-NOTES.md                   # full design rationale: discussion rounds + decision log
+docs/PAPER.md                          # academic paper (English): design, method, empirical study, with figures/tables
+docs/PAPER-short.md                    # short-paper (English): conference-style condensation of PAPER.md
 docs/USER-GUIDE.zh-CN.md               # usage manual (Chinese): when to use it, scenarios, strategy, philosophy
 docs/RESEARCH-REPORT.zh-CN.md          # research report (Chinese): background, pain points, decision context
 
@@ -210,3 +212,9 @@ readers who want the thinking without the round-by-round log. `docs/USER-GUIDE.z
 is a Chinese-language usage manual — when to reach for `/spec` vs `/build`, worked
 scenarios (real and illustrative, clearly labeled), strategy, anti-patterns, and
 the engineering philosophy behind the design.
+
+For an academic treatment — the drift and hollow-green problems, the
+Intent/Acceptance/Method + falsifiable-probe + intent-review model, the consistency
+lens, and the empirical study (dogfooding, non-programming evaluation, adversarial
+review, representation blind-study) — see `docs/PAPER.md` (with figures/tables), or
+`docs/PAPER-short.md` for a conference-style condensation.
