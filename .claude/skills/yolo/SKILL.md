@@ -91,8 +91,10 @@ deliberate or narrate. Do these in order, as actual tool calls:
    > purpose (metric-gaming / padding / faked requirements are non-exhaustive
    > examples, not a checklist), citing offending passages — **never a self-review
    > by this loop's own context**,
-   > which would pass its own shortcuts; fix verified findings,
-   > re-running gates if a fix touched anything gated; (4) checkpoint `## build`
+   > which would pass its own shortcuts; write the sign-off as an auditable trace
+   > `.spec/evidence/review-<Rn>-<ts>.md` citing the requirement's Intent + the artifact
+   > (a done review-requiring req with no cited trace is a red coherence finding); fix
+   > verified findings, re-running gates if a fix touched anything gated; (4) checkpoint `## build`
    > with a real UTC timestamp; then **end the turn** so the schedule fires the
    > next round. When no buildable `[locked]` work remains — **and the phase's
    > independent review has signed off** — or on a spec conflict, a genuine fork, or

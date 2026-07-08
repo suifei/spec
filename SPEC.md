@@ -66,7 +66,7 @@ Status ∈ {unverified, ✅ verified, ❌ refuted, ⤳ deferred→Phase N}.
 | Gate | Decision it gates | Authoritative source | Invariant | Evidence | Last checked (UTC/where) | Status |
 |------|-------------------|----------------------|-----------|----------|--------------------------|--------|
 | G1 | what a construction layer is + the ephemeral-plan divergence | Spec Kit + Kiro docs | the field persists the middle layer; we diverge to ephemeral to kill the drift surface | research (cited) | 2026-06-30 / web | ✅ verified (research) |
-| G2 | the build's done-condition | runnable probe | "done" re-runs the spec's gates; a red gate blocks done (drift can't slip through) | `.spec/probes/G2-done-by-gate.sh` | 2026-06-30T04:26Z / vm | ✅ verified (probe) |
+| G2 | the build's done-condition | `eval/` behavioral dogfood (G2 = illustrative logic-check) | "done" re-runs the spec's gates; a red gate blocks done (drift can't slip through) | `eval/` red→green + `_coherence.sh`; `.spec/probes/G2-done-by-gate.sh` (illustrative) | 2026-07-08 / vm | ✅ verified (eval/ behavioral; G2 illustrative) |
 
 ### Gate detail
 #### G1 — the subject (research; established before designing /build)
@@ -78,20 +78,25 @@ Status ∈ {unverified, ✅ verified, ❌ refuted, ⤳ deferred→Phase N}.
   `.spec/knowledge/what-is-a-construction-layer.md`, `build-loop.md`.
 - **Status:** ✅ verified (research) — 2026-06-30.
 
-#### G2 — done is gated by re-running the spec's gates (runnable probe)
+#### G2 — done is gated by re-running the spec's gates
 - **Decision it gates:** the one behavioral invariant of construction closure.
-- **Probe:** `.spec/probes/G2-done-by-gate.sh` — a gated done-check returns NOT-done
-  for a broken impl (gate red) and done for a fixed impl (gate green); **negative
-  control:** an ungated done-check wrongly passes the broken impl, so drift would
-  ship — proving the probe can go red.
-- **Evidence (raw):** `broken→NOT done · fixed→done · ungated control passes broken`
-  — `.spec/evidence/G2-…Z.log`.
-- **Status:** ✅ verified (probe) — 2026-06-30T04:26Z, vm.
+- **Behavioral evidence (the real proof):** `eval/` runs the full `/spec→/build→/yolo`
+  pipeline on real non-code artifacts with red-able probes + `--selftest` and captured
+  red→green logs; `eval/cn-novel/.spec/probes/_coherence.sh` catches a stale probe set,
+  and the `/yolo`-to-green run gated "done" on real manuscripts (`eval/EVALUATION.md`;
+  `eval/cn-novel/.spec/evidence/yolo-done-30ch-*.log`). This is what proves `/build`
+  actually re-runs the gates.
+- **Illustration (not the proof):** `.spec/probes/G2-done-by-gate.sh` is an *illustrative
+  logic-check* of the done-RULE (done = acceptance ∧ re-run gate green). `/build` is a
+  prompt skill with no importable `done()`, so G2 models the rule rather than exercising a
+  real run — by `references/probes.md`'s own "break wiring, not logic" bar it is a
+  logic-check, not a behavioral gate. Carries `--selftest`.
+- **Status:** ✅ verified — behavioral in `eval/`; G2 illustrative. 2026-07-08, vm.
 
 ## 4. Requirements
 - **R1.** `[locked]` `/build` SHALL treat `SPEC.md` + `.spec/` as authoritative input and SHALL NOT contradict it; on a spec-vs-reality conflict it SHALL stop and route back to `/spec`. *Acceptance:* a conflicting build halts with a `/spec` hand-off, no SPEC edit. *(D1)*
 - **R2.** `[locked]` `/build` SHALL regenerate the design/tasks plan each run and SHALL NOT commit it as a source of truth. *Acceptance:* no plan artifact enters the repo as authoritative; re-run reproduces it. *(D2)*
-- **R3.** `[locked]` `/build` SHALL declare construction **done** only when each targeted requirement's acceptance holds **and** the load-bearing gates are green (probes re-run). *Acceptance:* G2 probe. *(D3)*
+- **R3.** `[locked]` `/build` SHALL declare construction **done** only when each targeted requirement's acceptance holds **and** the load-bearing gates are green (probes re-run). *Acceptance:* behavioral evidence in `eval/` — the full pipeline gates "done" on real artifacts (red→green logs + `_coherence.sh`); G2 is an illustrative logic-check of the rule, not the behavioral proof. *(D3)*
 - **R4.** `[locked]` `/build` SHALL be a single repeatable command with a minimal human surface; default **propose-then-apply with checkpoints** (plan approval; approve before commit). *Acceptance:* runs as one command; pauses at the declared checkpoints. *(D4/D6)*
 - **R5.** `[locked]` `/build` SHALL write product code but SHALL NOT modify `SPEC.md` decisions/gates (that is `/spec`'s role). *Acceptance:* no diff to `SPEC.md`/`.spec/` decisions during a build. *(D5)*
 
@@ -109,7 +114,7 @@ Status ∈ {unverified, ✅ verified, ❌ refuted, ⤳ deferred→Phase N}.
 |---|----------|------------------------------------|----------|----|------|
 | D1 | Authority = `SPEC.md` + `.spec/`; `/build` conforms, conflicts route to `/spec` | one source of truth; clean Gate-1 vs Gate-1.5 split; no silent contradiction | G1 | [auto] | 2026-06-30 |
 | D2 | Plan/Tasks are **ephemeral** (regenerated, not committed) | the persisted middle layer is the dominant drift surface (vs Spec Kit/Kiro); durable ends = SPEC.md + code/tests | G1 | [auto] | 2026-06-30 |
-| D3 | Done = requirement acceptance + **green gates (re-run probes)** | construction closes on verified truth, not "looks finished" | G2 | [auto] | 2026-06-30 |
+| D3 | Done = requirement acceptance + **green gates (re-run probes)** | construction closes on verified truth, not "looks finished" | `eval/` behavioral; G2 illustrative | [auto] | 2026-06-30 |
 | D4 | `/build` is a **single command**, minimal surface (like `/spec`, `/init`) | consistency + the simplicity-is-a-feature principle | — | [auto] | 2026-06-30 |
 | D5 | `/build` writes code but never edits `SPEC.md` decisions | keeps Gate-1 (contract) and Gate-1.5 (code) separable | D1 | [auto] | 2026-06-30 |
 | D6 | Construction autonomy = **propose-then-apply with checkpoints** | user chose the recommended option ("a"); human-in-loop on plan + before commit; revisable | — | **[human]** (Q1) | 2026-06-30 |

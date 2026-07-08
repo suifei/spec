@@ -8,7 +8,7 @@
 ## done
 - 2026-06-30 — **subject established first** (define-the-noun-before-verb): a construction layer = Spec→Plan→Tasks→Implement; Spec Kit & Kiro PERSIST the middle layer (cited)
 - 2026-06-30 — Phase 1 (`/spec`, Gate 1) **sealed by reference** to docs/DESIGN-NOTES.md (D-01…D-39) + .claude/skills/spec/
-- 2026-06-30 — Phase 2 (`/build`, Gate 1.5) spec settled: G1 ✅ (research), G2 ✅ (probe, done-by-gate-reexecution)
+- 2026-06-30 — Phase 2 (`/build`, Gate 1.5) spec settled: G1 ✅ (research); G2 done-rule illustrated (logic-check) — behavioral proof of done-by-gate-reexecution lives in `eval/`
 - 2026-06-30 — Decisions D1–D5 [auto] (authority/ephemeral-plan/done-by-gates/single-command/code-not-spec); D6 [human] autonomy = propose-then-apply (user "a")
 
 ## pending
@@ -20,10 +20,11 @@ Phase 2 sealed. Future work opens a new superseding phase per the usual closure 
 
 ## build
 <!-- owned by /build; /spec preserves this section verbatim when rewriting -->
-- built: 2026-06-30 — `/build` skill (`.claude/skills/build/SKILL.md` + `.claude/commands/build.md`) per R1–R5; G2 probe green (2026-06-30T04:26Z, vm)
+- built: 2026-06-30 — `/build` skill (`.claude/skills/build/SKILL.md` + `.claude/commands/build.md`) per R1–R5; G2 illustrative logic-check green; behavioral proof in `eval/`
 - remaining: none
 - next: —
 - conflict: none
 
 # Freshness note: Spec Kit/Kiro facts captured 2026-06-30 from their docs; this is
-# a fast-moving space — re-verify at build time. G2 probe green as-of 2026-06-30T04:26Z.
+# a fast-moving space — re-verify at build time. G2 illustrative logic-check green;
+# behavioral done-by-gate proof lives in eval/ (real probes + red→green logs).
