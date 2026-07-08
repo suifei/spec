@@ -1449,6 +1449,17 @@ naïve 的"最小者胜、全改 −68% DSL"是错的:保真只是一轴,人类�
 定性:表达形式的选择也照"实测选型、独立盲评"来定,而非审美偏好;并守住"只转结构、动机留散文、改动等价"
 三条纪律,把优化落到真 skill 文件上而不伤行为。
 
+### 4. 后续落地(D-62 续,扫全 `.claude/`)
+把同一策略扫过 `.claude/` 其余文件,只转**确属结构**块、其余按规则留:
+- **已最优/无需动**:`consistency-lens.md`(八法则已是表)、`SPEC.template.md`/`STATE.template.md`
+  (已表格/台账)、`build/SKILL.md`(动机散文 + 已极简 guardrail 列表)、`commands/*.md`(面向人的入口叙述)。
+- **再转两块**(`yolo/SKILL.md` 的 guard→action 派发):**Termination 四终结条件**(done/blocked/stuck/
+  human-stop → 删循环+终报)与 **Setup 调度前置守卫**(四条 stop-if)转箭头派发块,保留"删循环即 done、
+  忘删是 /yolo 唯一致害面"等承重 why 句。**等价回归**:两块盲读各 **5/5**(终结:独立评审未过≠done、冲突→终、
+  两轮同败→停、done→删+三段报告、删循环是 done 一部分;前置:四守卫各自路由 + 全通过才发射),仓库门 +
+  9 eval 探针真跑/selftest 全绿。定性:大部分 `.claude/` 要么已最优、要么是该留散文的动机/叙述——"哪些能转"
+  的诚实答案本就有限,过度转换正是 D-62 规则要防的。
+
 ---
 
 ## 决策日志(Consolidated Decision Log)
