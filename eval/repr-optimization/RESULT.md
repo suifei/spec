@@ -60,18 +60,60 @@ informational/collaborative ¬controlling` with **no example phrases** — still
 there", "Want me to fold that in?", and a plain CDN analogy. A strong model reconstructs the collaborative
 register from the abstract descriptor alone.
 
+## Round 4 — pseudocode & math, and the SECOND axis: human editability
+
+Round 1–3 judged one axis: can a strong model *read* it. But a skill is a long-lived Markdown file a
+human maintains — so the missing axis is **can a human safely EDIT it**. Two more representations of the
+gate-decision doctrine (same 8 cases): **E — pseudocode** (familiar `match/case/def/return`), **F — math**
+(set/logic notation). Both scored **8/8 fidelity**. Then an **edit-task probe**: give each compact form
+(C, D, E, F) the *same* realistic spec change (add a `data-migration` acceptance kind; flip quality's
+sign-off from OR→AND) and watch how the edit lands.
+
+| Repr | chars | vs prose | fidelity | edit landed | human-editability (PR-review lens) |
+|------|------:|---------:|:--------:|:-----------:|------------------------------------|
+| A — prose | 3495 | 100% | 8/8 | — | universal, but verbose; semantics diffuse across sentences |
+| E — pseudocode | 2981 | −15% | **8/8** | ✓ | **best** — universal programming constructs, no legend, new rule = new `case`, reviewable by any coder |
+| B — mermaid | 1917 | −45% | 8/8 | — | render-dependent; graph edits are fiddly in raw text |
+| C — arrows | 1689 | −52% | 8/8 | ✓ | **strong** — no bespoke legend (common symbols), rows self-describe, add-a-row is obvious |
+| F — math | 1785 | −49% | **8/8** | ✓ | precise but **risky** — a one-glyph `∨→∧` flip is invisible in a diff; excludes non-math maintainers |
+| D — dsl | 1127 | −68% | 8/8 | ✓ | **worst** — correct only if you've learned the legend; opaque in PR review |
+
+**Finding (round 4):** fidelity and human-editability are **different axes, and they rank the compact forms
+oppositely.** All four compact edits were *applied* correctly by a strong model (each self-rated 2/5
+difficulty), but the *reviewability* diverges hard:
+- **Pseudocode (E)** is the most human-friendly representation of all — it borrows constructs every
+  contributor already knows, needs no legend, and adding a rule is adding a `case`. Its costs: it
+  compresses the least (−15%), and it tends to **push real semantics into comments** (the OR→AND change
+  landed in a comment, not the `return WEAK` structure) — readable, but not structurally enforced.
+- **Math (F)** is compact and unambiguous *to someone fluent in it*, but its virtues are liabilities for a
+  general open-source repo: a semantic flip is a single invisible glyph, and it gates contribution on
+  comfort with `∈ ↦ ⇔ ∄ ∨/∧`. Good for a formal-methods audience, wrong for a broad contributor base.
+- **DSL (D)** confirms round-1's caveat operationally: unreadable to anyone who hasn't internalised the
+  legend — exactly the maintainability failure the human flagged.
+
+The deeper structural point: **C-arrows and E-pseudocode are the same skeleton at two verbosities.** A
+pseudocode `match/case → return Probed(...)` *is* an arrow row `kind ─▶ method` with keywords added back.
+So the real design dial is "how many familiar keywords to keep": strip them all → arrows (−52%, still
+legend-free); keep them → pseudocode (−15%, maximally familiar). Both stay human-editable because neither
+invents symbols. Math and DSL win more compression by trading exactly that away.
+
 ## Converged conclusion — the "best expression"
 
 Across structural, judgment-routing, and generative-tone content, **compact notation held full fidelity with
-a strong-model reader every time.** The naive read — "smallest wins, convert everything to the −68% DSL" — is
-still wrong, because raw fidelity-per-byte is not the whole objective. Judging on **value = fidelity ×
-robustness ÷ size**:
+a strong-model reader every time** (all six representations, every round). The naive read — "smallest wins,
+convert everything to the −68% DSL" — is still wrong, because fidelity is only one of two axes. The second,
+which round 4 isolates, is **human editability** (can a contributor edit it and can a reviewer catch a wrong
+edit in a diff). The two axes rank the compact forms *oppositely*: DSL wins fidelity-per-byte and loses
+editability; pseudocode is the reverse. So judge on **value = fidelity × human-editability ÷ size**:
 
 1. **Structural content** (decision routing, field schemas, pipelines, state machines, coherence invariants,
-   `done =` / `ask-gate` definitions): compress to **text + arrows/tables using a SMALL SHARED symbol set**
-   (`→ ∧ ∨ ¬ ≻ ∀ ∃`). This is arm **C**, not **D**: ~50% token cut at full fidelity **with no per-file legend**.
-   C beats D on *value* once robustness enters — D's −68% edge is bought with a bespoke legend that adds
-   opacity, cross-file inconsistency, and drift-fragility to a long-lived, multi-author artifact.
+   `done =` / `ask-gate` definitions): compress to **legend-free, familiar notation** — arrows/tables (arm C)
+   or light pseudocode (arm E), which are the same skeleton at two verbosities. Pick by audience: **arrows**
+   when byte-cost dominates (−52%, still no legend), **pseudocode** when contributor-familiarity dominates
+   (−15%, `match/case` every coder reads cold). **Reject arm D (bespoke DSL)** despite its −68%: its edge is
+   bought with a legend that makes the file opaque to review — a maintainability failure, not a win. **Reject
+   arm F (math)** for a general repo: precise, but a semantic flip is a single invisible glyph (`∨→∧`) and it
+   gates contribution on logic-notation fluency; reserve it for a formal-methods audience.
 
 2. **Judgment / tone content**: compresses too, but the marginal byte savings are smaller and the robustness
    cost higher. Keep it **tight prose with exemplars preserved verbatim**. Not because a strong reader needs
@@ -89,6 +131,9 @@ recommendation refuses to chase the smallest form. A generated-output rubric can
 drift a human would feel over 100 invocations. The legend has a fixed cost, so compression only pays past a
 content threshold.
 
-**Net:** the highest-value optimization is to render the skills' **structural cores** in shared-symbol
-text+arrows (arm C) — precise, ~half the tokens, no bespoke legend — and to leave the **motivating "why" and
-tone exemplars** in prose. Maximal DSL is a scalpel for one big structural block, not a house style.
+**Net:** the highest-value optimization is to render the skills' **structural cores** in a **legend-free
+familiar notation** — arrows/tables (arm C) when tokens dominate, light pseudocode (arm E) when contributor-
+familiarity dominates — and to leave the **motivating "why" and tone exemplars** in prose. The winner is
+whichever of {arrows, pseudocode} the audience reads coldest, because both max out the product of fidelity ×
+editability. Bespoke DSL (D, most compact) and math (F, most precise) each sacrifice the editability axis and
+are scalpels for a narrow audience, not a house style.
