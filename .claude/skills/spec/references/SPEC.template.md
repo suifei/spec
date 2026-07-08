@@ -34,7 +34,7 @@ every later run. Code/identifiers/paths/URLs/timestamps stay verbatim.
 
 ## 3. Gates (load-bearing sources of truth)
 List **only load-bearing** gates — a truth a real decision *hinges* on
-(load-bearing ∧ uncertain ∧ consequential-if-wrong). One authority per concern,
+(load-bearing and uncertain and consequential-if-wrong). One authority per concern,
 backed by the strongest evidence: a probe that can go red, or (when unscriptable) a
 cited source marked WEAK. **Do not list commonsense facts** (a free port, a
 writable dir, a tool on PATH) — they are not gates. Status ∈ {unverified,

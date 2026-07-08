@@ -23,6 +23,15 @@ a question reaches the human. A question with no logged trail behind it is, by
 definition, a question you haven't earned yet; and if the human asks "why are you
 asking me this," the answer comes from that log, not from improvisation.
 
+**The log is an anti-laziness anchor — keep its entries *checkable*, not a decorative
+backfill.** The cheap cheat here (a Goodhart the pipeline is otherwise sharp about) is
+to write a few plausible-looking rows *after the fact* just to satisfy the anchor. Guard
+against it by substance, not volume: when a source is a **file or URL**, cite the real,
+resolvable path/URL (so it can be opened and checked), not a vague gesture; when it is
+**reasoning or prior knowledge**, name the actual chain or fact relied on, not an empty
+placeholder. One real trailed entry beats five hollow ones; a row you couldn't defend if
+the human clicked it isn't a trail.
+
 Bring a question to the human in **only two cases**:
 
 1. **Genuinely undecidable.** After exhausting every source *and* deep reasoning,

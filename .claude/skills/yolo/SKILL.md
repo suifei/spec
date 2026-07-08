@@ -28,10 +28,12 @@ never ask; code/paths/URLs/timestamps verbatim.
 
 ## Non-negotiable principles
 
-1. **Speed, not certification.** The loop's "done" is still gate-judged: each
-   targeted requirement's acceptance holds **and** the load-bearing gates are
-   green by re-running probes. Never declare victory (or delete the loop) without
-   that evidence — an autonomous loop that self-certifies is worse than no loop.
+1. **Speed, not certification.** The loop's "done" is `/build`'s done, unchanged
+   (see `/build` principle 3 — the single authority): each targeted requirement's
+   acceptance holds **and** the load-bearing gates are green by re-running probes
+   (**and**, for generative/quality work, the independent review has signed off).
+   Never declare victory (or delete the loop) without that evidence — an autonomous
+   loop that self-certifies is worse than no loop.
 2. **`/build`'s rules are inherited whole.** `SPEC.md` + `.spec/` stay
    authoritative; only `[locked]` requirements are buildable; the plan stays
    ephemeral; `SPEC.md` is never edited; the `## build` section of
@@ -42,9 +44,18 @@ never ask; code/paths/URLs/timestamps verbatim.
    is a *human's* problem: record it in `## build`, **delete the loop task**, and
    hand back (to `/spec` or the human). Re-running the same wall every minute is
    noise, not persistence.
-4. **No progress twice = stop.** If two consecutive ticks end at the same failure
-   with no new information, stop the loop and report exactly where it's stuck and
-   what was tried. An infinite red loop burns money and tells nobody anything.
+4. **No *material* progress = stop (not just an identical failure).** Stop the loop
+   when two consecutive ticks end at the same failure with no new information — **and
+   also** when several consecutive ticks pass with no material change (no gate flips
+   red→green, no requirement closed, only cosmetic diff churn). Optimizing a typo each
+   tick, re-reviewing, and committing is a stall too, even though each tick "did
+   something" — it never trips "same failure," yet burns money forever. Report where
+   it's stuck and what was tried.
+5. **A hard ceiling, always.** Independently of progress, the loop carries a hard cap —
+   a tick count (default ~20) and, where the scheduler exposes one, a cumulative
+   cost/token budget. On hitting either, **stop and hand back to the human** with a
+   status summary; never let an autonomous loop run unbounded. An infinite (or
+   infinitely-expensive) loop is exactly the harm `/yolo` must fail safe against.
 
 ## The loop
 
@@ -57,9 +68,9 @@ deliberate or narrate. Do these in order, as actual tool calls:
    knowledge, gates, worktree). Then **stop before scheduling anything if any** holds:
 
    ```
-   SPEC.md missing ∨ open blocking questions      ─▶ send the human to `/spec`
+   SPEC.md missing OR open blocking questions     ─▶ send the human to `/spec`
    no buildable [locked] work                     ─▶ say so — nothing to loop
-   `## build` (∧ cross-check `CronList`) shows a live loop
+   `## build` (and cross-check `CronList`) shows a live loop
                                                   ─▶ one loop at a time: report the existing one, don't start a 2nd
    target scope has no bounded, gate-closable "done"
                                                   ─▶ open-ended spec ("write a great novel", "make it fast") has no
@@ -98,7 +109,10 @@ deliberate or narrate. Do these in order, as actual tool calls:
    > with a real UTC timestamp; then **end the turn** so the schedule fires the
    > next round. When no buildable `[locked]` work remains — **and the phase's
    > independent review has signed off** — or on a spec conflict, a genuine fork, or
-   > two firings that hit the same failure with no new information — do NOT build:
+   > two firings with the same failure and no new info, or several firings with **no
+   > material progress** (no gate red→green, no requirement closed — only cosmetic
+   > churn), or the **hard ceiling** (record a tick count in `## build`; stop at ~20
+   > ticks or a cost budget and hand back to the human) — do NOT build:
    > **delete this loop** (`CronList` → `CronDelete` its id) and write the final
    > report instead.
 3. **Record** the returned job id in `## build`, announce the contract in one or
@@ -133,14 +147,17 @@ A firing that meets **any** condition does **not** build — it deletes the loop
 
 ```
 condition ─▶ delete loop + report
-  done       = no buildable [locked] work left: every targeted acceptance holds ∧ gates green
-               ∧ the phase's independent review signed off
-               (green gates alone ≠ done for generated/quality — a probe can pass metric-gamed output)
+  done       = no buildable [locked] work left: every targeted acceptance holds AND gates green
+               AND the phase's independent review signed off
+               (green gates alone are NOT done for generated/quality — a probe can pass metric-gamed output)
                ─▶ report: what was built · the green results · review findings fixed along the way
-  blocked    = spec conflict ∨ genuine fork ∨ unevaluable acceptance  (a human's call)
+  blocked    = spec conflict OR genuine fork OR unevaluable acceptance  (a human's call)
                ─▶ record in `## build` · hand to `/spec` or the human · say plainly what's needed to resume
-  stuck      = two consecutive firings · same failure · no new information
+  stuck      = two firings · same failure · no new info   OR   several firings · no material progress
+               (no gate red→green, no requirement closed — only cosmetic churn)
                ─▶ honest stuck-report: what failed · what was tried · best hypothesis
+  ceiling    = hard cap hit (default ~20 ticks, or a cost/token budget)
+               ─▶ stop and hand back to the human with a status summary (fail safe, never unbounded)
   human-stop = the human says stop   ─▶ immediately, no argument
 ```
 
@@ -154,6 +171,9 @@ A forgotten cron re-running against a finished (or wedged) repo is the one way
 - **Checkpoint `## build` every tick** — the loop must survive any interruption.
 - **Stop beats spin** — blocked or stuck ⇒ delete the loop and say so; never
   keep a cron alive to "look busy."
+- **Bounded, always** — carry a hard tick cap (default ~20) and, where exposed, a
+  cost/token budget; on either, stop and hand back. "No *material* progress" (only
+  cosmetic churn) counts as stuck, not progress — don't wait for an identical failure.
 - **One loop at a time** — if `## build` already records a live loop-task id,
   don't schedule a second; resume managing the existing one.
 - **Stamp evidence with real OS time** (`date -u`); never fabricate a green.

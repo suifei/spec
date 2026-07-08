@@ -48,6 +48,9 @@ block construction on it. *(This repo's pin: English.)*
    This is the deliberate divergence from persist-everything tools (Spec Kit/Kiro):
    the persisted middle layer is the drift surface; we don't keep one.
 3. **Done = green gates + (for generative/quality work) an independent review.**
+   *(This principle is the single authority for the done-condition; `/yolo` and the
+   command wrappers **reference** it, they do not redefine it — see the self-coherence
+   probe `.spec/probes/G3-done-coherence.sh`.)*
    Construction is "done" **only** when each targeted requirement's acceptance holds
    and the load-bearing gates are green — by **re-running** `.spec/probes/`. A red
    gate blocks done. **But green gates alone are not done when the artifact is
