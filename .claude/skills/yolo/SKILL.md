@@ -80,7 +80,10 @@ deliberate or narrate. Do these in order, as actual tool calls:
    > remains, run the `/build` cycle to green — plan → construct → re-run gates +
    > acceptance — and commit the code on green (never the plan); (3) review this
    > round's diff; **for generated / quality-or-quantity work, the review must be an
-   > INDEPENDENT clean-context reviewer** (a fresh sub-agent, or `/code-review`) that
+   > INDEPENDENT clean-context reviewer** — spawn a fresh **`general-purpose`**
+   > sub-agent (the always-available agent type; do **not** assume a specialized
+   > `code-reviewer`/`reviewer` agent exists — that call errors out), or invoke the
+   > `/code-review` skill if it is installed — that
    > reads only `SPEC.md` + the artifact and asks *"is each requirement's **recorded
    > Intent** genuinely met, or only its letter?"* — reasoning from that stated
    > purpose (metric-gaming / padding / faked requirements are non-exhaustive

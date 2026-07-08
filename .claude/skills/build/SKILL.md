@@ -138,8 +138,10 @@ metric* — a probe can pass on metric-gamed output. So at **phase-close, and on
 batch that touched a generative-quality or gameable-quantity gate**, run an
 **independent, clean-context, adversarial review** *before* declaring done:
 - **Independent** — a reviewer that is **not** this build's own context (spawn a
-  fresh clean-context reviewer; a native sub-agent by default, an equivalent
-  headless process is fine). It reads **only** `SPEC.md` + the artifact + the
+  fresh clean-context reviewer as a **`general-purpose`** sub-agent — the
+  universally-available agent type; do **not** assume a specialized
+  `code-reviewer`/`reviewer` agent type exists, that call errors out — or an
+  equivalent headless process). It reads **only** `SPEC.md` + the artifact + the
   `## build` state — never the generating context, which would pass its own
   shortcuts.
 - **Intent-anchored + cited** — its single question is *"is the requirement's
