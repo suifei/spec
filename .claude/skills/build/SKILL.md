@@ -142,7 +142,9 @@ batch that touched a generative-quality or gameable-quantity gate**, run an
   universally-available agent type; do **not** assume a specialized
   `code-reviewer`/`reviewer` agent type exists, that call errors out — or an
   equivalent headless process). It reads **only** `SPEC.md` + the artifact + the
-  `## build` state — never the generating context, which would pass its own
+  `## build` state — and reads them **from disk itself** (hand it the *paths*, not
+  content the producing context pastes in; a doctored/summarized copy would defeat
+  the independence) — never the generating context, which would pass its own
   shortcuts.
 - **Intent-anchored + cited** — its single question is *"is the requirement's
   **Intent** genuinely met, or only its letter?"*, checked against the requirement's

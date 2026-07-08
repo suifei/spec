@@ -84,7 +84,9 @@ deliberate or narrate. Do these in order, as actual tool calls:
    > sub-agent (the always-available agent type; do **not** assume a specialized
    > `code-reviewer`/`reviewer` agent exists — that call errors out), or invoke the
    > `/code-review` skill if it is installed — that
-   > reads only `SPEC.md` + the artifact and asks *"is each requirement's **recorded
+   > **reads `SPEC.md` + the artifact from disk itself** (give it the *paths*, not
+   > content this loop pastes in — a relayed copy would defeat the independence) and
+   > asks *"is each requirement's **recorded
    > Intent** genuinely met, or only its letter?"* — reasoning from that stated
    > purpose (metric-gaming / padding / faked requirements are non-exhaustive
    > examples, not a checklist), citing offending passages — **never a self-review

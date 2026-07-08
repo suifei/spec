@@ -201,7 +201,9 @@ ways it will diverge. Apply two moves that generalize to any gate, any domain:
    - **Independent, clean context** — the reviewer is **not** the context that
      produced the artifact (that context has an incentive to pass itself and
      remembers its own shortcuts). A fresh reviewer reading **only** `SPEC.md` + the
-     artifact + the build state. Mechanism: a fresh **`general-purpose`** sub-agent
+     artifact + the build state, **from disk itself** (given the *paths*, not content
+     the producing context relays — a sanitized copy defeats the independence).
+     Mechanism: a fresh **`general-purpose`** sub-agent
      by default (the universally-available agent type — do **not** assume a
      specialized `code-reviewer`/`reviewer` agent type exists, that call errors
      out), or an equivalent headless process. **Never a self-review.**
