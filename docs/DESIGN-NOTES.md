@@ -1477,6 +1477,15 @@ by default, mechanism unspecified"。模型执行时要给 Agent 工具填 `suba
 让模型填空幻觉的缺口。落 `yolo/SKILL.md`、`build/SKILL.md`、`references/probes.md` 三处;回归:仓库门 +
 9 eval 探针真跑/selftest 全绿(纯文本改)。
 
+### 后续(D-64):独立评审须"从磁盘自读源",让独立性名副其实
+用户追问:`/build` Step 0 的"从磁盘重新水化、不信保留上下文"该不该也用于独立评审?澄清一个真实的洞:
+对**新起的干净子代理**而言,"不信保留上下文"是自动满足的(它本就没有保留上下文);但真正有价值的是那
+**另一半——"从磁盘自读"**。原文只说评审者"reads only SPEC.md + the artifact",没说**它必须自己从磁盘读**。
+若产出方(生成上下文)开了个"干净"子代理、却把**已被粉饰的产物副本**粘进 spawn 提示里,评审即便上下文干净
+也已被污染——独立性只是名义上的。故三处评审契约都补一句:评审者**从磁盘自读 SPEC.md + 产物(给它*路径*、
+而非产出方转述/粘贴的内容;被删改的副本会瓦解独立性)**。这把"filesystem is memory / 从磁盘水化"原则落到评审
+输入的来源上,堵掉"借干净子代理走后门自审"的缝。落 `yolo`/`build`/`probes` 三处;回归全绿。
+
 ---
 
 ## 决策日志(Consolidated Decision Log)
@@ -1485,6 +1494,7 @@ by default, mechanism unspecified"。模型执行时要给 Agent 工具填 `suba
 
 | ID | 决策 | 依据 / 来源 | 轮次 |
 |----|------|------------|------|
+| D-64 | **独立评审须从磁盘自读源**(独立性硬化):对新起的干净子代理,"不信保留上下文"自动满足,但真正有价值的是"从磁盘自读"这一半——原文只说评审者"reads only SPEC.md + the artifact",没要求它**自己从磁盘读**。产出方若开个干净子代理却把**粉饰过的产物副本**粘进提示,独立性即被架空。故三处评审契约补:评审者**从磁盘自读 SPEC.md + 产物(给*路径*,非产出方转述/粘贴的内容;删改副本会瓦解独立性)**——把"从磁盘水化"原则落到评审输入来源,堵"借干净子代理走后门自审"的缝。落 `yolo`/`build`/`probes`,回归全绿 | 用户追问"`/build` Step 0 从磁盘重新水化是否也该用于独立评审" | 36 |
 | D-63 | **独立评审子代理钉死 `general-purpose` 类型**(修幻觉 bug):三处描述独立评审子代理的文字未指定合法 agent 类型(`yolo`:"a fresh sub-agent, or `/code-review`";`build`/`probes`:"native sub-agent, mechanism unspecified"),模型给 Agent 工具填 `subagent_type` 时被"reviewer"/`/code-review` 一带,幻觉出不存在的 `code-reviewer` 类型而报错。澄清:`/code-review`=命令/skill,`code-reviewer`=塞给 Agent 工具的 `subagent_type`,两者不同机制。修:三处都钉死**通用可用的 `general-purpose`** 子代理,并显式警告"勿假设存在专门 `code-reviewer`/`reviewer` agent、那样会报错;`/code-review` skill 若装了可用",保留机制开放性但堵掉填空幻觉。落 `yolo`/`build`/`probes` 三处,回归全绿 | 用户实测 `/yolo` 报 `Agent type 'code-reviewer' not found`(环境仅 general-purpose/Explore/Plan 等) | 36 |
 | D-01 | 抛弃 OpenSpec 的多命令流水线,改为**单一 `/spec` 命令**(类 `/init`) | 简单、单一职责、可被人反复利用 | 1–2 |
 | D-02 | 维护**一份固定文档 `SPEC.md`**(仓库根),整文件重写,不碎片化 | 单一真相源 | 2 |
