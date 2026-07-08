@@ -97,6 +97,56 @@ So the real design dial is "how many familiar keywords to keep": strip them all 
 legend-free); keep them → pseudocode (−15%, maximally familiar). Both stay human-editable because neither
 invents symbols. Math and DSL win more compression by trading exactly that away.
 
+## Round 5 — the three legend-free forms head-to-head, + a "cost" axis (consumer-side)
+
+Narrowing to the three forms that need **no bespoke legend** (arrows, pseudocode, mermaid) — the only ones
+viable as a house style — across four dimensions. The fourth, **cost**, is self-assessed: what does each
+form make *me, the model that consumes the skill file as text*, actually spend to turn source into correct
+meaning and to regenerate it without breaking it. (Mermaid's edit-task was run to fill the last empirical
+cell; it landed correctly at 2/5 but the editor flagged "a stray quote or bracket could silently break
+rendering" — the tell.)
+
+| Form | Compression | Fidelity | Human read + edit | **Consumer-side cost (my take)** |
+|------|:-----------:|:--------:|-------------------|----------------------------------|
+| **Arrows / table (C)** | **−52%** | 8/8 | strong — no legend, rows self-describe, add-a-row obvious | **lowest** — linear & declarative; read top-down, no symbol table, no compile step that can fail |
+| **Pseudocode (E)** | −15% | 8/8 | **best for coders** — universal `match/case`, reviewable diffs; caveat: semantics can hide in comments | **low–med** — I must *simulate control flow* (branches, nesting, returns); but plain text, so no failure surface |
+| **Mermaid (B)** | −45% | 8/8 | dual-natured — **great rendered**, but raw source has opaque node IDs + `<br/>`/`\|label\|` plumbing; edits can silently break the render | **highest** — see below |
+
+### The cost axis, unpacked (why mermaid is the expensive one *for this use*)
+
+Cost, as I actually experience it, has three parts — and they separate the three forms cleanly:
+
+1. **Decode cost (graph de-linearization + a symbol table I must hold).** Arrows are already linear and
+   self-labeled → ~zero; I read them in order and I'm done. Pseudocode is linear but *procedural* → I pay a
+   little to mentally execute the `match/case`/return nesting. Mermaid is an **edge-list encoding of a 2-D
+   graph**: to understand it I must (a) bind every opaque node id (`R,K,U,N,E,Q,W,O,D1,D2,C1..C5`) to its
+   label and **keep that table in working memory**, and (b) **reconstruct the topology** from scattered
+   `X -->|lbl| Y` lines. That's a serialize→deserialize round-trip whose cost *grows with node count*. It is
+   the highest of the three, and it's paid every time the file is read.
+
+2. **Regeneration cost + failure surface.** Arrows and pseudocode are *just text* — any edit I emit "renders";
+   there is no invalid state. Mermaid has a **grammar that can be violated**: an unbalanced `[]`/`"`, a bad
+   edge, a `<br/>` typo → the diagram fails to render or renders wrong. When I regenerate it I can emit
+   **syntactically-broken output**, which then needs a validate/repair loop the other two never trigger.
+
+3. **The decisive mismatch: a skill file is consumed as *text*, not as a *picture*.** Mermaid's whole payoff —
+   the 2-D visual — is delivered only to a *human looking at a rendered diagram*. The model reads the **source**.
+   So in a skill file, mermaid makes the consumer pay the full graph-linearization decode cost while the
+   visual benefit lands on nobody in the model's loop. Arrows and pseudocode have **no such split**: what is
+   cheap to render is the very same thing that is cheap to read.
+
+**Where mermaid *does* win** (kept honest): when the content is a **genuine graph** — a state machine with
+many transitions, a dependency DAG, back-edges/cycles — *and* it will be **rendered for a human**. There the
+2-D layout carries structure that linear arrows can only fake with labels and gotos. The gate-decision
+doctrine is *not* that shape — it's a flat dispatch table plus a few linear pipelines — which is exactly why
+mermaid here pays graph overhead for structure that isn't there.
+
+**Round 5 verdict:** for the skills' content (routing tables, field schemas, linear pipelines, consumed as
+text) the ranking on *total* cost-adjusted value is **arrows ≳ pseudocode ≫ mermaid**. Arrows win on
+compression and lowest cost; pseudocode trades ~37 points of compression for maximum contributor familiarity;
+mermaid is dominated *for this use* and should be reserved for the rare genuinely-graph-shaped, rendered-for-
+humans block.
+
 ## Converged conclusion — the "best expression"
 
 Across structural, judgment-routing, and generative-tone content, **compact notation held full fidelity with
@@ -109,11 +159,16 @@ editability; pseudocode is the reverse. So judge on **value = fidelity × human-
 1. **Structural content** (decision routing, field schemas, pipelines, state machines, coherence invariants,
    `done =` / `ask-gate` definitions): compress to **legend-free, familiar notation** — arrows/tables (arm C)
    or light pseudocode (arm E), which are the same skeleton at two verbosities. Pick by audience: **arrows**
-   when byte-cost dominates (−52%, still no legend), **pseudocode** when contributor-familiarity dominates
-   (−15%, `match/case` every coder reads cold). **Reject arm D (bespoke DSL)** despite its −68%: its edge is
-   bought with a legend that makes the file opaque to review — a maintainability failure, not a win. **Reject
-   arm F (math)** for a general repo: precise, but a semantic flip is a single invisible glyph (`∨→∧`) and it
-   gates contribution on logic-notation fluency; reserve it for a formal-methods audience.
+   when byte-cost dominates (−52%, still no legend, and *lowest consumer-side cost* — linear, no symbol table,
+   no compile-failure surface), **pseudocode** when contributor-familiarity dominates (−15%, `match/case` every
+   coder reads cold). **Reject arm D (bespoke DSL)** despite its −68%: its edge is bought with a legend that
+   makes the file opaque to review — a maintainability failure, not a win. **Reject arm F (math)** for a general
+   repo: precise, but a semantic flip is a single invisible glyph (`∨→∧`) and it gates contribution on
+   logic-notation fluency; reserve it for a formal-methods audience. **Reject arm B (mermaid) as a house style
+   for text-consumed rules** (round 5): it costs the model a graph-de-linearization + node-id symbol table on
+   every read and can silently break its own render on edit — paying for a 2-D visual that only a human viewing
+   the *rendered* output ever receives. Keep mermaid only for the rare genuinely-graph-shaped block that will
+   be rendered for a human.
 
 2. **Judgment / tone content**: compresses too, but the marginal byte savings are smaller and the robustness
    cost higher. Keep it **tight prose with exemplars preserved verbatim**. Not because a strong reader needs
