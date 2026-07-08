@@ -75,15 +75,19 @@ red for this acceptance, it is state 2 or 3, not a quiet green.
 The modality is **derivable from the acceptance's nature** (decide it silently,
 register `[auto]`; you already investigate the project, so you know its harness):
 
-- **User-visible / interaction behavior** (a UI element, a status, a click flow)
-  ⇒ **drive the actually-running product end-to-end** (e.g. Playwright against the
-  running app) and assert what the *user* observes — **not** a component rendered
-  in isolation or the source read by eye. Rendering `<X/>` in a unit test proves
-  nothing about whether `<X/>` is mounted on the screen you actually use.
-- **A pure function / module contract** ⇒ a unit probe asserting input→output.
-- **A service / API / cross-process contract** ⇒ an integration probe hitting the
-  real endpoint or seam.
-- **A quality/subjective bar** ("is the payoff satisfying") ⇒ WEAK (above).
+```
+acceptance's nature ─▶ method
+  user-visible / interaction (UI element · status · click flow)
+       ─▶ Probed(E2E): drive the actually-RUNNING product end-to-end (e.g. Playwright),
+          assert what the USER observes — not a component in isolation, not source read by eye
+  pure function / module contract   ─▶ Probed(unit): assert input→output
+  service / API / cross-process     ─▶ Probed(integration): hit the real endpoint or seam
+  quality / subjective bar ("is the payoff satisfying")  ─▶ WEAK (above)
+```
+
+Rendering `<X/>` in a unit test proves nothing about whether `<X/>` is mounted on
+the screen you actually use — which is why the top row must observe from the real
+entrypoint, not an isolated component.
 
 **The negative control must break the *wiring/reachability*, not only the logic.**
 The failure that hides is "present but never reached": delete the mount / the
