@@ -1462,12 +1462,30 @@ naïve 的"最小者胜、全改 −68% DSL"是错的:保真只是一轴,人类�
 
 ---
 
+## 第 36 轮 · 2026-07-08 — 独立评审的 sub-agent 类型未钉死,被幻觉成不存在的 `code-reviewer`(D-63)
+
+用户实测 `/yolo`:独立评审那一步调子代理时报错 `Agent type 'code-reviewer' not found`(环境只有
+`general-purpose`/`Explore`/`Plan` 等)。**根因**:三处描述独立评审子代理的文字都**没钉死一个合法的
+agent 类型**——`yolo` 写"a fresh sub-agent, or `/code-review`"、`build`/`probes` 写"native sub-agent
+by default, mechanism unspecified"。模型执行时要给 Agent 工具填 `subagent_type`,被"review/reviewer"
+与 `/code-review` 一带,**猜了一个听起来很合理却不存在的 `code-reviewer`**(许多 agent 配置确实自定义
+了这个名字,故是高概率幻觉)。关键澄清:`/code-review` 是**命令/skill**(经 Skill 工具或斜杠触发),
+`code-reviewer` 是塞给 **Agent 工具**的 `subagent_type`——两者是不同机制;模型没有去调 `/code-review`
+命令,而是把"做代码评审"这个*动作*误变成一个*不存在的 agent 名*。**修**:三处都钉死为**通用可用的
+`general-purpose`** 子代理类型,并显式警告"**不要假设存在专门的 `code-reviewer`/`reviewer` agent,那样会
+报错**;`/code-review` skill 若已安装可用"。这保留了原有"机制不限、headless 等价亦可"的开放性,但堵掉了
+让模型填空幻觉的缺口。落 `yolo/SKILL.md`、`build/SKILL.md`、`references/probes.md` 三处;回归:仓库门 +
+9 eval 探针真跑/selftest 全绿(纯文本改)。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。
 
 | ID | 决策 | 依据 / 来源 | 轮次 |
 |----|------|------------|------|
+| D-63 | **独立评审子代理钉死 `general-purpose` 类型**(修幻觉 bug):三处描述独立评审子代理的文字未指定合法 agent 类型(`yolo`:"a fresh sub-agent, or `/code-review`";`build`/`probes`:"native sub-agent, mechanism unspecified"),模型给 Agent 工具填 `subagent_type` 时被"reviewer"/`/code-review` 一带,幻觉出不存在的 `code-reviewer` 类型而报错。澄清:`/code-review`=命令/skill,`code-reviewer`=塞给 Agent 工具的 `subagent_type`,两者不同机制。修:三处都钉死**通用可用的 `general-purpose`** 子代理,并显式警告"勿假设存在专门 `code-reviewer`/`reviewer` agent、那样会报错;`/code-review` skill 若装了可用",保留机制开放性但堵掉填空幻觉。落 `yolo`/`build`/`probes` 三处,回归全绿 | 用户实测 `/yolo` 报 `Agent type 'code-reviewer' not found`(环境仅 general-purpose/Explore/Plan 等) | 36 |
 | D-01 | 抛弃 OpenSpec 的多命令流水线,改为**单一 `/spec` 命令**(类 `/init`) | 简单、单一职责、可被人反复利用 | 1–2 |
 | D-02 | 维护**一份固定文档 `SPEC.md`**(仓库根),整文件重写,不碎片化 | 单一真相源 | 2 |
 | D-03 | `/spec` 与执行/三方技能**解耦**;下游只读 `CLAUDE.md` → `SPEC.md` | 过程管理 vs 执行分离 | 2 |
