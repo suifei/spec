@@ -54,15 +54,19 @@ that loop is the first substantive action — a mechanical step, not something t
 deliberate or narrate. Do these in order, as actual tool calls:
 
 1. **Rehydrate** exactly as `/build` Step 0 (CLAUDE.md → SPEC.md, `## build`,
-   knowledge, gates, worktree). Stop before scheduling anything if: `SPEC.md` is
-   missing or has open blocking questions (→ send the human to `/spec`); or no
-   buildable `[locked]` work exists (say so — nothing to loop); or `## build`
-   (cross-check `CronList`) already shows a live loop (**one loop at a time** —
-   report the existing one, don't start a second); or the target scope has **no
-   bounded, gate-closable "done"** — an open-ended spec (whether "write a great
-   novel" or "make it fast") gives the loop no finish line to reach, so it can
-   only ever stop at no-progress/human, never at "done". That is a `/spec`
-   problem, not a pace problem: send it back to bound the scope before looping.
+   knowledge, gates, worktree). Then **stop before scheduling anything if any** holds:
+
+   ```
+   SPEC.md missing ∨ open blocking questions      ─▶ send the human to `/spec`
+   no buildable [locked] work                     ─▶ say so — nothing to loop
+   `## build` (∧ cross-check `CronList`) shows a live loop
+                                                  ─▶ one loop at a time: report the existing one, don't start a 2nd
+   target scope has no bounded, gate-closable "done"
+                                                  ─▶ open-ended spec ("write a great novel", "make it fast") has no
+                                                     finish line — it could only ever stop at no-progress/human,
+                                                     never at "done"; a `/spec` problem, not a pace one →
+                                                     send it back to bound the scope before looping
+   ```
 2. **Fire the loop — the fixed move.** Invoke the `loop` skill with args
    `1m <the loop prompt below>` (equivalently, call `CronCreate` with cron
    `*/1 * * * *` and that prompt). The prompt is **fixed and self-contained**:
@@ -117,20 +121,21 @@ no-op). Then let the schedule fire the next round (inline: go straight into the
 next tick). Evaluate the termination conditions each firing.
 
 ### Termination — the delete is part of "done"
-A firing that meets any condition below does **not** build: it deletes the loop
-(`CronList` → `CronDelete` its id — or just ends, if running inline) and writes
-a final report.
-- **Done:** no buildable `[locked]` work remains — every targeted requirement's
-  acceptance holds, gates are green, **and the phase's independent review has
-  signed off** (green gates alone are not done for generated/quality work — a probe
-  can pass metric-gamed output). Evidence captured. Report what was built, the green
-  results, and the review findings fixed along the way.
-- **Blocked on a human:** spec conflict / genuine fork / unevaluable acceptance —
-  recorded in `## build`, loop deleted, handed to `/spec` or the human. Say
-  plainly what's needed to resume.
-- **Stuck:** two consecutive firings, same failure, no new information — loop
-  deleted, honest stuck-report (what failed, what was tried, best hypothesis).
-- **The human says stop** — immediately, no argument.
+A firing that meets **any** condition does **not** build — it deletes the loop
+(`CronList` → `CronDelete` its id; or just ends, if running inline) and writes a final report:
+
+```
+condition ─▶ delete loop + report
+  done       = no buildable [locked] work left: every targeted acceptance holds ∧ gates green
+               ∧ the phase's independent review signed off
+               (green gates alone ≠ done for generated/quality — a probe can pass metric-gamed output)
+               ─▶ report: what was built · the green results · review findings fixed along the way
+  blocked    = spec conflict ∨ genuine fork ∨ unevaluable acceptance  (a human's call)
+               ─▶ record in `## build` · hand to `/spec` or the human · say plainly what's needed to resume
+  stuck      = two consecutive firings · same failure · no new information
+               ─▶ honest stuck-report: what failed · what was tried · best hypothesis
+  human-stop = the human says stop   ─▶ immediately, no argument
+```
 
 A forgotten cron re-running against a finished (or wedged) repo is the one way
 `/yolo` can do harm, so deleting it is the definition of done — not cleanup.
