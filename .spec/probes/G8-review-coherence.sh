@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 # Probe G8 — review-trace coherence (D-65). Every [locked] requirement whose
-# Method names an independent intent-review must have a cited
+# *Method* IS an independent intent-review must have a cited
 # .spec/evidence/review-<Rn>-*.md (SPEC anchor + artifact anchor). No file =>
 # the review can't be shown to have happened; a bare "looks fine" => not cited.
 # (Template: references/coherence.template.sh; reference impl: eval/cn-novel/_review-coherence.sh. D-69.)
-# Note: this dogfood's R1–R5 are contract requirements (Method WEAK), not
-# generative/quality work, so none name an independent review — the probe is
-# GREEN trivially here and exists to catch a future review-requiring requirement.
+#
+# D-74 fix: detection is scoped to the *Method:* clause specifically, not the whole
+# requirement entry. Whole-entry grepping false-positived on R3 after the clean-context
+# audit reconciled R3's Intent/Acceptance to MENTION "independent review" as a general
+# rule (generative/quality work needs one) — R3's own Method stays WEAK(cited), it is
+# not itself review-requiring, so matching outside Method wrongly demanded a trace for a
+# requirement about /build's process, not a generative artifact.
 set -euo pipefail
 
 locked_reqs() {
@@ -15,10 +19,16 @@ locked_reqs() {
        { if(e!=""){ print e; e="" } } END { if(e!="") print e }' "$1" | grep -F '[locked]'
 }
 
+# extract just the *Method:* ... clause (up to the next " *(" citation marker or end)
+method_clause() {
+  grep -oE '\*Method:\*.*' <<<"$1" | sed -E 's/ \*\([^)]*\)\*?\s*$//'
+}
+
 check() {
-  local SPEC="$1" EVID="$2" fail=0 entry rid trace found cited
+  local SPEC="$1" EVID="$2" fail=0 entry rid trace found cited method
   while IFS= read -r entry; do
-    grep -qE '独立.{0,8}评审|independent[ -]?review' <<<"$entry" || continue
+    method=$(method_clause "$entry")
+    grep -qE '独立.{0,8}评审|independent[ -]?review' <<<"$method" || continue
     rid=$(grep -oE '\*\*R[0-9]+' <<<"$entry" | head -1 | tr -d '*')
     [ -z "$rid" ] && continue
     found=0; cited=0
@@ -42,6 +52,12 @@ if [ "${1:-}" = "--selftest" ]; then
   printf 'spec-cite: SPEC.md R1\nartifact: manuscript/ch1.md\n' > "$tmp/evid/review-R1-x.md"
   check "$tmp/S.md" "$tmp/evid" >/dev/null 2>&1 && echo "  pos-control ok: cited trace -> GREEN" \
     || { echo "POS FAIL: cited trace flagged"; exit 1; }
+  # the R3 false-positive this fix closes: "independent review" mentioned in Intent/
+  # Acceptance (describing a general rule) but the Method itself is WEAK(cited), not an
+  # independent review -> must NOT be flagged as review-requiring (no trace needed)
+  printf '%s\n' '- **R2** [locked] a process rule. *Intent:* [auto] for generative work an independent review must sign off. *Acceptance:* the rule holds. *Method:* WEAK(cited) — a coherence probe checks this. *(D-x)*' > "$tmp/S2.md"
+  check "$tmp/S2.md" "$tmp/evid" >/dev/null 2>&1 && echo "  pos-control ok: 'independent review' mentioned OUTSIDE Method (Intent only) -> not flagged, GREEN" \
+    || { echo "POS FAIL: R3-class false positive reintroduced (Method-scoping regressed)"; exit 1; }
   echo "RESULT: G8 self-test passed (non-vacuous)"; exit 0
 fi
 

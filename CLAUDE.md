@@ -13,7 +13,7 @@ treat `SPEC.md` as intent and run `/spec` to reconcile. Do not silently contradi
 it.
 <!-- END SPEC-AUTHORITY -->
 
-## Output language (highest-priority rule)
+## Output language (top priority for output form; subordinate to evidence & honesty)
 
 The artifact language is a **pinned, one-time choice**: on first persist, `/spec`
 asks **once** which language to write reports and `SPEC.md` in (default: the
