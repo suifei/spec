@@ -1545,12 +1545,67 @@ done 重述是 D-53 有意自足,非漂移),并补了 GLM 漏掉的关键反证:
 
 ---
 
+## 第 39 轮 · 2026-07-08 — 二轮 GLM-5.2 评审:把闭包不变量从 eval 落到 skill 与 dogfood 自身(D-69…D-73)
+
+外部对三 skill 做了**第二轮** GLM-5.2 评审(第 37/38 轮是第一轮,已修 P0+P1+P2+P3)。本轮核验第一轮的
+修后状态,确认承重项已实修,并专攻第一轮**留下的交付层与 dogfood 一致性缺口**——即"skill 对用户项目
+施加的承重规矩,没同等强度施加在自己身上"这条系统性裂缝的残余:
+
+- **P0-1(dogfood R1–R5 缺 Intent/Method → D-73)**:D-61 把 Intent 升为一等字段时明说"R1–R7 待下次
+  回填",但 dogfood R1–R5 一直没回填——skill 的镇山之石(对着记录的 Intent 做独立评审)在自己的
+  dogfood 上**根本不可达成**。修:R1–R5 全部补 `*Intent:* [auto]` + `*Method:* WEAK(cited)`(prompt
+  skill 行为无可执行探针,如实标 WEAK 不造假)。并落 **G6-requirement-coherence** 抓这个缺陷类
+  ([locked] 需求 Acceptance-alone 即红),把"deferred 没回来填"变成会变红的闭包。
+- **P1-1(闭包不变量只在 eval、未发布、dogfood 不跑 → D-69)**:D-57 的 spec↔probe、D-65 的
+  review-trace 两个闭包不变量,实现只在 `eval/cn-novel/.spec/probes/`,既没随 skill 发布为模板,
+  dogfood 自己的 `.spec/probes/` 也不跑——反漂移器自身可漂移且无人抓。修:新增 `references/probe.template.sh`
+  + `references/coherence.template.sh`(参数化、带 selftest);dogfood 落实例 G5(spec↔probe,D-57)、
+  G6(需求完整性)、G8(review-trace,D-65),让 dogfood 自跑自己定义的闭包不变量。
+- **P1-2(G3 不覆盖 wrapper、wrapper 已漂移 → D-72)**:G3 只查 build/yolo SKILL.md,不查 `commands/*.md`;
+  而 `commands/yolo.md` 内嵌的 loop prompt 是缩水版,丢了 D-65(独立评审)与 D-67(无实质推进/天花板)
+  的增量——第一轮加了规矩、wrapper 没跟着动。修:G3 的 check 扩展到 `commands/build.md`+`commands/yolo.md`,
+  逻辑为"wrapper 要么完整重述 done 三要素、要么引用 SKILL.md 权威"(引用即不漂移);`commands/yolo.md`
+  改为引用 `yolo/SKILL.md` 的权威 prompt(不再自行改写),`commands/build.md` 的 done 语句补齐独立评审
+  + 引用 build 原理 3。
+- **P0-3(独立评审是同模型换 context、非判断独立 → D-71)**:D-64 硬化了"从磁盘自读"(输入侧独立),
+  但没区分 *context-independent*(防遗忘的 shortcut)与 *judgment-independent*(防系统性偏置)——
+  同模型干净上下文共享盲点,仍可能放过它偏好的空壳产出。修:三处(build 原理3/Step4、probes.md、
+  yolo 循环 prompt)把"独立"拆为 **L1**(默认,fresh `general-purpose` 同模型,防 shortcut 不防偏置)
+  与 **L2**(更强:换模型/人/不同后端 `/code-review`,高赌注生成质量或 L1 放过可疑产出时升级)。
+- **P0-2(评审无"能变红"的负控 → D-70)**:skill 对每条探针铁律"必须能变红",但评审这块镇山之石没有
+  校准——`_review-coherence.sh` 只查留痕*存在*,不查评审*能否发现缺陷*;永远返回 MET 的评审也能过。
+  修:`eval/cn-novel/tests/review-negative-control/` 落一个 known-bad 制品(R8 违例:`——` 注水、无故事
+  增量)+ 标定探针:评审留痕须引 SPEC + 制品 **并点名缺陷**;对 known-bad 返 MET 即红(selftest 红/绿)。
+  与 `_review-coherence.sh` 互补:前者查"能不能",后者查"有没有"。
+- **P2-1(先名词后动词无锚点 → D-72 续)**:D-39 立的"先定义名词"是 skill 自认最坏失败,却纯散文无字段
+  无探针。修:`SPEC.template.md §1` 加 `**Subject essence**`(从权威源引、或 OPEN);落 **G7-subject-essence**
+  探针(§1 无权威引用即红)。dogfood §1 已引 Spec Kit+Kiro → 绿。
+- **P2-3(tick 天花板 honor-system → D-73 续)**:D-67 加了硬天花板规则,但 fresh-context-per-firing 下
+  tick 计数靠模型自觉,漏写则上限静默膨胀,无探针。修:`STATE.template ## build` 加结构化 `ticks:` 字段;
+  `yolo/SKILL.md` 天花板固化为 `CEILING` env(默认 20)、读 `ticks:` 字段;落 **G9-tick-monotonic**
+  探针(ticks ≤ ceiling 且不回退即绿,否则红)。
+
+**撤回一条**:P2-2(investigation.log 防伪探针)不修——第 38 轮 D-67 已论证真实日志 source 多为
+reasoning/knowledge 非路径/URL,机械校验会误杀合法条,故只强 `questioning.md` 规则、不立探针;本轮
+复核该取舍仍成立,不重新提起(避免重开已决项)。
+
+回归:仓库门 G2–G9(8 条)+ eval 探针,真跑 + `--selftest` 全绿;G6 在 R1–R5 回填后由红转绿;G3 扩展后
+覆盖 wrapper 仍绿。定性:第一轮修了承重两处,本轮把"对用户严、对自己松"的残余从交付层(模板未发布)
+与 dogfood 一致性层(R1–R5、wrapper 漂移、闭包不变量不自跑)补齐——反漂移器现在也对自己负责。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。
 
 | ID | 决策 | 依据 / 来源 | 轮次 |
 |----|------|------------|------|
+| D-73 | **二轮评审 P0-1 + P2-3**:dogfood R1–R5 回填 `*Intent:* [auto]` + `*Method:* WEAK(cited)`(D-61 欠账;让镇山之石"对着 Intent 评审"在 dogfood 上可达成);`STATE.template ## build` 加结构化 `ticks:` 字段、`yolo/SKILL.md` 天花板固化为 `CEILING` env(默认 20)读 ticks、新增 `G9-tick-monotonic.sh`(ticks ≤ ceiling 且不回退即绿)。R1–R5 回填后 G6 由红转绿 | GLM-5.2 二轮评审 P0-1/P2-3;D-61 欠账 | 39 |
+| D-72 | **二轮评审 P1-2 + P2-1**:G3-done-coherence 的 check 扩展到 `commands/build.md`+`commands/yolo.md`(wrapper 要么完整重述 done 三要素、要么引用 SKILL.md 权威);`commands/yolo.md` 改为引用 `yolo/SKILL.md` 权威 prompt(不再缩水改写,D-65/D-67 增量回归)、`commands/build.md` done 语句补独立评审+引 build 原理3;`SPEC.template §1` 加 `**Subject essence**` 字段 + 新增 `G7-subject-essence.sh`(§1 无权威引用即红,D-39 终于有锚点) | GLM-5.2 二轮评审 P1-2/P2-1 | 39 |
+| D-71 | **二轮评审 P0-3**:独立评审拆 L1/L2——L1 context-independent(默认,fresh `general-purpose` 同模型,防 forgotten shortcut 不防 systematic bias)、L2 judgment-independent(换模型/人/不同后端 `/code-review`,高赌注生成质量或 L1 放过可疑产出时升级)。落 `build/SKILL.md`(原理3/Step4)、`probes.md`、`yolo/SKILL.md` 循环 prompt 三处。纠正"同模型干净上下文=独立判断"的混淆 | GLM-5.2 二轮评审 P0-3;D-64 只硬化了输入侧 | 39 |
+| D-70 | **二轮评审 P0-2**:评审镇山之石补"能变红"的负控——`eval/cn-novel/tests/review-negative-control/` 落 known-bad 制品(R8 违例:`——` 注水)+ 标定探针 `_neg-control.sh`(评审留痕须引 SPEC+制品并点名缺陷;对 known-bad 返 MET 即红,selftest 红/绿)。与 `_review-coherence.sh`(查留痕存在)互补:前者查"能不能发现缺陷",后者查"有没有留痕" | GLM-5.2 二轮评审 P0-2;probes.md "must be able to go red" 未施加于 review | 39 |
+| D-69 | **二轮评审 P1-1**:闭包不变量从 eval 落到 skill 与 dogfood——新增 `references/probe.template.sh` + `references/coherence.template.sh`(参数化、带 selftest);dogfood 落实例 `G5-spec-probe-coherence.sh`(D-57)、`G6-requirement-coherence.sh`(需求完整性,P0-1 类)、`G8-review-coherence.sh`(D-65),让 dogfood 自跑自己定义的闭包不变量(反漂移器不再能自身漂移而无人抓) | GLM-5.2 二轮评审 P1-1;D-57/D-65 实现原仅在 eval | 39 |
 | D-68 | **P3 打磨**(GLM 评审收尾):`投真→探真` 笔误;`∨/∧/⇐` 三处技能文件换 `and/or/=`(落实 D-62 人类可编辑性,对 GLM 该点让步、非"defensible as-is");Rule 0 头 "overrides everything"→"output form 优先、从属证据与诚实" + 翻译加大规格成本门(整库重译前告知规模获批);加小项目逃生阀(单文件/一次性可只 Vision+一门,跳过台账/日志/阶段)。回归全绿 | GLM-5.2 评审 S3-8/9;用户"将所有做完" | 38 |
 | D-67 | **P2 成本与安全网**(GLM 评审收尾):`/yolo` 加硬天花板(默认 ~20 tick 或成本预算)+ "无实质推进即停"(不只认同一失败两轮;只有装样子改动=停),落原则 4/5/Guardrails/终结表/自足循环 prompt;`investigation.log` 防伪改为 `questioning.md` 规则加强(source 为文件/URL 须可解析、为推理须命名真实链条)——**不立探针**因真实 source 多为 reasoning/knowledge、机械校验会误杀合法条(诚实取舍) | GLM-5.2 评审 S2-6/7;用户"将所有做完" | 38 |
 | D-66 | **P1 闭环缺口**(GLM 评审收尾):①done 定义单一权威(`build` 原则3)+ 新增自 coherence 探针 `G3-done-coherence.sh`(断言 build/yolo 的 done 含"验收+门绿+独立评审",漏一即红);②`STATE.template` `current_phase`→`active_phases` 列表(阶段 DAG 可表达)+ 原则8"整篇重写"与"封存只读"调和;③新增回写 coherence 探针 `G4-writeback-coherence.sh`(STATE ## build 报 built 而 SPEC 台账无 construction…built 即红,内部抓住 S1-3 那次 6 天未回写)。G3/G4 登 `SPEC.md`§3;两探针 `--selftest` 真红/绿、真跑非空 | GLM-5.2 评审 S1-3/4/5;用户"将所有做完" | 38 |

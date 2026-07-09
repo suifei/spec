@@ -198,15 +198,22 @@ ways it will diverge. Apply two moves that generalize to any gate, any domain:
    achieve the requirement's purpose, or merely its measure?"* — open-ended, never a
    checklist. To keep that AI review trustworthy (the reason the pipeline distrusted
    AI review to begin with):
-   - **Independent, clean context** — the reviewer is **not** the context that
-     produced the artifact (that context has an incentive to pass itself and
-     remembers its own shortcuts). A fresh reviewer reading **only** `SPEC.md` + the
-     artifact + the build state, **from disk itself** (given the *paths*, not content
-     the producing context relays — a sanitized copy defeats the independence).
-     Mechanism: a fresh **`general-purpose`** sub-agent
-     by default (the universally-available agent type — do **not** assume a
-     specialized `code-reviewer`/`reviewer` agent type exists, that call errors
-     out), or an equivalent headless process. **Never a self-review.**
+   - **Independent — and know which kind.** The reviewer is **not** the context
+     that produced the artifact (that context has an incentive to pass itself and
+     remembers its own shortcuts). Two layers:
+     - **L1 — context-independent (default):** a fresh reviewer reading **only**
+       `SPEC.md` + the artifact + the build state, **from disk itself** (given the
+       *paths*, not content the producing context relays — a sanitized copy defeats
+       the independence). Mechanism: a fresh **`general-purpose`** sub-agent (the
+       universally-available agent type — do **not** assume a specialized
+       `code-reviewer`/`reviewer` agent type exists, that call errors out), or an
+       equivalent headless process. Blocks *forgotten shortcuts* — but **not**
+       *systematic bias*: the same model in a clean context shares the same blind
+       spots and can still pass hollow output it is biased to like.
+     - **L2 — judgment-independent (stronger):** a different model, a human, or
+       `/code-review` on a different engine — use for high-stakes generative
+       quality, or when L1 passed output that smells gamed. Only L2 defends against
+       systematic bias. **Never a self-review.**
    - **Adversarial and intent-anchored** — its job is to decide whether the *purpose*
      is genuinely met and to *find* where only the letter was satisfied. Known
      tricks (padding, filler, faked/skipped requirements, hollow output that

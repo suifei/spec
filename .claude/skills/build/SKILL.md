@@ -142,15 +142,25 @@ probes are necessary, not sufficient, when the artifact was *generated against a
 metric* — a probe can pass on metric-gamed output. So at **phase-close, and on any
 batch that touched a generative-quality or gameable-quantity gate**, run an
 **independent, clean-context, adversarial review** *before* declaring done:
-- **Independent** — a reviewer that is **not** this build's own context (spawn a
-  fresh clean-context reviewer as a **`general-purpose`** sub-agent — the
-  universally-available agent type; do **not** assume a specialized
-  `code-reviewer`/`reviewer` agent type exists, that call errors out — or an
-  equivalent headless process). It reads **only** `SPEC.md` + the artifact + the
-  `## build` state — and reads them **from disk itself** (hand it the *paths*, not
-  content the producing context pastes in; a doctored/summarized copy would defeat
-  the independence) — never the generating context, which would pass its own
-  shortcuts.
+- **Independent — and know which kind.** A reviewer that is **not** this build's
+  own context. Two layers (default L1; escalate to L2 for high-stakes generative
+  quality, or when L1 has passed output you can't quite place):
+  - **L1 — context-independent (default):** a fresh clean-context
+    **`general-purpose`** sub-agent (the universally-available agent type; do
+    **not** assume a specialized `code-reviewer`/`reviewer` agent type exists —
+    that call errors out), or an equivalent headless process. It reads **only**
+    `SPEC.md` + the artifact + the `## build` state, **from disk itself** (hand it
+    the *paths*, not content the producing context pastes in — a doctored/summarized
+    copy would defeat the independence). This blocks the producer's *forgotten
+    shortcuts* (the fresh context has no memory of them); it does **not** block a
+    *systematic model bias* — the same model in a clean context shares the same
+    blind spots and can still pass hollow output it is biased to like.
+  - **L2 — judgment-independent (stronger):** a reviewer with a *different*
+    judgment basis — a different model, a human, or `/code-review` if backed by a
+    different engine. Use L2 when the work is high-stakes generative quality, or
+    when L1 has passed output that smells gamed. Only L2 defends against systematic
+    bias; L1 alone is "clean context, same optimizer." **Never a self-review** —
+    the producing context reviewing itself is neither L1 nor L2.
 - **Intent-anchored + cited** — its single question is *"is the requirement's
   **Intent** genuinely met, or only its letter?"*, checked against the requirement's
   **recorded Intent field** in `SPEC.md` (not an intent it guesses). It reasons from

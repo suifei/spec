@@ -10,8 +10,10 @@ knowledge, `STATE.md`) and tell me where construction stands. Then pick the targ
 **regenerate an ephemeral design/tasks plan** (disposable, gitignored — never a
 committed source of truth), show it for approval, **construct** the code conforming
 to the spec's decisions/anti-patterns/spec-line, and **close only when** each
-targeted requirement's acceptance holds and the load-bearing gates are green
-(re-run `.spec/probes/`). Show the diff + green gates before committing.
+targeted requirement's acceptance holds, the load-bearing gates are green
+(re-run `.spec/probes/`), and — for generated/quality work — an independent
+review has signed off (the done-condition; see `build/SKILL.md` principle 3).
+Show the diff + green gates before committing.
 
 If reality contradicts `SPEC.md`, **stop and route me to `/spec`** — never silently
 patch the spec. Default surface: propose-then-apply with checkpoints.
