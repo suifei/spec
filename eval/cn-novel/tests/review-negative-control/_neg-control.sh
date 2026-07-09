@@ -1,10 +1,17 @@
 #!/usr/bin/env bash
-# Calibration probe — the independent review must be ABLE TO GO RED on a known-bad.
-# `references/probes.md` imposes "must be able to go red" on every probe, but the
-# review keystone (build/SKILL.md principle 3) had no such check: `_review-coherence.sh`
-# only verifies a trace EXISTS, not that the review can FIND a defect. This closes
-# that gap (P0-2 / D-70): a review trace of a known-bad artifact MUST flag a defect
-# (cite the SPEC + name it); a trace that returns MET on the known-bad is vacuous -> RED.
+# Calibration probe — checks that a review TRACE, if it exists, discriminates a known-bad
+# from a pass (D-70, reframed D-74 per clean-context audit).
+#
+# Honest scope: this script mechanically greps a trace FILE for citations + a
+# defect-flagging verdict. It does NOT itself spawn a reviewer or prove a live review
+# will produce such a trace — it guards the TRACE FORMAT's discriminability (a
+# defect-flagging trace passes, a MET-on-known-bad trace fails), using whatever trace is
+# on disk. The evidence that a LIVE reviewer actually produces a correct trace on this
+# fixture is `review-of-known-bad.md` — as of D-74 that file holds a REAL live
+# `general-purpose` run (not hand-authored), so this probe's default real-run argument is
+# no longer "does our canned answer key parse", but "did the last live calibration run
+# flag the defect". Re-running the live reviewer (see README "How to use") and re-checking
+# is the only way to freshen that evidence — this script alone cannot.
 set -euo pipefail
 
 check() {
@@ -32,8 +39,9 @@ if [ "${1:-}" = "--selftest" ]; then
 fi
 
 TRACE="${1:-$(dirname "$0")/review-of-known-bad.md}"
-echo "== calibration probe: review can go red on a known-bad =="; date -u +"when: %Y-%m-%dT%H:%M:%SZ"; echo "----"
+echo "== calibration probe: does the on-disk trace flag the known-bad? (format check, not a live run) =="
+date -u +"when: %Y-%m-%dT%H:%M:%SZ"; echo "----"
 rc=0; check "$TRACE" || rc=$?
 echo "----"
-[ "$rc" -ne 0 ] && { echo "RESULT: RED — the review trace does not flag the known-bad (vacuous review)"; exit 1; }
-echo "RESULT: GREEN — the review flags a defect on the known-bad (review capability calibrated)"
+[ "$rc" -ne 0 ] && { echo "RESULT: RED — the trace on disk does not flag the known-bad (vacuous or stale)"; exit 1; }
+echo "RESULT: GREEN — the trace on disk flags the known-bad (last live calibration run caught it; not a standing guarantee)"

@@ -1595,12 +1595,66 @@ reasoning/knowledge 非路径/URL,机械校验会误杀合法条,故只强 `ques
 
 ---
 
+## 第 40 轮 · 2026-07-09 — 三轮干净上下文审计:二轮 coherence 层自己也在夸大(D-74)
+
+用户要求"用干净的上下文"重新审计经二轮 GLM-5.2 修订(第 39 轮)后的 `.claude/`。派一个全新、无历史
+上下文的子代理,只用只读 `git show origin/main:<path>` 读当前 main(而非本会话已参与写过的文件),
+逐条静态核验。结论:学说依旧扎实、二轮真修了 S1-4(wrapper 漂移)与 Intent/Method 回填,但**新增的
+coherence 层本身重犯了它要防的病——自我推销过度**:
+
+- **`/yolo` 天花板并非"结构性强制"。** `ticks:` 字段递增全靠 firing 自觉;G9 从不在循环体内被真的调用;
+  一次"读 5 写 5"忘记递增的 firing 会永远绿地无限循环——G9 只抓虚报/倒退的计数器,抓不住*停滞*的计数器,
+  而停滞恰是无状态循环真正无界跑的方式。**修:** 计数器改为**仅由日志行数决定**——每次 firing 的
+  *第一动作*就是往 append-only `.spec/evidence/ticks.log` 追加一行,行数本身就是 tick 号(append 即
+  自增,无法"忘记递增");超天花板则在动工前先终止。`ticks:` 字段降级为该日志的镜像。G9 重写为**事后
+  审计**(日志超限/字段与日志不一致/字段有值但日志缺失=接线已死,均判红),诚实措辞从"structurally
+  enforced, not honor-system"改为"执行者自觉执行 + 留痕可审计"。
+- **done 定义有两个"单一权威"且互相矛盾。** `build` 原则 3 自称唯一权威,但仓库自称 `SPEC.md` 才是
+  至高权威,而 `SPEC.md` R3 的 done 定义**从未提独立评审**——三处 skill 都把评审当必要条件,契约本身却
+  没写,G3 也从不检查 skill↔SPEC R3(只查 skill 之间、skill↔wrapper)。**修:** R3 正文/Intent/Acceptance
+  补独立评审条款(注明是与既有 skill 规则调和、非新规则);G3 新增第三个检查面:SPEC.md R3 本身也必须
+  同时含"验收+门绿+独立评审"三要素,负控:R3 漏评审条款即红。
+- **"无实质推进即停"没有文件系统锚点。** `## build` 台账里没有 `last_failure`/`no_progress_streak`
+  这类字段,无状态的新 firing 无从知道上一拍失败是什么、连续几拍没推进——防"装样子烧钱"的条款反而是
+  所有终止条件里最不可执行的一条。**修:** `## build` 新增 `last_failure:`(本拍失败一句话)与
+  `no_progress_streak:`(无实质推进的连续拍数,材料性推进即清零);终止条件表改为"本拍失败==记录的
+  last_failure(第二次同败)或 streak≥3"。
+- **评审"负控"测的是罐头 fixture,不是活评审者。** `_neg-control.sh` 默认读手写的
+  `review-of-known-bad.md`,从不真的 spawn 评审者——"负控"之名超卖了它守的东西(它守的是探针的
+  判别力,不是评审者的能力)。**修(比原计划更进一步):** 真的 spawn 一个 `general-purpose` 评审者
+  读盘评审 `known-bad.md`,用**真实活跑的输出**替换手写 trace(该评审者正确判定 NOT MET、正确引证
+  `——` 填充段落);`README.md`/`_neg-control.sh` 头注重新措辞,区分"这份脚本只机械核对留痕格式"与
+  "留痕文件本身现在是一次真实活跑的证据,而非一份假设性范例"。
+- **G4 首次回写后永久绿;G3/G7 是关键词/存在性 linter 却挂"✅ verified (probe)"徽章。** **修:** G4
+  改为**按 phase 精确定位**——STATE `built:` 行须点名 `Phase N`,G4 只查*那个* phase 在 SPEC 里自己的
+  `### Phase N` 块,不再整文件 grep(负控证明:Phase 2 已回写不再掩盖 Phase 3 未回写,原版会永久绿、
+  新版正确变红);`SPEC.md`§3 徽章诚实化——G3/G4/G7 改标"✅ floor-checked (linter)"/"(keyword linter)",
+  只有 G2(诚实自认 illustrative)与 G5(真有双向牙)保留原措辞。
+- **R2 的可脚本化半边被 WEAK 放过。** `.spec/plan/` 是否真被 gitignore、是否有文件被 tracked 是可机检的
+  ——新增 `G10-plan-untracked.sh`(负控:未 ignore、或有文件被 commit,均变红),R2 Method 拆成"机械半边
+  Probed(G10)+ 语义半边 WEAK(cited)"。
+- **修 build_section 的一个真实脆弱点(审计过程中自己发现)。** 原 `sed -n '/^## build/,/^\(# \|^## \)/p'
+  | sed '$d'` 假设 `## build` 后面一定还有下一个 section 标题;若 `## build` 是文件最后一个 section(
+  真实 `.spec/STATE.md` 目前恰好靠一条"# Freshness note"尾注侥幸躲过),`sed '$d'` 会误删最后一行真实
+  内容而非边界行。用 G9/G4 的负控 fixture 复现后,换成显式 in-section flag 的 awk 提取,消除该边界情形。
+- **Rule 0 措辞传播。** `build/SKILL.md`、`yolo/SKILL.md`、`CLAUDE.md` 的 Rule 0 标题仍写 "highest
+  priority" flat;`spec/SKILL.md`(第 38 轮 D-68 已改)早已是"top priority for output form; subordinate
+  to evidence & honesty"——本轮把这句话传播到其余三处,消除潜在的"语种优先级压过诚实"误读。
+
+回归:仓库门 G2–G10(9 条)+ 9 条 eval 探针,真跑 + `--selftest` 全绿(含新 G10、重写的 G3/G4/G9)。
+定性:这是第三轮清算——前两轮各自修完自己范围内的问题后,新增的验证层本身又需要一轮独立、干净上下文
+的核验才被发现在自我推销。这印证了本仓一直强调的一点:**验证层本身也需要被验证**,且验证者必须是
+干净上下文,不能是刚写完这段代码的同一个会话(这也是为什么这次没有用我自己直接审、而是派了子代理)。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。
 
 | ID | 决策 | 依据 / 来源 | 轮次 |
 |----|------|------------|------|
+| D-74 | **三轮干净上下文审计:二轮 coherence 层自我夸大的修复**——①`/yolo` 天花板计数器改为 append-only `ticks.log` 的行数(append 即自增,firing 无法"忘记递增"),第一动作即查超限即停,G9 重写为事后审计三态(超限/字段无日志=接线已死/字段与日志不一致);措辞去"structurally enforced"改"执行者自觉+留痕可审计"。②SPEC R3 补独立评审条款(与既有 skill 规则调和),G3 新增第三检查面(skill↔SPEC R3)。③`## build` 新增 `last_failure:`/`no_progress_streak:` 锚点,使"无实质推进即停"跨无状态 firing 可执行。④评审"负控"从罐头 fixture 换成真实 spawn 的 `general-purpose` 活跑输出(NOT MET,正确引证 `——` 填充)。⑤G4 改按 phase 精确定位(不再整文件 grep,负控证明修复了"永久绿"漏洞);G3/G4/G7 徽章诚实化为 floor-checked/keyword linter。⑥R2 机械半边补 `G10-plan-untracked.sh`(gitignore+untracked 检查)。⑦顺带修复 `build_section` 的一个真实脆弱点(sed 范围假设总有下个 section 标题,`## build` 为末尾 section 时误删最后一行——审计负控 fixture 中发现)。⑧Rule 0 措辞("subordinate to evidence & honesty")传播到 build/yolo/CLAUDE.md。回归:G2–G10(9 门)+ 9 条 eval 探针全绿 | 用户要求"用干净上下文"重新审计二轮 GLM-5.2 修订;派独立子代理只读 `git show origin/main:` 静态核验 | 40 |
 | D-73 | **二轮评审 P0-1 + P2-3**:dogfood R1–R5 回填 `*Intent:* [auto]` + `*Method:* WEAK(cited)`(D-61 欠账;让镇山之石"对着 Intent 评审"在 dogfood 上可达成);`STATE.template ## build` 加结构化 `ticks:` 字段、`yolo/SKILL.md` 天花板固化为 `CEILING` env(默认 20)读 ticks、新增 `G9-tick-monotonic.sh`(ticks ≤ ceiling 且不回退即绿)。R1–R5 回填后 G6 由红转绿 | GLM-5.2 二轮评审 P0-1/P2-3;D-61 欠账 | 39 |
 | D-72 | **二轮评审 P1-2 + P2-1**:G3-done-coherence 的 check 扩展到 `commands/build.md`+`commands/yolo.md`(wrapper 要么完整重述 done 三要素、要么引用 SKILL.md 权威);`commands/yolo.md` 改为引用 `yolo/SKILL.md` 权威 prompt(不再缩水改写,D-65/D-67 增量回归)、`commands/build.md` done 语句补独立评审+引 build 原理3;`SPEC.template §1` 加 `**Subject essence**` 字段 + 新增 `G7-subject-essence.sh`(§1 无权威引用即红,D-39 终于有锚点) | GLM-5.2 二轮评审 P1-2/P2-1 | 39 |
 | D-71 | **二轮评审 P0-3**:独立评审拆 L1/L2——L1 context-independent(默认,fresh `general-purpose` 同模型,防 forgotten shortcut 不防 systematic bias)、L2 judgment-independent(换模型/人/不同后端 `/code-review`,高赌注生成质量或 L1 放过可疑产出时升级)。落 `build/SKILL.md`(原理3/Step4)、`probes.md`、`yolo/SKILL.md` 循环 prompt 三处。纠正"同模型干净上下文=独立判断"的混淆 | GLM-5.2 二轮评审 P0-3;D-64 只硬化了输入侧 | 39 |
