@@ -1,14 +1,23 @@
 #!/usr/bin/env bash
-# Probe G8 — review-trace coherence (D-65, hardened D-74). Every review-requiring
-# [locked] requirement (carries a *Review:* field, or names an independent intent-
-# review) must have a cited .spec/evidence/review-<Rn>-*.md that reckons the recorded
-# Intent AND quotes a concrete artifact passage — not merely names SPEC + artifact
-# (that hollow trace is the cheapest forgery: a fake review; it goes RED, and is the
-# selftest's negative control). No file => the review can't be shown to have happened.
-# (Template: references/coherence.template.sh; reference impl: eval/cn-novel/.spec/probes/_review-coherence.sh. D-69/D-74.)
-# Note: this dogfood's R1–R5 are contract requirements (Method WEAK), not
-# generative/quality work, so none name an independent review — the probe is
-# GREEN trivially here and exists to catch a future review-requiring requirement.
+# Probe G8 — review-trace coherence (D-65, hardened). A [locked] requirement is
+# review-requiring if its *Method:* IS an independent intent-review, OR it carries a
+# structured *Review:* field (L1/L2). Such a requirement must have a cited
+# .spec/evidence/review-<Rn>-*.md that reckons the recorded Intent AND quotes a concrete
+# artifact passage — not merely names SPEC + artifact (that hollow trace is the cheapest
+# forgery: a fake review; it goes RED, and is the selftest's negative control). No file
+# => the review can't be shown to have happened.
+# (Template: references/coherence.template.sh; reference impl: eval/cn-novel/.spec/probes/_review-coherence.sh. D-69.)
+#
+# D-74 (clean-context audit): the legacy "independent review" phrase is matched only
+# within the *Method:* clause, not the whole entry — whole-entry grepping false-positived
+# on R3, whose Intent/Acceptance MENTION "independent review" as a general rule while its
+# own Method stays WEAK(cited) (R3 is about /build's process, not a generative artifact).
+# Follow-ups: a structured *Review:* L1/L2 field is also a trigger (and L2 additionally
+# requires distinct producer/reviewer engines); assert_parser_sane makes the probe RED on
+# an unparseable SPEC instead of vacuously green.
+# Note: this dogfood's R1–R5 are contract requirements (Method WEAK), not generative/quality
+# work, so none name an independent review — the probe is GREEN trivially here and exists
+# to catch a future review-requiring requirement.
 set -euo pipefail
 
 locked_reqs() {
@@ -17,16 +26,20 @@ locked_reqs() {
        { if(e!=""){ print e; e="" } } END { if(e!="") print e }' "$1" | grep -F '[locked]'
 }
 
+# extract just the *Method:* ... clause (up to the next " *(" citation marker or end)
+method_clause() {
+  grep -oE '\*Method:\*.*' <<<"$1" | sed -E 's/ \*\([^)]*\)\*?\s*$//'
+}
+
 # ---- parser-health guard (anti-vacuous-green) --------------------------------
-# locked_reqs() is a brittle awk heuristic bound to a PARSER CONTRACT (a
-# requirement = a list item whose first line matches `^- **R<n>.**` carrying
-# `[locked]`). If SPEC.md drifts from that shape (headings instead of list items,
-# a different bullet, fields wrapped across a blank line), locked_reqs() silently
-# matches ZERO entries and the check() loop never runs -> GREEN over a spec the
-# probe never parsed (the drift-detector's own vacuous-green). So make it the
-# negative control: if the raw SPEC contains `[locked]` but locked_reqs()
-# recognized none, the parser is blind -> RED. (probes.md "A gate is a proxy for
-# an intent"; consistency-lens law 5.) Legitimately-zero-[locked] stays GREEN.
+# locked_reqs() is a brittle awk heuristic bound to a PARSER CONTRACT (a requirement =
+# a list item whose first line matches `^- **R<n>.**` carrying `[locked]`). If SPEC.md
+# drifts from that shape, locked_reqs() silently matches ZERO entries and the check()
+# loop never runs -> GREEN over a spec the probe never parsed (the drift-detector's own
+# vacuous-green). So make it the negative control: if SPEC has a requirement tagged
+# `[locked]` (an R<n>…[locked] line, not a prose mention) but locked_reqs() recognized
+# none, the parser is blind -> RED. (probes.md "A gate is a proxy for an intent";
+# consistency-lens law 5.) Legitimately-zero-[locked] stays GREEN.
 assert_parser_sane() {
   local SPEC="$1" n
   n=$(locked_reqs "$SPEC" | grep -c . || true)
@@ -38,11 +51,16 @@ assert_parser_sane() {
 }
 
 check() {
-  local SPEC="$1" EVID="$2" fail=0 entry rid trace found cited is_l2 eng prod revw
+  local SPEC="$1" EVID="$2" fail=0 entry rid trace found cited is_l2 eng prod revw method
   assert_parser_sane "$SPEC" || return 1
   while IFS= read -r entry; do
-    # review-requiring? structured *Review:* field (with a value), or the legacy phrase
-    grep -qiE '\*Review:\*?[[:space:]]*\S|独立.{0,8}评审|independent[ -]?review' <<<"$entry" || continue
+    # review-requiring? D-74: the *Method:* clause names an independent review (scoped to
+    # Method, not the whole entry, so a req that merely MENTIONS "independent review" in
+    # Intent/Acceptance isn't wrongly flagged) — OR the req carries a structured *Review:*
+    # field (L1/L2), which is itself the trigger.
+    method=$(method_clause "$entry")
+    { grep -qE '独立.{0,8}评审|independent[ -]?review' <<<"$method" \
+       || grep -qiE '\*Review:\*?[[:space:]]*\S' <<<"$entry"; } || continue
     rid=$(grep -oE '\*\*R[0-9]+' <<<"$entry" | head -1 | tr -d '*')
     [ -z "$rid" ] && continue
     is_l2=0
@@ -115,7 +133,13 @@ if [ "${1:-}" = "--selftest" ]; then
   printf 'ref: SPEC.md R3\nlevel: L2\nintent: met\n> "passage"\n' > "$tmp/evid/review-R3-x.md"
   check "$tmp/S3.md" "$tmp/evid" >/dev/null 2>&1 && echo "  pos-control ok: L1 req + stray L2-trace level -> GREEN (trace can't escalate)" \
     || { echo "POS FAIL: L1 req false-RED'd by trace's level: L2"; exit 1; }
-  echo "RESULT: G8 self-test passed (non-vacuous, forgery caught)"; exit 0
+  # D-74 (clean-context): "independent review" mentioned in Intent/Acceptance (a general
+  # rule) but the Method itself is WEAK(cited), not an independent review -> must NOT be
+  # flagged as review-requiring (Method-scoping, not whole-entry grep).
+  printf '%s\n' '- **R4** [locked] a process rule. *Intent:* [auto] for generative work an independent review must sign off. *Acceptance:* the rule holds. *Method:* WEAK(cited) — a coherence probe checks this. *(D-x)*' > "$tmp/S4.md"
+  check "$tmp/S4.md" "$tmp/evid" >/dev/null 2>&1 && echo "  pos-control ok: 'independent review' OUTSIDE Method (Intent only) -> not flagged, GREEN" \
+    || { echo "POS FAIL: R3-class false positive reintroduced (Method-scoping regressed)"; exit 1; }
+  echo "RESULT: G8 self-test passed (non-vacuous, forgery + Method-scoping guarded)"; exit 0
 fi
 
 SPEC="${1:-$(dirname "$0")/../../SPEC.md}"

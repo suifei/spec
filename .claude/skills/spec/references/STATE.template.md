@@ -34,13 +34,22 @@ time in UTC (run the platform's date command; never guess).
 
 ## build
 <!-- owned by /build; /spec preserves this section verbatim when rewriting -->
-- built: <requirements/phases constructed, with dates — or none yet>
+- built: <Phase N — date — requirements constructed, with dates — or "none" yet.
+  NAME THE PHASE ("Phase N —") so `.spec/probes/G4-writeback-coherence.sh` can scope its
+  write-back check to that phase's own SPEC.md block, not the whole file (a `built:` line
+  with no phase falls back to an imprecise whole-file check).>
 - remaining: <…>
 - next: <…>
-- ticks: <N — present only while /yolo has a live loop: the monotonic tick counter,
-  incremented each firing, ≤ the ceiling (default 20, override via `CEILING` env).
-  The **tick-ceiling** closure probe (see `SKILL.md` "The closure probe kit")
-  enforces it stays ≤ ceiling and never goes backwards (a fresh-context tick
-  overwriting a stale count is the ceiling-silently-inflates risk). Absent when no
-  loop is active.>
+- ticks: <N — present only while /yolo has a live loop. NOT a counter the firing
+  increments from memory: N MIRRORS `wc -l .spec/evidence/ticks.log` (each firing's
+  first action appends one line there — the append IS the increment, so a fresh
+  context can't forget-to-increment and loop forever). ≤ the ceiling (default 20,
+  override via `CEILING` env); `.spec/probes/G9-tick-monotonic.sh` cross-checks
+  log ↔ field and the ceiling after the fact. Absent when no loop is active.>
+- last_failure: <none | one line: what this tick failed on — the anchor that lets the
+  NEXT fresh-context firing detect "2nd identical failure" and stop>
+- no_progress_streak: <0..N — consecutive ticks with NO material progress (no gate
+  red→green, no requirement closed); reset to 0 on material progress, else +1.
+  ≥ 3 ⇒ stuck (cosmetic churn is a stall). The anchor that makes "no material
+  progress = stop" enforceable across stateless firings.>
 - conflict: <none | what contradicts what · evidence path · code state left behind>

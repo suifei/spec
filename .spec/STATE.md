@@ -21,7 +21,7 @@ Phase 2 sealed; rigor hardening (G5–G9) complete 2026-07-08. Future work opens
 
 ## build
 <!-- owned by /build; /spec preserves this section verbatim when rewriting -->
-- built: 2026-06-30 — `/build` skill (`.claude/skills/build/SKILL.md` + `.claude/commands/build.md`) per R1–R5; G2 illustrative logic-check green; behavioral proof in `eval/`
+- built: Phase 2 — 2026-06-30 — `/build` skill (`.claude/skills/build/SKILL.md` + `.claude/commands/build.md`) per R1–R5; G2 illustrative logic-check green; behavioral proof in `eval/`
 - remaining: none
 - next: —
 - conflict: none

@@ -1595,11 +1595,62 @@ reasoning/knowledge 非路径/URL,机械校验会误杀合法条,故只强 `ques
 
 ---
 
-## 第 40 轮 · 2026-07-10 — 三轮 GLM-5.2 评审:锚点泄漏 + 反作弊闭环可伪造 + done 分散(D-74…D-77)
+## 第 40 轮 · 2026-07-09 — 三轮干净上下文审计:二轮 coherence 层自己也在夸大(D-74)
+
+用户要求"用干净的上下文"重新审计经二轮 GLM-5.2 修订(第 39 轮)后的 `.claude/`。派一个全新、无历史
+上下文的子代理,只用只读 `git show origin/main:<path>` 读当前 main(而非本会话已参与写过的文件),
+逐条静态核验。结论:学说依旧扎实、二轮真修了 S1-4(wrapper 漂移)与 Intent/Method 回填,但**新增的
+coherence 层本身重犯了它要防的病——自我推销过度**:
+
+- **`/yolo` 天花板并非"结构性强制"。** `ticks:` 字段递增全靠 firing 自觉;G9 从不在循环体内被真的调用;
+  一次"读 5 写 5"忘记递增的 firing 会永远绿地无限循环——G9 只抓虚报/倒退的计数器,抓不住*停滞*的计数器,
+  而停滞恰是无状态循环真正无界跑的方式。**修:** 计数器改为**仅由日志行数决定**——每次 firing 的
+  *第一动作*就是往 append-only `.spec/evidence/ticks.log` 追加一行,行数本身就是 tick 号(append 即
+  自增,无法"忘记递增");超天花板则在动工前先终止。`ticks:` 字段降级为该日志的镜像。G9 重写为**事后
+  审计**(日志超限/字段与日志不一致/字段有值但日志缺失=接线已死,均判红),诚实措辞从"structurally
+  enforced, not honor-system"改为"执行者自觉执行 + 留痕可审计"。
+- **done 定义有两个"单一权威"且互相矛盾。** `build` 原则 3 自称唯一权威,但仓库自称 `SPEC.md` 才是
+  至高权威,而 `SPEC.md` R3 的 done 定义**从未提独立评审**——三处 skill 都把评审当必要条件,契约本身却
+  没写,G3 也从不检查 skill↔SPEC R3(只查 skill 之间、skill↔wrapper)。**修:** R3 正文/Intent/Acceptance
+  补独立评审条款(注明是与既有 skill 规则调和、非新规则);G3 新增第三个检查面:SPEC.md R3 本身也必须
+  同时含"验收+门绿+独立评审"三要素,负控:R3 漏评审条款即红。
+- **"无实质推进即停"没有文件系统锚点。** `## build` 台账里没有 `last_failure`/`no_progress_streak`
+  这类字段,无状态的新 firing 无从知道上一拍失败是什么、连续几拍没推进——防"装样子烧钱"的条款反而是
+  所有终止条件里最不可执行的一条。**修:** `## build` 新增 `last_failure:`(本拍失败一句话)与
+  `no_progress_streak:`(无实质推进的连续拍数,材料性推进即清零);终止条件表改为"本拍失败==记录的
+  last_failure(第二次同败)或 streak≥3"。
+- **评审"负控"测的是罐头 fixture,不是活评审者。** `_neg-control.sh` 默认读手写的
+  `review-of-known-bad.md`,从不真的 spawn 评审者——"负控"之名超卖了它守的东西(它守的是探针的
+  判别力,不是评审者的能力)。**修(比原计划更进一步):** 真的 spawn 一个 `general-purpose` 评审者
+  读盘评审 `known-bad.md`,用**真实活跑的输出**替换手写 trace(该评审者正确判定 NOT MET、正确引证
+  `——` 填充段落);`README.md`/`_neg-control.sh` 头注重新措辞,区分"这份脚本只机械核对留痕格式"与
+  "留痕文件本身现在是一次真实活跑的证据,而非一份假设性范例"。
+- **G4 首次回写后永久绿;G3/G7 是关键词/存在性 linter 却挂"✅ verified (probe)"徽章。** **修:** G4
+  改为**按 phase 精确定位**——STATE `built:` 行须点名 `Phase N`,G4 只查*那个* phase 在 SPEC 里自己的
+  `### Phase N` 块,不再整文件 grep(负控证明:Phase 2 已回写不再掩盖 Phase 3 未回写,原版会永久绿、
+  新版正确变红);`SPEC.md`§3 徽章诚实化——G3/G4/G7 改标"✅ floor-checked (linter)"/"(keyword linter)",
+  只有 G2(诚实自认 illustrative)与 G5(真有双向牙)保留原措辞。
+- **R2 的可脚本化半边被 WEAK 放过。** `.spec/plan/` 是否真被 gitignore、是否有文件被 tracked 是可机检的
+  ——新增 `G10-plan-untracked.sh`(负控:未 ignore、或有文件被 commit,均变红),R2 Method 拆成"机械半边
+  Probed(G10)+ 语义半边 WEAK(cited)"。
+- **修 build_section 的一个真实脆弱点(审计过程中自己发现)。** 原 `sed -n '/^## build/,/^\(# \|^## \)/p'
+  | sed '$d'` 假设 `## build` 后面一定还有下一个 section 标题;若 `## build` 是文件最后一个 section(
+  真实 `.spec/STATE.md` 目前恰好靠一条"# Freshness note"尾注侥幸躲过),`sed '$d'` 会误删最后一行真实
+  内容而非边界行。用 G9/G4 的负控 fixture 复现后,换成显式 in-section flag 的 awk 提取,消除该边界情形。
+- **Rule 0 措辞传播。** `build/SKILL.md`、`yolo/SKILL.md`、`CLAUDE.md` 的 Rule 0 标题仍写 "highest
+  priority" flat;`spec/SKILL.md`(第 38 轮 D-68 已改)早已是"top priority for output form; subordinate
+  to evidence & honesty"——本轮把这句话传播到其余三处,消除潜在的"语种优先级压过诚实"误读。
+
+回归:仓库门 G2–G10(9 条)+ 9 条 eval 探针,真跑 + `--selftest` 全绿(含新 G10、重写的 G3/G4/G9)。
+定性:这是第三轮清算——前两轮各自修完自己范围内的问题后,新增的验证层本身又需要一轮独立、干净上下文
+的核验才被发现在自我推销。这印证了本仓一直强调的一点:**验证层本身也需要被验证**,且验证者必须是
+干净上下文,不能是刚写完这段代码的同一个会话(这也是为什么这次没有用我自己直接审、而是派了子代理)。
+
+## 第 41 轮 · 2026-07-10 — 三轮 GLM-5.2 评审:锚点泄漏 + 反作弊闭环可伪造 + done 分散(D-75…D-78)
 
 外部对三 skill 做了**第三轮** GLM-5.2 评审,专攻前两轮(37/38/39)留下的结构性问题:
 
-- **F1(P0)锚点泄漏:skill 把 dogfood 的 gate/decision 编号焊进了通用模板(D-74)**。`SPEC.template`
+- **F1(P0)锚点泄漏:skill 把 dogfood 的 gate/decision 编号焊进了通用模板(D-75)**。`SPEC.template`
   硬写 `G7-subject-essence.sh`、`build` SKILL 硬写 `G3-done-coherence.sh`、`STATE`/`yolo` 硬写
   `G9-tick-monotonic.sh`——这些是本仓 dogfood `.spec/probes/` 的编号,而安装器只打包 `.claude/`、不打
   `.spec/`/`docs/`,用户装到别的项目全是悬空引用;且 `G1`(probes.md 的领域门示例)与 `G2–G9`(闭包 kit)
@@ -1609,7 +1660,7 @@ reasoning/knowledge 非路径/URL,机械校验会误杀合法条,故只强 `ques
   勿用别的项目的编号」,并划清「领域门 vs 闭包 kit」两个命名空间;② 模板/SKILL 的 G3/G7/G9 改为角色引用;
   ③ 删尽分布式 skill 正文里的裸 D-NN(D-54/58/59/60),换成概念名(dogfood 自己的 SPEC.md/DESIGN-NOTES
   保留 D-NN——那是仓库内解析的)。
-- **F2(P0)反作弊闭环本身是可伪造的 proxy,且恰在 /yolo 最无力(D-75)**。D-65 的 review-trace 闭包只查
+- **F2(P0)反作弊闭环本身是可伪造的 proxy,且恰在 /yolo 最无力(D-76)**。D-65 的 review-trace 闭包只查
   「留痕存在 + grep 到 `SPEC.md`+`manuscript/|artifact`」,最廉价达标法 = 直接写个像样的 `review-*.md`;
   probes.md「Honest limit」自承「留痕证明评审发生过、不证明诚实」,但设计只**披露**未**结构上闭合**,而
   /yolo 自治循环里优化器压力最大。**修**:`coherence.template.sh` + dogfood `G8` 的 `cited` 判据从「字符串
@@ -1618,20 +1669,20 @@ reasoning/knowledge 非路径/URL,机械校验会误杀合法条,故只强 `ques
   ——落实 probes.md 自定「把最廉价作弊做成负控」。同步 `probes.md` / `build` Step4 / `yolo` 循环 prompt 三处
   留痕要求,并在 Honest limit 补「硬措辞抬高了伪造成本、但留痕仍只证明评审*介入*了制品、不证明独立/诚实;
   该缝在 /yolo 自治下最宽,故高赌注生成质量须 L2 而非 L1」。
-- **F3(P1)done 条件分散、无单点权威枚举(D-76)**。done 是最 load-bearing 的判定,却要拼装 `build` 原理3
+- **F3(P1)done 条件分散、无单点权威枚举(D-77)**。done 是最 load-bearing 的判定,却要拼装 `build` 原理3
   + Step4 + probes.md + coherence 模板;原理3 自称「single authority」却没列全(漏了 spec↔probe 一致性这条
   蕴含)。**修**:`build` 原理3 改为显式合取(用 `and` 非 `∧`,守 D-68):acceptance ∧ green-gates(且 green
   指对*当前* spec 绿,含 spec↔probe 一致性)∧ 生成类 → 独立评审留痕;红线 / 陈旧门集 / 空壳留痕任一即阻塞
   done。G3 仍核三要素(契约不变),原理3 现把各要素的蕴含也讲清。
-- **F4(P1)/yolo tick 契约同文件内三联重述(D-76 续)**。wrapper 已在 D-72 改为引用 SKILL.md,但
+- **F4(P1)/yolo tick 契约同文件内三联重述(D-77 续)**。wrapper 已在 D-72 改为引用 SKILL.md,但
   `yolo/SKILL.md` 内部把同一 tick 契约写三遍(Fire the loop 固定 prompt / Each firing / Termination),正是
   设计在别处严防的漂移面。**修**:「Each firing」瘦身为指针 + 仅 inline 降级增量,不再重述固定 prompt 已有的
   评审/门/对账逻辑(固定 prompt 仍自足——D-53 要求,每 firing 无状态)。
-- **F5(P1)「需评审」靠措辞 grep 非语义(D-77)**。D-65 闭包用 `独立…评审|independent review` 措辞判定需求
+- **F5(P1)「需评审」靠措辞 grep 非语义(D-78)**。D-65 闭包用 `独立…评审|independent review` 措辞判定需求
   是否需评审,但需否取决于*性质*(生成/质量)而非作者是否写了这词;没写词的生成需求 → 不标记 → 不评审 →
   假绿。**修**:需求加结构化 `*Review:*`(L1/L2)字段(`SPEC.template` §4 + 示例),coherence 触发改为
   `\*Review:\*?[[:space:]]*\S`(有值)优先、措辞兜底;反作弊工具自身的 proxy-vs-intent 缝堵上。
-- **F6(P1)闭包不变量靠 grep 手写 markdown、无契约(D-77 续)**。`locked_reqs()` awk + grep 启发式解析人手写
+- **F6(P1)闭包不变量靠 grep 手写 markdown、无契约(D-78 续)**。`locked_reqs()` awk + grep 启发式解析人手写
   SPEC.md,换行/改写即假红绿。**修**:`coherence.template.sh` `locked_reqs()` 上方加「PARSER CONTRACT」注释,
   显式声明它要求的字段 token(`*Intent:`/`*Method:`/`*Review:`/deferred 标记)与「SPEC.template 格式即契约、
   漂离须同步改 grep」。
@@ -1645,11 +1696,11 @@ reasoning/knowledge 非路径/URL,机械校验会误杀合法条,故只强 `ques
 升级为『把伪造做成负控的 proxy』」,并第一次让分布式 skill 不再携带 dogfood 编号——「对用户严、对自身也严」
 补到最细处。撤回/纠错:F7 由「删除」改为「注释说明」。
 
-## 第 41 轮 · 2026-07-10 — 四轮 GLM-5.2 评审:反身性盲区——漂移探测器自身的悬空引用与静默绿灯(D-78)
+## 第 42 轮 · 2026-07-10 — 四轮 GLM-5.2 评审:反身性盲区——漂移探测器自身的悬空引用与静默绿灯(D-79)
 
 本轮由 GLM-5.2 直接对三 skill + references + dogfood 探针做**第四轮**评审,专攻前三轮(37/38/39/40)未触的
 **反身性盲区**:coherence 闭包 kit 只扫用户的 SPEC.md,从不扫 skill 自己的源码,故"抓漂移的探测器自身漂了
-无人抓"在 D-69/D-74 落地后仍残留两处。
+无人抓"在 D-69/D-75 落地后仍残留两处。
 
 - **P0-1 锚点断链(违反一致性法则⑤·引用完整,出在专门抓悬空引用的模板里)**。`coherence.template.sh` 注释
   3 处 + dogfood `G5`/`G8` 注释各 1 处,把参考实现路径写成 `eval/cn-novel/_coherence.sh` /
@@ -1659,7 +1710,7 @@ reasoning/knowledge 非路径/URL,机械校验会误杀合法条,故只强 `ques
   真实路径,`grep` 复核全仓零残留。这是 D-69"闭包不变量从 eval 落到 skill 与 dogfood 自身"的未尽之功——
   落到了 dogfood 探针文件,却没落到 skill 模板自己的注释引用。
 - **P0-2 漂移探测器自身的静默绿灯(`locked_reqs()` 解析失明时 `check()` 退出 0 = GREEN)**。`locked_reqs()`
-  是脆弱的 awk 启发式,绑定 PARSER CONTRACT(D-77 注释声明)。若项目 SPEC.md 的需求 markdown 形态漂离契约
+  是脆弱的 awk 启发式,绑定 PARSER CONTRACT(D-78 注释声明)。若项目 SPEC.md 的需求 markdown 形态漂离契约
   (用 `### R1` 标题而非 `- **R1**` 列表项、换 bullet、字段跨空行折叠),`locked_reqs()` 静默匹配 **0 条** →
   `check_*()` 的 `while read` 循环体一次都不执行 → `fail` 恒 0 → 打印表头后 **exit 0 = GREEN**:一个**从没
   解析过该 SPEC** 的探针报了绿。这正是本 skill 在别处最执念的"能变红才算探针、否则是空转"——而空转方向是
@@ -1671,19 +1722,19 @@ reasoning/knowledge 非路径/URL,机械校验会误杀合法条,故只强 `ques
   输出空、raw 含 `[locked]`,旧逻辑必静默绿、新守卫必红。
 
 回归:模板 `--selftest` + dogfood G2–G9(8 条)`--selftest` 全绿;G2–G9 真跑全绿(本仓 SPEC.md 的 R1–R5 仍被
-正确解析为 5 条 locked,守卫不误伤实跑)。定性:本轮把"反身性盲区"补到 D-74 之后剩下的最后一处——skill 源码
+正确解析为 5 条 locked,守卫不误伤实跑)。定性:本轮把"反身性盲区"补到 D-75 之后剩下的最后一处——skill 源码
 自身(模板注释引用 + 探针解析器)也受它教给别人的引用完整律与"能变红"律约束,"对用户严、对自身也严"从
 闭包不变量层进一步压到源码细节层。遗留(结构性,见评审 Tier 2):done-rule 完全不可证——coherence 探针跨不过"执行者是否守了 done",属已披露
-的 Honest limit;/yolo 的 L2 独立性其"判断真独立"亦不可证,但*可机检部分*(不同 engine 字段)在第 42 轮/D-79
+的 Honest limit;/yolo 的 L2 独立性其"判断真独立"亦不可证,但*可机检部分*(不同 engine 字段)在第 43 轮/D-80
 闭合。二者均为结构性下界,非补丁可消。
 
-## 第 42 轮 · 2026-07-10 — 四轮评审 Tier 2 收口:L2 独立性的可机检部分(D-79)
+## 第 43 轮 · 2026-07-10 — 四轮评审 Tier 2 收口:L2 独立性的可机检部分(D-80)
 
-第 41 轮把 L2 独立性列为"结构性遗留";本轮收口其**可机检部分**——把"判断独立(L2)"从纯荣誉系统升级为
-"最廉价伪造即负控"的 proxy(D-75 同款手法,施加于 L2 自身)。
+第 42 轮把 L2 独立性列为"结构性遗留";本轮收口其**可机检部分**——把"判断独立(L2)"从纯荣誉系统升级为
+"最廉价伪造即负控"的 proxy(D-76 同款手法,施加于 L2 自身)。
 
 - **问题(A2)**:D-71 拆 L1/L2 后,/yolo 高赌注生成质量"须 L2(不同模型/人/不同后端)",但 review-trace
-  闭包(D-65/D-75)只查留痕*存在且引用段落*,**无法区分**真 L2 与"同模型 L1 贴标成 L2"——而 /yolo 正是
+  闭包(D-65/D-76)只查留痕*存在且引用段落*,**无法区分**真 L2 与"同模型 L1 贴标成 L2"——而 /yolo 正是
   优化器压力最大、最想走捷径的环,"须 L2"是纯荣誉系统,能抓它的探针恰好抓不到。
 - **修(把最廉价伪造做成负控)**:L2 评审留痕须声明 `producer-engine:` 与 `reviewer-engine:` 且二者
   **不同**(如 `claude-sonnet-5` vs `claude-opus-4-8` / `human` / `gpt-4o`)。模板 `check_review_coherence()`
@@ -1694,9 +1745,9 @@ reasoning/knowledge 非路径/URL,机械校验会误杀合法条,故只强 `ques
   `build/SKILL.md` Step 4、`yolo/SKILL.md` 固定 prompt 四处补 L2 engine 字段要求。
 - **诚实边界**:engine 字段不可验"真不同模型"——优化器仍可写两个不同字符串骗过。但"同 engine 贴标 L2"这个
   *最廉价*伪造现在 RED、且留痕留下一句人可抽查的 engine 声明。即:把 L2 伪造从"最廉价"提到"须主动撒谎且
-  留痕可审",同 D-75 的"可审计非确定"标准,非新保证。`probes.md` Honest limit 已补此句。
-- **作用域(分叉记录)**:`eval/cn-novel/.spec/probes/_review-coherence.sh` 是 D-65 时代旧版(无 D-75
-  Intent-核/引用硬化、无第 41 轮 B2 解析守卫),且 cn-novel 的 R8/R9 用旧措辞 `独立…评审` 非 `*Review:* L2`、
+  留痕可审",同 D-76 的"可审计非确定"标准,非新保证。`probes.md` Honest limit 已补此句。
+- **作用域(分叉记录)**:`eval/cn-novel/.spec/probes/_review-coherence.sh` 是 D-65 时代旧版(无 D-76
+  Intent-核/引用硬化、无第 42 轮 B2 解析守卫),且 cn-novel 的 R8/R9 用旧措辞 `独立…评审` 非 `*Review:* L2`、
   零 L2 需求。零散补丁只会造第三种分叉,故**不动它**;L2 检查只落模板 + dogfood G8(当前权威实现)。cn-novel
   保持 D-65 水平的历史参考实现身份。
 
@@ -1705,7 +1756,7 @@ L2 逻辑空转不误伤)。定性:本轮把 D-71 L2 拆分的"执行侧空洞"�
 coherence 探针能 RED 的结构约束;A2 的可机检部分闭合,不可机检部分(判断真独立)并入 Honest limit、与 A1
 (done-rule)同列结构性下界。
 
-## 第 43 轮 · 2026-07-10 — 五轮评审收口:849dedc 的 code-review 修复(D-80)
+## 第 44 轮 · 2026-07-10 — 五轮评审收口:849dedc 的 code-review 修复(D-81)
 
 对 commit 849dedc(第 40-42 轮)跑 `/code-review --fix`(10 角度 finder → 核验 → 扫漏),修掉 6 个确认缺陷,
 5 个低价值/越界项跳过。
@@ -1722,7 +1773,7 @@ coherence 探针能 RED 的结构约束;A2 的可机检部分闭合,不可机检
 - **P1 A5-2(陈旧注释/正则不符)**:PARSER CONTRACT 注释(L44/L111)与 deferred 注释把 `⤳` 列为认可的延期标记,
   但 deferred grep `'Phase|实例化|OPEN|WEAK|deferred'` 实无 `⤳`——裸 `⤳`(无 Phase/deferred 字)的需求会被误报
   UNGATED。**修**:grep 增 `|⤳`(模板 + G5),代码与文档契约一致。
-- **P1 A4-1(D-74 漏网)**:spec/SKILL.md:422 残留 `D-59`(分布式 skill 文件里唯一的 D-NN;安装器只打 .claude/,
+- **P1 A4-1(D-75 漏网)**:spec/SKILL.md:422 残留 `D-59`(分布式 skill 文件里唯一的 D-NN;安装器只打 .claude/,
   用户无法解析)。**修**:改为概念名"the independent review"(与 consistency-lens.md:43 去锚后的措辞一致)。
 - **P2 A4-2(kit 与模板计数不符)**:kit 节声明 5 角色、指 readers 去 coherence.template.sh,但该模板只文档
   "Three invariants"(requirement/spec↔probe/review-trace);subject-essence/writeback/tick-ceiling 无模板来源,
@@ -1730,13 +1781,15 @@ coherence 探针能 RED 的结构约束;A2 的可机检部分闭合,不可机检
 - **P2 A4-3(G2…G9 越界)**:"numbers its kit G2…G9" 把示例性的 G2(done-rule)算进闭包 kit;实际 kit 是 G3–G9。
   **修**:括注澄清 G2 是示例 done-rule、kit 本体 G3–G9。
 
-跳过(记):A5-1 四处拷贝守卫(模板→dogfood 是文档化的设计取舍)、A5-3 cited 正则引文/路径混淆(D-75 设计,
-收紧会误红现存过审留痕如 cn-novel R8/R9)、A5-4 engine 抽取微 DRY、A4-4 yolo「Each firing」冗余(D-76 主观)、
+跳过(记):A5-1 四处拷贝守卫(模板→dogfood 是文档化的设计取舍)、A5-3 cited 正则引文/路径混淆(D-76 设计,
+收紧会误红现存过审留痕如 cn-novel R8/R9)、A5-4 engine 抽取微 DRY、A4-4 yolo「Each firing」冗余(D-77 主观)、
 A4-5 yolo/build L2 触发措辞张力(预存、可辩护)。
 
 回归:模板 + dogfood G2–G9 `--selftest` 全绿、真跑全绿;两处原假红复跑转绿;`⤳`-延期转 wait/绿;spec/SKILL.md
 零 D-NN。定性:本轮把第 41/42 轮引入的两个假红(B2 守卫的散文误判、A2 的 trace 自升格)在潜伏期就堵上——
 闭包探针"能红"之外,补上"只在该红时红"。
+
+
 
 ---
 
@@ -1746,13 +1799,14 @@ A4-5 yolo/build L2 触发措辞张力(预存、可辩护)。
 
 | ID | 决策 | 依据 / 来源 | 轮次 |
 |----|------|------------|------|
-| D-80 | **五轮 code-review 修复**:849dedc 的 `/code-review --fix` 修 6 缺陷。①A1-2 假红:`assert_parser_sane` oracle `grep -qF '[locked]'` 把散文提及误判解析失明(本仓 latent),改 `R[0-9]+.*\[locked\]\|[locked].*R[0-9]+`(真实标签才红);②A1-1 假红:trace `level: L2` 把 L1 升格索要 engine→删升格,L2 只来自 SPEC `*Review:*`;③A5-2:`⤳` 加入 deferred grep(契约一致);④A4-1:spec/SKILL.md:422 残留 D-59 去锚(D-74 漏网);⑤A4-2:kit 节如实说明 3 角色有模板、3 角色自建;⑥A4-3:G2…G9 括注 G2 是示例 done-rule。各探针 selftest 增对应正控;跳过 5 低价值/越界项(A5-1/A5-3/A5-4/A4-4/A4-5) | `/code-review --fix` on 849dedc;两假红(B2 散文误判 + A2 trace 自升格)潜伏期堵上 | 43 |
-| D-79 | **四轮评审 Tier 2:L2 独立性的可机检部分(把最廉价伪造做成负控)**。D-71 拆 L1/L2 后 /yolo"须 L2"是纯荣誉系统——review-trace 闭包(D-65/D-75)查不出"同模型 L1 贴标成 L2"。修:L2 评审留痕须声明 `producer-engine:`/`reviewer-engine:` 且不同;模板 `check_review_coherence()`+dogfood `G8` 增 L2 判定(`*Review:* L2` 或 `level: L2`;缺字段或同 engine→RED,负控=同 engine;selftest 三用例 同/缺/异 engine);`probes.md`/`SPEC.template §4`/`build Step4`/`yolo prompt` 四处教契约。诚实边界:不可验"真不同模型",但把最廉价伪造(relabel-L1-as-L2)做成 RED、留痕留可抽查 engine 声明——同 D-75"可审计非确定"标准。cn-novel `_review-coherence.sh`(D-65 旧版、零 L2 需求)分叉不动 | GLM-5.2 四轮评审 Tier 2(A2);D-71 L2 拆分执行侧空洞 | 42 |
-| D-78 | **四轮评审 P0:反身性盲区——skill 源码自身的悬空引用 + 探针解析器静默绿灯**。①`coherence.template.sh`(3 处)+ dogfood `G5`/`G8`(各 1 处)把参考实现写成不存在的 `eval/cn-novel/_coherence.sh`/`_review-coherence.sh`(真实在 `.spec/probes/` 下;`probes.md:233` 写对了)——违反法则⑤引用完整、且出在抓悬空引用的模板自身(coherence 探针射程不含 skill 源码,故无人抓);5 处断链全修。②`locked_reqs()` 解析失明时(需求 markdown 形态漂离 PARSER CONTRACT)`check_*()` 的 while 循环跑 0 次→exit 0 静默 GREEN——漂移探测器自身的空转绿灯,且 `--selftest` 从不测此分支;模板+G5/G6/G8 加 `assert_parser_sane()` 守卫(raw 含 `[locked]` 而解析 0 条→RED,合法零-locked 仍绿)+ selftest 增解析失明负控与合法空集正控 | GLM-5.2 四轮评审 P0;D-69 闭包 kit 未覆盖 skill 自身源码、D-77 PARSER CONTRACT 未配解析失明负控 | 41 |
-| D-77 | **三轮评审 F5/F6**:「需评审」改语义触发——需求加结构化 `*Review:*`(L1/L2)字段(`SPEC.template` §4 + 示例),`coherence.template.sh`/dogfood `G8` 触发改为 `\*Review:\*?[[:space:]]*\S`(有值)优先、`独立…评审` 措辞兜底(反作弊工具自身的 proxy-vs-intent 缝;cn-novel 仍用措辞、被兜底捕获,不破坏 eval);`locked_reqs()` 上方加「PARSER CONTRACT」注释声明它要求的字段 token 与「SPEC.template 格式即契约」 | GLM-5.2 三轮评审 F5/F6 | 40 |
-| D-76 | **三轮评审 F3/F4**:done 单点权威枚举——`build` 原理3 改为显式合取(`and` 非 `∧`,守 D-68):acceptance ∧ green-gates(且 green 指对*当前* spec 绿、含 spec↔probe 一致性)∧ 生成类→独立评审留痕;红线/陈旧门集/空壳留痕任一阻塞 done(G3 仍核三要素、契约不变);`yolo/SKILL.md`「Each firing」瘦身为指针+inline 增量、不再三联重述 tick 契约(固定 prompt 仍自足,守 D-53) | GLM-5.2 三轮评审 F3/F4 | 40 |
-| D-75 | **三轮评审 F2(P0)**:反作弊闭环可伪造 → 把伪造做成负控。`coherence.template.sh`+dogfood `G8` 的 review-trace `cited` 判据从「`SPEC.md`+`manuscript/\|artifact` 字符串存在」升级为「锚 SPEC ∧ 逐条核对 Intent(`intent:`/`意图:`)∧ 引用具体制品段落(`>`/`anchor:`/`line:`/`§`/真实路径)」;空壳留痕→红且为 selftest 负控。同步 `probes.md`/`build` Step4/`yolo` prompt 三处留痕要求 + Honest limit 补「/yolo 自治下 L1 共享优化器盲点、高赌注生成质量须 L2」。把镇山之石从『可伪造 proxy』升级为『伪造即负控』 | GLM-5.2 三轮评审 F2;probes.md「把最廉价作弊做成负控」未施加于留痕自身 | 40 |
-| D-74 | **三轮评审 F1(P0)**:锚点泄漏。`spec/SKILL.md` 新增「The closure probe kit」节,按角色(requirement-completeness/spec↔probe/review-trace/subject-essence/done-coherence·writeback·tick-ceiling)声明标准闭包 kit、划清「领域门 vs 闭包 kit」命名空间、明说按角色引用勿用别的项目编号;模板/SKILL 的 `G3`/`G7`/`G9` 改角色引用;删尽分布式 skill 正文裸 D-NN(D-54/58/59/60)换概念名(dogfood SPEC.md/DESIGN-NOTES 保留 D-NN)。安装器只打 `.claude/`、不打 `.spec/`/`docs/`,故 skill 不得携带 dogfood 编号 | GLM-5.2 三轮评审 F1 | 40 |
+| D-81 | **五轮 code-review 修复**:849dedc 的 `/code-review --fix` 修 6 缺陷。①A1-2 假红:`assert_parser_sane` oracle `grep -qF '[locked]'` 把散文提及误判解析失明(本仓 latent),改 `R[0-9]+.*\[locked\]\|[locked].*R[0-9]+`(真实标签才红);②A1-1 假红:trace `level: L2` 把 L1 升格索要 engine→删升格,L2 只来自 SPEC `*Review:*`;③A5-2:`⤳` 加入 deferred grep(契约一致);④A4-1:spec/SKILL.md:422 残留 D-59 去锚(D-75 漏网);⑤A4-2:kit 节如实说明 3 角色有模板、3 角色自建;⑥A4-3:G2…G9 括注 G2 是示例 done-rule。各探针 selftest 增对应正控;跳过 5 低价值/越界项(A5-1/A5-3/A5-4/A4-4/A4-5) | `/code-review --fix` on 849dedc;两假红(B2 散文误判 + A2 trace 自升格)潜伏期堵上 | 43 |
+| D-80 | **四轮评审 Tier 2:L2 独立性的可机检部分(把最廉价伪造做成负控)**。D-71 拆 L1/L2 后 /yolo"须 L2"是纯荣誉系统——review-trace 闭包(D-65/D-76)查不出"同模型 L1 贴标成 L2"。修:L2 评审留痕须声明 `producer-engine:`/`reviewer-engine:` 且不同;模板 `check_review_coherence()`+dogfood `G8` 增 L2 判定(`*Review:* L2` 或 `level: L2`;缺字段或同 engine→RED,负控=同 engine;selftest 三用例 同/缺/异 engine);`probes.md`/`SPEC.template §4`/`build Step4`/`yolo prompt` 四处教契约。诚实边界:不可验"真不同模型",但把最廉价伪造(relabel-L1-as-L2)做成 RED、留痕留可抽查 engine 声明——同 D-76"可审计非确定"标准。cn-novel `_review-coherence.sh`(D-65 旧版、零 L2 需求)分叉不动 | GLM-5.2 四轮评审 Tier 2(A2);D-71 L2 拆分执行侧空洞 | 42 |
+| D-79 | **四轮评审 P0:反身性盲区——skill 源码自身的悬空引用 + 探针解析器静默绿灯**。①`coherence.template.sh`(3 处)+ dogfood `G5`/`G8`(各 1 处)把参考实现写成不存在的 `eval/cn-novel/_coherence.sh`/`_review-coherence.sh`(真实在 `.spec/probes/` 下;`probes.md:233` 写对了)——违反法则⑤引用完整、且出在抓悬空引用的模板自身(coherence 探针射程不含 skill 源码,故无人抓);5 处断链全修。②`locked_reqs()` 解析失明时(需求 markdown 形态漂离 PARSER CONTRACT)`check_*()` 的 while 循环跑 0 次→exit 0 静默 GREEN——漂移探测器自身的空转绿灯,且 `--selftest` 从不测此分支;模板+G5/G6/G8 加 `assert_parser_sane()` 守卫(raw 含 `[locked]` 而解析 0 条→RED,合法零-locked 仍绿)+ selftest 增解析失明负控与合法空集正控 | GLM-5.2 四轮评审 P0;D-69 闭包 kit 未覆盖 skill 自身源码、D-78 PARSER CONTRACT 未配解析失明负控 | 41 |
+| D-78 | **三轮评审 F5/F6**:「需评审」改语义触发——需求加结构化 `*Review:*`(L1/L2)字段(`SPEC.template` §4 + 示例),`coherence.template.sh`/dogfood `G8` 触发改为 `\*Review:\*?[[:space:]]*\S`(有值)优先、`独立…评审` 措辞兜底(反作弊工具自身的 proxy-vs-intent 缝;cn-novel 仍用措辞、被兜底捕获,不破坏 eval);`locked_reqs()` 上方加「PARSER CONTRACT」注释声明它要求的字段 token 与「SPEC.template 格式即契约」 | GLM-5.2 三轮评审 F5/F6 | 40 |
+| D-77 | **三轮评审 F3/F4**:done 单点权威枚举——`build` 原理3 改为显式合取(`and` 非 `∧`,守 D-68):acceptance ∧ green-gates(且 green 指对*当前* spec 绿、含 spec↔probe 一致性)∧ 生成类→独立评审留痕;红线/陈旧门集/空壳留痕任一阻塞 done(G3 仍核三要素、契约不变);`yolo/SKILL.md`「Each firing」瘦身为指针+inline 增量、不再三联重述 tick 契约(固定 prompt 仍自足,守 D-53) | GLM-5.2 三轮评审 F3/F4 | 40 |
+| D-76 | **三轮评审 F2(P0)**:反作弊闭环可伪造 → 把伪造做成负控。`coherence.template.sh`+dogfood `G8` 的 review-trace `cited` 判据从「`SPEC.md`+`manuscript/\|artifact` 字符串存在」升级为「锚 SPEC ∧ 逐条核对 Intent(`intent:`/`意图:`)∧ 引用具体制品段落(`>`/`anchor:`/`line:`/`§`/真实路径)」;空壳留痕→红且为 selftest 负控。同步 `probes.md`/`build` Step4/`yolo` prompt 三处留痕要求 + Honest limit 补「/yolo 自治下 L1 共享优化器盲点、高赌注生成质量须 L2」。把镇山之石从『可伪造 proxy』升级为『伪造即负控』 | GLM-5.2 三轮评审 F2;probes.md「把最廉价作弊做成负控」未施加于留痕自身 | 40 |
+| D-75 | **三轮评审 F1(P0)**:锚点泄漏。`spec/SKILL.md` 新增「The closure probe kit」节,按角色(requirement-completeness/spec↔probe/review-trace/subject-essence/done-coherence·writeback·tick-ceiling)声明标准闭包 kit、划清「领域门 vs 闭包 kit」命名空间、明说按角色引用勿用别的项目编号;模板/SKILL 的 `G3`/`G7`/`G9` 改角色引用;删尽分布式 skill 正文裸 D-NN(D-54/58/59/60)换概念名(dogfood SPEC.md/DESIGN-NOTES 保留 D-NN)。安装器只打 `.claude/`、不打 `.spec/`/`docs/`,故 skill 不得携带 dogfood 编号 | GLM-5.2 三轮评审 F1 | 40 |
+| D-74 | **三轮干净上下文审计:二轮 coherence 层自我夸大的修复**——①`/yolo` 天花板计数器改为 append-only `ticks.log` 的行数(append 即自增,firing 无法"忘记递增"),第一动作即查超限即停,G9 重写为事后审计三态(超限/字段无日志=接线已死/字段与日志不一致);措辞去"structurally enforced"改"执行者自觉+留痕可审计"。②SPEC R3 补独立评审条款(与既有 skill 规则调和),G3 新增第三检查面(skill↔SPEC R3)。③`## build` 新增 `last_failure:`/`no_progress_streak:` 锚点,使"无实质推进即停"跨无状态 firing 可执行。④评审"负控"从罐头 fixture 换成真实 spawn 的 `general-purpose` 活跑输出(NOT MET,正确引证 `——` 填充)。⑤G4 改按 phase 精确定位(不再整文件 grep,负控证明修复了"永久绿"漏洞);G3/G4/G7 徽章诚实化为 floor-checked/keyword linter。⑥R2 机械半边补 `G10-plan-untracked.sh`(gitignore+untracked 检查)。⑦顺带修复 `build_section` 的一个真实脆弱点(sed 范围假设总有下个 section 标题,`## build` 为末尾 section 时误删最后一行——审计负控 fixture 中发现)。⑧Rule 0 措辞("subordinate to evidence & honesty")传播到 build/yolo/CLAUDE.md。回归:G2–G10(9 门)+ 9 条 eval 探针全绿 | 用户要求"用干净上下文"重新审计二轮 GLM-5.2 修订;派独立子代理只读 `git show origin/main:` 静态核验 | 40 |
 | D-73 | **二轮评审 P0-1 + P2-3**:dogfood R1–R5 回填 `*Intent:* [auto]` + `*Method:* WEAK(cited)`(D-61 欠账;让镇山之石"对着 Intent 评审"在 dogfood 上可达成);`STATE.template ## build` 加结构化 `ticks:` 字段、`yolo/SKILL.md` 天花板固化为 `CEILING` env(默认 20)读 ticks、新增 `G9-tick-monotonic.sh`(ticks ≤ ceiling 且不回退即绿)。R1–R5 回填后 G6 由红转绿 | GLM-5.2 二轮评审 P0-1/P2-3;D-61 欠账 | 39 |
 | D-72 | **二轮评审 P1-2 + P2-1**:G3-done-coherence 的 check 扩展到 `commands/build.md`+`commands/yolo.md`(wrapper 要么完整重述 done 三要素、要么引用 SKILL.md 权威);`commands/yolo.md` 改为引用 `yolo/SKILL.md` 权威 prompt(不再缩水改写,D-65/D-67 增量回归)、`commands/build.md` done 语句补独立评审+引 build 原理3;`SPEC.template §1` 加 `**Subject essence**` 字段 + 新增 `G7-subject-essence.sh`(§1 无权威引用即红,D-39 终于有锚点) | GLM-5.2 二轮评审 P1-2/P2-1 | 39 |
 | D-71 | **二轮评审 P0-3**:独立评审拆 L1/L2——L1 context-independent(默认,fresh `general-purpose` 同模型,防 forgotten shortcut 不防 systematic bias)、L2 judgment-independent(换模型/人/不同后端 `/code-review`,高赌注生成质量或 L1 放过可疑产出时升级)。落 `build/SKILL.md`(原理3/Step4)、`probes.md`、`yolo/SKILL.md` 循环 prompt 三处。纠正"同模型干净上下文=独立判断"的混淆 | GLM-5.2 二轮评审 P0-3;D-64 只硬化了输入侧 | 39 |
