@@ -40,10 +40,9 @@ set -euo pipefail
 # item whose first line matches `^- **R<n>.**` and carries the literal tag
 # `[locked]`; its *Intent:* / *Acceptance:* / *Method:* / *Review:* fields may wrap
 # onto indented continuation lines (which get joined into one). The field tokens
-# the checks grep for are `*Intent:`/`*意图:`, `*Method:`/`*方法:`,
-# `*Review:` (L1|L2|independent), and `Phase|deferred|⤳|OPEN|WEAK|实例化` for
-# "not-yet-instantiated". Free-form rewording of those tokens (e.g. `*PROBE*`
-# instead of `*Method: ... Probed`) is a silent false-red/green — the SPEC.template
+# the checks grep for are `*Revision:`, `*Changed:`, `*Intent:`, `*Acceptance:`,
+# and `*Methods:`. Methods use the closed vocabulary Probed/CitedFact/
+# HumanApproval/Judged:L1|L2/OPEN. Free-form rewording is a false-red — the SPEC.template
 # format is the contract; a project that drifts from it must update these greps too.
 locked_reqs() {
   awk '
@@ -77,46 +76,46 @@ assert_parser_sane() {
   return 0
 }
 
-# ---- (NEW) requirement coherence: Intent + Method present --------------------
-# A [locked] requirement is complete iff it carries BOTH an Intent field and a
-# Method field (Probed/OPEN/WEAK). Bilingual tokens (English pin | Chinese pin).
+# ---- requirement coherence: identity + Intent + Acceptance + Methods --------
+# A locked requirement is complete only with its evidence identity and a method
+# from the closed vocabulary defined by SPEC.template.md.
 # RED if a [locked] req has Acceptance alone — the "incomplete requirement"
 # defect (probes.md: "the same defect as a gate with no evidence").
 check_requirement_coherence() {
-  local SPEC="$1" fail=0 entry has_intent has_method
+  local SPEC="$1" fail=0 entry missing methods
   assert_parser_sane "$SPEC" || return 1
   while IFS= read -r entry; do
-    has_intent=0; has_method=0
-    grep -qiE '\*Intent:|\*意图:' <<<"$entry" && has_intent=1
-    grep -qiE '\*Method:|\*方法:'   <<<"$entry" && has_method=1
-    if [ "$has_intent" -eq 0 ] || [ "$has_method" -eq 0 ]; then
-      echo "  RED  [locked] req missing $( [ $has_intent -eq 0 ] && echo -n 'Intent ' )$( [ $has_method -eq 0 ] && echo -n 'Method' ): ${entry:0:70}…"; fail=1
-    else
-      echo "  OK   $(printf '%s' "$entry" | grep -oE '\*\*R[0-9]+' | head -1 | tr -d '*') has Intent + Method"
-    fi
+    missing=""
+    grep -qiE '\*Revision:\*?[[:space:]]*[0-9]+' <<<"$entry" || missing="$missing Revision"
+    grep -qiE '\*Changed:\*?[[:space:]]*[0-9]{4}-[0-9]{2}-[0-9]{2}' <<<"$entry" || missing="$missing Changed"
+    grep -qiE '\*Intent:|\*意图:' <<<"$entry" || missing="$missing Intent"
+    grep -qiE '\*Acceptance:|\*验收:' <<<"$entry" || missing="$missing Acceptance"
+    methods=$(grep -oiE '\*Methods?:\*?[^*]+' <<<"$entry" | head -1 || true)
+    [ -n "$methods" ] || missing="$missing Methods"
+    if [ -n "$methods" ] && ! grep -qE 'Probed|CitedFact|HumanApproval|Judged:L[12]|OPEN' <<<"$methods"; then missing="$missing valid-Method"; fi
+    if [ -n "$missing" ]; then echo "  RED  [locked] req missing/invalid:$missing: ${entry:0:70}…"; fail=1
+    else echo "  OK   $(printf '%s' "$entry" | grep -oE '\*\*R[0-9]+' | head -1 | tr -d '*') has evidence identity + Intent + Acceptance + Methods"; fi
   done < <(locked_reqs "$SPEC")
   return "$fail"
 }
 
 # ---- (D-57) spec <-> probe coherence -----------------------------------------
-# (1) every [locked] req's referenced .spec/probes/<X>.sh exists (unless the line
-# marks it deferred/Phase/OPEN/WEAK); (2) no probe file is orphaned (referenced
+# (1) every locked requirement's referenced probe exists and binds its revision;
+# another Method never exempts that reference; (2) no probe file is orphaned
 # by nothing in SPEC). RED on either — a stale set is a false green.
 check_spec_probe_coherence() {
-  local SPEC="$1" PROBES="$2" fail=0 line refs deferred r base f
+  local SPEC="$1" PROBES="$2" fail=0 line refs r base f rid rev
   assert_parser_sane "$SPEC" || return 1
   while IFS= read -r line; do
     refs=$(grep -oE '\.spec/probes/[A-Za-z0-9_-]+\.sh' <<<"$line" || true)
     [ -z "$refs" ] && continue
-    # "not-yet-instantiated" markers: a req whose probe is deliberately unbuilt
-    # yet — Phase/deferred/⤳/OPEN/WEAK, plus `实例化` ("instantiate [at construction]",
-    # the cn-novel eval project's convention). These are waited on, not RED.
-    deferred=0; grep -qE 'Phase|实例化|OPEN|WEAK|deferred|⤳' <<<"$line" && deferred=1
+    rid=$(grep -oE '\*\*R[0-9]+' <<<"$line" | head -1 | tr -d '*')
+    rev=$(grep -oiE '\*Revision:\*?[[:space:]]*[0-9]+' <<<"$line" | grep -oE '[0-9]+' | tail -1 || true)
     for r in $refs; do
       base=$(basename "$r")
-      if [ -f "$PROBES/$base" ]; then echo "  OK   locked req -> $base exists"
-      elif [ "$deferred" -eq 1 ]; then echo "  wait locked req -> $base missing but marked deferred/Phase"
-      else echo "  RED  locked req -> $base MISSING, not deferred — UNGATED"; fail=1; fi
+      if [ ! -f "$PROBES/$base" ]; then echo "  RED  locked req -> $base MISSING — a referenced probe is never exempted by another Method"; fail=1
+      elif [ -z "$rev" ] || ! grep -qE "requirement:[[:space:]]*$rid@$rev|requirement=$rid@$rev" "$PROBES/$base"; then echo "  RED  $base does not bind current $rid@$rev"; fail=1
+      else echo "  OK   locked req -> $base exists and binds $rid@$rev"; fi
     done
   done < <(locked_reqs "$SPEC")
   for f in "$PROBES"/*.sh; do
@@ -128,34 +127,68 @@ check_spec_probe_coherence() {
 }
 
 # ---- (D-65) review-trace coherence -------------------------------------------
-# A [locked] req is "review-requiring" iff it carries a *Review:* field (L1/L2) or
-# names an independent review. It must have a cited .spec/evidence/review-<Rn>-*.md
+# A locked req is review-requiring iff Methods carries Judged:L1|L2 (legacy
+# *Review:* is accepted during migration). It needs review-<Rn>-*.md
 # that reckons the recorded Intent AND quotes a concrete artifact passage — not
 # merely names SPEC + artifact (that hollow trace is the cheapest forgery: a fake
 # review; it goes RED, and is the selftest's negative control). Honest limit: a
 # well-formed trace makes the closure auditable + forgery-resistant, not certain.
 check_review_coherence() {
-  local SPEC="$1" EVID="$2" fail=0 entry rid trace found cited is_l2 eng prod revw
+  local SPEC="$1" EVID="$2" fail=0 entry rid trace found cited is_l2 eng prod revw root declared artifact_path artifact_kind artifact_root actual trace_cited trace_eng manifest_ok expected rel artifact_count safe actual_set declared_set
+  if [ "$(basename "$(dirname "$EVID")")" = .spec ]; then root=$(cd "$EVID/../.." && pwd)
+  else root=$(cd "$EVID/.." && pwd); fi
   assert_parser_sane "$SPEC" || return 1
   while IFS= read -r entry; do
     # review-requiring? structured *Review:* field (with a value), or the legacy phrase
-    grep -qiE '\*Review:\*?[[:space:]]*\S|独立.{0,8}评审|independent[ -]?review' <<<"$entry" || continue
+    grep -qiE 'Judged:L[12]|\*Review:\*?[[:space:]]*L[12]' <<<"$entry" || continue
     rid=$(grep -oE '\*\*R[0-9]+' <<<"$entry" | head -1 | tr -d '*')
     [ -z "$rid" ] && continue
-    is_l2=0
-    grep -qiE '\*Review:\*?[[:space:]]*L2' <<<"$entry" && is_l2=1
+    local reqrev artifact verdict reviewed
+    reqrev=$(grep -oiE '\*Revision:\*?[[:space:]]*[0-9]+' <<<"$entry" | grep -oE '[0-9]+' | tail -1 || true)
+    is_l2=0; grep -qiE 'Judged:L2|\*Review:\*?[[:space:]]*L2' <<<"$entry" && is_l2=1
     found=0; cited=0; eng=0
     for trace in "$EVID"/review-"$rid"-*.md; do
       [ -e "$trace" ] || continue
-      found=1
+      found=1; trace_cited=0; trace_eng=0
       # NB: L2 classification comes ONLY from the SPEC entry's *Review:* field (set
       # above) — never from this trace. The trace is the artifact under inspection;
       # letting it self-declare "level: L2" would escalate an honest L1 req and
       # false-RED it (A1-1). is_l2 is fixed for the whole requirement now.
       # cited iff it anchors to SPEC AND reckons Intent AND quotes a concrete passage
-      if grep -qi 'SPEC\.md' "$trace" && grep -qiE 'intent:|意图:' "$trace" \
+      declared=$(grep -oiE '^artifact:[[:space:]]*sha256:[a-f0-9]{64}' "$trace" | head -1 | sed 's/.*sha256://' || true)
+      artifact_path=$(grep -oiE '^artifact-path:[[:space:]]*[^[:space:]]+' "$trace" | head -1 | sed 's/^[^:]*:[[:space:]]*//' || true)
+      artifact_kind=$(grep -oiE '^artifact-kind:[[:space:]]*(file|manifest)' "$trace" | head -1 | sed 's/^[^:]*:[[:space:]]*//' || true)
+      artifact_root=$(grep -oiE '^artifact-root:[[:space:]]*[^[:space:]]+' "$trace" | head -1 | sed 's/^[^:]*:[[:space:]]*//' || true)
+      [ -n "$artifact_kind" ] || artifact_kind=file
+      actual=""; safe=1
+      case "$artifact_path" in /*|*..*) safe=0;; esac
+      if [ "$safe" -eq 1 ] && [ -n "$root" ] && [ -n "$artifact_path" ] && [ -f "$root/$artifact_path" ]; then
+        if command -v shasum >/dev/null; then actual=$(shasum -a 256 "$root/$artifact_path" | awk '{print $1}')
+        elif command -v sha256sum >/dev/null; then actual=$(sha256sum "$root/$artifact_path" | awk '{print $1}'); fi
+      fi
+      manifest_ok=1; artifact_count=0
+      if [ "$artifact_kind" = manifest ]; then
+        case "$artifact_root" in ''|/*|*..*) manifest_ok=0;; esac
+        [ -d "$root/$artifact_root" ] || manifest_ok=0
+        while read -r expected rel; do
+          artifact_count=$((artifact_count + 1))
+          case "$rel" in /*|*..*) manifest_ok=0; continue;; "$artifact_root"/*) :;; *) manifest_ok=0; continue;; esac
+          [ -n "$expected" ] && [ -n "$rel" ] && [ -f "$root/$rel" ] || { manifest_ok=0; continue; }
+          if command -v shasum >/dev/null; then [ "$(shasum -a 256 "$root/$rel" | awk '{print $1}')" = "$expected" ] || manifest_ok=0
+          else [ "$(sha256sum "$root/$rel" | awk '{print $1}')" = "$expected" ] || manifest_ok=0; fi
+        done < "$root/$artifact_path"
+        [ "$artifact_count" -gt 0 ] || manifest_ok=0
+        actual_set=$(cd "$root" && find "$artifact_root" -type f -print | LC_ALL=C sort)
+        declared_set=$(awk '{print $2}' "$root/$artifact_path" | LC_ALL=C sort)
+        [ "$actual_set" = "$declared_set" ] || manifest_ok=0
+      fi
+      if grep -qi 'SPEC\.md' "$trace" && grep -qiE "^requirement:[[:space:]]*$rid@$reqrev" "$trace" \
+         && [ -n "$declared" ] && [ "$declared" = "$actual" ] \
+         && grep -qiE '^verdict:[[:space:]]*pass' "$trace" \
+         && grep -qiE '^reviewed-at:[[:space:]]*[0-9]{4}-[0-9]{2}-[0-9]{2}' "$trace" \
+         && [ "$manifest_ok" -eq 1 ] && grep -qiE 'intent:|意图:' "$trace" \
          && grep -qE '^[[:space:]]*> |quote:|引用:|anchor:|line[[:space:]]*:|§|ch[0-9]+|章节|manuscript/|src/|[a-z0-9_-]+/[a-z0-9_.-]+\.(md|txt)' "$trace"; then
-        cited=1
+        trace_cited=1
       fi
       # L2 (judgment-independent) must name a DISTINCT reviewer engine vs producer — the
       # machine-checkable proxy for "a different judgment basis." Relabeling an L1 (same
@@ -164,11 +197,15 @@ check_review_coherence() {
       if [ "$is_l2" -eq 1 ]; then
         prod=$(grep -oiE '^producer-engine:[[:space:]]*[^[:space:]]+' "$trace" | head -1 | sed 's/^[^:]*:[[:space:]]*//')
         revw=$(grep -oiE '^reviewer-engine:[[:space:]]*[^[:space:]]+' "$trace" | head -1 | sed 's/^[^:]*:[[:space:]]*//')
-        { [ -n "$prod" ] && [ -n "$revw" ] && [ "$prod" != "$revw" ]; } && eng=1
+        { [ -n "$prod" ] && [ -n "$revw" ] && [ "$prod" != "$revw" ]; } && trace_eng=1
+      fi
+      if [ "$trace_cited" -eq 1 ]; then
+        cited=1
+        { [ "$is_l2" -eq 0 ] || [ "$trace_eng" -eq 1 ]; } && eng=1
       fi
     done
     if   [ "$found" -eq 0 ]; then echo "  RED  $rid needs an independent review but has NO review-$rid-*.md trace"; fail=1
-    elif [ "$cited" -eq 0 ]; then echo "  RED  $rid trace exists but is hollow — must cite SPEC + reckon Intent + quote a concrete artifact passage"; fail=1
+    elif [ "$cited" -eq 0 ]; then echo "  RED  $rid trace is stale/hollow — must bind $rid@$reqrev + recomputable artifact-path/sha256 + pass verdict + reviewed-at + Intent + quote"; fail=1
     elif [ "$is_l2" -eq 1 ] && [ "$eng" -eq 0 ]; then echo "  RED  $rid is *Review:* L2 (judgment-independent) but no trace declares distinct producer-engine: and reviewer-engine: — relabeling an L1 (same model) as L2 is the forgery this catches"; fail=1
     else echo "  OK   $rid -> review trace reckons Intent + cites SPEC + quotes artifact$([ "$is_l2" -eq 1 ] && echo " + distinct L2 engines")"; fi
   done < <(locked_reqs "$SPEC")
@@ -178,6 +215,8 @@ check_review_coherence() {
 # ---- selftest: every check must be able to go red ----------------------------
 if [ "${1:-}" = "--selftest" ]; then
   tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT; mkdir -p "$tmp/probes" "$tmp/evid" "$tmp/pb"
+  printf 'artifact fixture\n' > "$tmp/artifact.txt"
+  digest=$(shasum -a 256 "$tmp/artifact.txt" | awk '{print $1}')
   rc=0
 
   # parser-blindness (the drift-detector's OWN vacuous-green): a SPEC whose
@@ -208,21 +247,21 @@ if [ "${1:-}" = "--selftest" ]; then
   printf '%s\n' '- **R1** [locked] a thing. *Acceptance:* it works. *(D1)*' > "$tmp/S.md"
   if check_requirement_coherence "$tmp/S.md" >/dev/null 2>&1; then echo "  NEG FAIL: Acceptance-only locked req not caught"; rc=1
   else echo "  neg-control ok: Acceptance-only -> RED"; fi
-  printf '%s\n' '- **R1** [locked] a thing. *Intent:* [auto] x. *Acceptance:* it works. *Method:* WEAK(cited). *(D1)*' > "$tmp/S.md"
+  printf '%s\n' '- **R1** [locked] a thing. *Revision:* 1. *Changed:* 2026-01-01T00:00:00Z. *Intent:* [auto] x. *Acceptance:* it works. *Methods:* CitedFact. *(D1)*' > "$tmp/S.md"
   if check_requirement_coherence "$tmp/S.md" >/dev/null 2>&1; then echo "  pos-control ok: Intent+Method -> GREEN"
   else echo "  POS FAIL: complete req flagged"; rc=1; fi
 
   # spec<->probe: a locked req referencing a missing probe -> RED
-  printf '%s\n' '- **R1** [locked] a thing. *Method:* Probed(.spec/probes/G-missing.sh). *Intent:* [auto] x.' > "$tmp/S.md"
+  printf '%s\n' '- **R1** [locked] a thing. *Revision:* 1. *Changed:* 2026-01-01T00:00:00Z. *Intent:* [auto] x. *Acceptance:* works. *Methods:* Probed(.spec/probes/G-missing.sh).' > "$tmp/S.md"
   if check_spec_probe_coherence "$tmp/S.md" "$tmp/probes" >/dev/null 2>&1; then echo "  NEG FAIL: ungated locked req not caught"; rc=1
   else echo "  neg-control ok: missing referenced probe -> RED"; fi
-  printf '#!/usr/bin/env bash\n' > "$tmp/probes/G-real.sh"
-  printf '%s\n' '- **R1** [locked] a thing. *Method:* Probed(.spec/probes/G-real.sh). *Intent:* [auto] x.' > "$tmp/S.md"
+  printf '#!/usr/bin/env bash\n# requirement: R1@1\n' > "$tmp/probes/G-real.sh"
+  printf '%s\n' '- **R1** [locked] a thing. *Revision:* 1. *Changed:* 2026-01-01T00:00:00Z. *Intent:* [auto] x. *Acceptance:* works. *Methods:* Probed(.spec/probes/G-real.sh).' > "$tmp/S.md"
   if check_spec_probe_coherence "$tmp/S.md" "$tmp/probes" >/dev/null 2>&1; then echo "  pos-control ok: referenced probe exists -> GREEN"
   else echo "  POS FAIL: coherent set flagged"; rc=1; fi
 
   # review-trace: a *Review:* req with no trace -> RED
-  printf '%s\n' '- **R1** [locked] a thing. *Method:* WEAK(cited). *Review:* L1. *Intent:* [auto] x.' > "$tmp/S.md"
+  printf '%s\n' '- **R1** [locked] a thing. *Revision:* 1. *Changed:* 2026-01-01T00:00:00Z. *Intent:* [auto] x. *Acceptance:* quality. *Methods:* Judged:L1.' > "$tmp/S.md"
   if check_review_coherence "$tmp/S.md" "$tmp/evid" >/dev/null 2>&1; then echo "  NEG FAIL: missing review trace not caught"; rc=1
   else echo "  neg-control ok: review-requiring req with no trace -> RED"; fi
   # FORGERY (the new negative control): a hollow trace that only names SPEC + artifact -> RED
@@ -230,26 +269,47 @@ if [ "${1:-}" = "--selftest" ]; then
   if check_review_coherence "$tmp/S.md" "$tmp/evid" >/dev/null 2>&1; then echo "  NEG FAIL: hollow/forget trace not caught"; rc=1
   else echo "  neg-control ok: hollow trace (no Intent reckoning, no quote) -> RED"; fi
   # honest trace: reckons Intent + quotes a passage -> GREEN
-  printf 'ref: SPEC.md R1\nintent: the purpose is met, not metric-gamed\n> "the concrete quoted passage from ch1"\n' > "$tmp/evid/review-R1-x.md"
+  printf 'ref: SPEC.md R1\nrequirement: R1@1\nartifact-path: artifact.txt\nartifact: sha256:%s\nverdict: pass\nreviewed-at: 2026-01-01T00:00:00Z\nintent: the purpose is met\n> "the concrete quoted passage"\n' "$digest" > "$tmp/evid/review-R1-x.md"
   if check_review_coherence "$tmp/S.md" "$tmp/evid" >/dev/null 2>&1; then echo "  pos-control ok: trace reckons Intent + quotes artifact -> GREEN"
   else echo "  POS FAIL: cited trace flagged"; rc=1; fi
+  printf 'artifact mutated after review\n' > "$tmp/artifact.txt"
+  if check_review_coherence "$tmp/S.md" "$tmp/evid" >/dev/null 2>&1; then echo "  NEG FAIL: artifact mutation reused stale review"; rc=1
+  else echo "  neg-control ok: artifact changed after review -> RED"; fi
+  printf 'artifact fixture\n' > "$tmp/artifact.txt"
+  mkdir "$tmp/artifact-set"; printf 'first file\n' > "$tmp/artifact-set/first.txt"; printf 'second file\n' > "$tmp/artifact-set/second.txt"
+  printf '%s  artifact-set/first.txt\n%s  artifact-set/second.txt\n' "$(shasum -a 256 "$tmp/artifact-set/first.txt" | awk '{print $1}')" "$(shasum -a 256 "$tmp/artifact-set/second.txt" | awk '{print $1}')" > "$tmp/artifacts.sha256"
+  manifest_digest=$(shasum -a 256 "$tmp/artifacts.sha256" | awk '{print $1}')
+  printf 'ref: SPEC.md R1\nrequirement: R1@1\nartifact-kind: manifest\nartifact-root: artifact-set\nartifact-path: artifacts.sha256\nartifact: sha256:%s\nverdict: pass\nreviewed-at: 2026-01-01T00:00:00Z\nintent: met\n> "multi-file artifact"\n' "$manifest_digest" > "$tmp/evid/review-R1-x.md"
+  if check_review_coherence "$tmp/S.md" "$tmp/evid" >/dev/null 2>&1; then echo "  pos-control ok: multi-file artifact manifest -> GREEN"
+  else echo "  POS FAIL: valid multi-file manifest flagged"; rc=1; fi
+  printf 'mutated second file\n' > "$tmp/artifact-set/second.txt"
+  if check_review_coherence "$tmp/S.md" "$tmp/evid" >/dev/null 2>&1; then echo "  NEG FAIL: changed file inside artifact manifest passed"; rc=1
+  else echo "  neg-control ok: changed file inside artifact manifest -> RED"; fi
+  printf 'second file\n' > "$tmp/artifact-set/second.txt"
+  grep -v 'second.txt' "$tmp/artifacts.sha256" > "$tmp/subset.sha256"; mv "$tmp/subset.sha256" "$tmp/artifacts.sha256"
+  subset_digest=$(shasum -a 256 "$tmp/artifacts.sha256" | awk '{print $1}')
+  sed "s/^artifact: sha256:.*/artifact: sha256:$subset_digest/" "$tmp/evid/review-R1-x.md" > "$tmp/evid/subset"; mv "$tmp/evid/subset" "$tmp/evid/review-R1-x.md"
+  if check_review_coherence "$tmp/S.md" "$tmp/evid" >/dev/null 2>&1; then echo "  NEG FAIL: subset artifact manifest passed"; rc=1
+  else echo "  neg-control ok: artifact manifest omits in-scope file -> RED"; fi
   # L2 (judgment-independent) forgery (A2): an L2 review whose trace reuses the SAME
   # engine as the producer (relabeling an L1 as L2) -> RED; distinct engines -> GREEN.
-  printf '%s\n' '- **R2** [locked] generated quality. *Method:* WEAK(cited). *Review:* L2. *Intent:* [auto] x.' > "$tmp/S2.md"
-  printf 'ref: SPEC.md R2\nlevel: L2\nproducer-engine: claude-sonnet-5\nreviewer-engine: claude-sonnet-5\nintent: met\n> "passage"\n' > "$tmp/evid/review-R2-x.md"
+  printf '%s\n' '- **R2** [locked] generated quality. *Revision:* 2. *Changed:* 2026-01-01T00:00:00Z. *Intent:* [auto] x. *Acceptance:* quality. *Methods:* Judged:L2.' > "$tmp/S2.md"
+  printf 'ref: SPEC.md R2\nrequirement: R2@2\nartifact-path: artifact.txt\nartifact: sha256:%s\nverdict: pass\nreviewed-at: 2026-01-01T00:00:00Z\nproducer-engine: claude-sonnet-5\nreviewer-engine: claude-sonnet-5\nintent: met\n> "passage"\n' "$digest" > "$tmp/evid/review-R2-x.md"
   if check_review_coherence "$tmp/S2.md" "$tmp/evid" >/dev/null 2>&1; then echo "  NEG FAIL: L2 trace with SAME producer/reviewer engine not caught"; rc=1
   else echo "  neg-control ok: L2 same-engine (relabeled L1) -> RED"; fi
-  printf 'ref: SPEC.md R2\nlevel: L2\nintent: met\n> "passage"\n' > "$tmp/evid/review-R2-x.md"
+  printf 'ref: SPEC.md R2\nrequirement: R2@2\nartifact-path: artifact.txt\nartifact: sha256:%s\nverdict: pass\nreviewed-at: 2026-01-01T00:00:00Z\nintent: met\n> "passage"\n' "$digest" > "$tmp/evid/review-R2-x.md"
+  printf 'producer-engine: old-engine\nreviewer-engine: other-engine\n' > "$tmp/evid/review-R2-old.md"
   if check_review_coherence "$tmp/S2.md" "$tmp/evid" >/dev/null 2>&1; then echo "  NEG FAIL: L2 trace with no engine fields not caught"; rc=1
-  else echo "  neg-control ok: L2 missing engines -> RED"; fi
-  printf 'ref: SPEC.md R2\nlevel: L2\nproducer-engine: claude-sonnet-5\nreviewer-engine: claude-opus-4-8\nintent: met\n> "passage"\n' > "$tmp/evid/review-R2-x.md"
+  else echo "  neg-control ok: L2 cannot splice valid evidence + engines across traces -> RED"; fi
+  rm "$tmp/evid/review-R2-old.md"
+  printf 'ref: SPEC.md R2\nrequirement: R2@2\nartifact-path: artifact.txt\nartifact: sha256:%s\nverdict: pass\nreviewed-at: 2026-01-01T00:00:00Z\nproducer-engine: claude-sonnet-5\nreviewer-engine: claude-opus-4-8\nintent: met\n> "passage"\n' "$digest" > "$tmp/evid/review-R2-x.md"
   if check_review_coherence "$tmp/S2.md" "$tmp/evid" >/dev/null 2>&1; then echo "  pos-control ok: L2 distinct engines -> GREEN"
   else echo "  POS FAIL: L2 distinct-engine trace flagged"; rc=1; fi
   # A1-1 regression guard: an HONEST L1 req whose trace carries a stray 'level: L2'
   # line must stay GREEN — the trace must not escalate the requirement's classification;
   # only the SPEC's *Review:* field decides L1 vs L2.
-  printf '%s\n' '- **R3** [locked] thing. *Method:* WEAK(cited). *Review:* L1. *Intent:* [auto] x.' > "$tmp/S3.md"
-  printf 'ref: SPEC.md R3\nlevel: L2\nintent: met\n> "passage"\n' > "$tmp/evid/review-R3-x.md"
+  printf '%s\n' '- **R3** [locked] thing. *Revision:* 1. *Changed:* 2026-01-01T00:00:00Z. *Intent:* [auto] x. *Acceptance:* quality. *Methods:* Judged:L1.' > "$tmp/S3.md"
+  printf 'ref: SPEC.md R3\nrequirement: R3@1\nartifact-path: artifact.txt\nartifact: sha256:%s\nverdict: pass\nreviewed-at: 2026-01-01T00:00:00Z\nintent: met\n> "passage"\n' "$digest" > "$tmp/evid/review-R3-x.md"
   if check_review_coherence "$tmp/S3.md" "$tmp/evid" >/dev/null 2>&1; then echo "  pos-control ok: L1 req + stray L2-trace level -> GREEN (trace can't escalate)"
   else echo "  POS FAIL: L1 req false-RED'd by trace's level: L2"; rc=1; fi
 

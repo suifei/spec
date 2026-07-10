@@ -44,7 +44,8 @@ curl -fsSL https://raw.githubusercontent.com/suifei/spec/main/scripts/install.sh
 ```
 
 在目标项目根目录跑这一行,会往 `.claude/` 里装入三个 skill(`spec`、`build`、`yolo`)和
-三个斜杠命令(`/spec`、`/build`、`/yolo`)。不碰你的 `CLAUDE.md`、`SPEC.md`、`.spec/`——
+三个斜杠命令(`/spec`、`/build`、`/yolo`)，并记录 `.claude/spec-install.manifest`
+用于审计安装版本。它不碰你的 `CLAUDE.md`、`SPEC.md`、`.spec/`——
 那些是 `/spec` 首次运行时自动生成的,属于你的项目。
 
 ### 1.2 第一次调用

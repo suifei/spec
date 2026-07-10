@@ -11,6 +11,7 @@
 #   <gate-id>        the requirement / gate this proves (e.g. R1, G1)
 #   <truth>          the environment-/behavior-specific truth it exercises
 #   <neg-control>    the broken/absent case that MUST turn this red
+#   <requirement>    the exact evidence identity, e.g. R7@3
 #
 # The negative control is the whole point: a probe that can't fail proves nothing.
 # Make the cheat itself the negative control where you can (references/probes.md,
@@ -58,6 +59,7 @@ fi
 
 # ---- run ---------------------------------------------------------------------
 echo "== probe <gate-id>: <truth> =="; date -u +"when: %Y-%m-%dT%H:%M:%SZ"
+echo "requirement: <requirement-id>@<revision>"
 echo "where: $(hostname) / $(uname -srm)"; echo "----"
 run_check && {
   echo "neg-control:"; run_neg_control >/dev/null 2>&1 \

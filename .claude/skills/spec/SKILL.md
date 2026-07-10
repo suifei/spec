@@ -51,7 +51,7 @@ something clear, true, and actually buildable.**
 > for the common case; read them as "the artifact" and "its runnable verification".
 > For a non-code gate, see `references/probes.md` ("instrument the artifact so its
 > gate can go red") — a prose gate becomes red-able once you design a checkable
-> convention, instead of silently degrading to WEAK.
+> convention, instead of silently degrading every concern to subjective judgment.
 
 `/spec` is the **first gate** of an AI-assisted development process: the spec it
 produces is what all later work conforms to. (Gate 2 — extracting a reusable skill
@@ -149,13 +149,14 @@ or cognitive burden — it is collaboration, not paperwork.
    moved verbatim, not re-authored** (sealed = read-only, Step 7) — "rewrite as a
    whole" means the *file stays one coherent whole*, not that sealed history is
    rewritten each run.
-9. **Right-size the ceremony (simplicity is a feature).** The full apparatus
-   (`STATE.md`, `investigation.log`, a phases ledger, probes) is for projects with
-   load-bearing uncertainty. For a genuinely small one — a single-file script, a
-   one-off, a throwaway — `/spec` may degrade to the minimum: a short `SPEC.md`
-   (Vision + Scope + at most one real gate), skipping the ledger/log/phases scaffolding
-   until the project grows enough to need them. Don't impose heavy machinery on a
-   problem that doesn't have the uncertainty to justify it.
+9. **Right-size through an explicit profile, never an informal exception.** Every
+   project records `Profile: minimal|governed` beside the artifact-language pin.
+   `minimal` creates only a short `SPEC.md` for a bounded, low-uncertainty artifact
+   and is deliberately not build/yolo-ready. `governed` creates the complete
+   state/evidence/closure kit and is required before `/build` or `/yolo`. When a
+   minimal project gains a load-bearing gate, multiple phases, or requests
+   construction, upgrade it atomically: create and validate `.spec/`, then change
+   the profile. Never leave a half-governed project.
 10. **Don't implement.** `/spec` only specifies and verifies readiness — it does
    not write product code.
 
@@ -180,9 +181,11 @@ minimal: **timestamps on everything + judgment**, not format gymnastics.
   on request or when it blocks the current decision.
 - **Label recency when you present** — "as of 2026-06-29", "3 days ago",
   "superseded 2026-07" — so the human sees new vs old at a glance.
-- Append-only: never rewrite a past timestamp; supersession is dated.
+- Historical records are append-only: never rewrite a past timestamp;
+  supersession is dated. A working log may be compacted only into a dated,
+  content-addressed archive with a retained pointer — never silently deleted.
 
-## Fixed locations (all committed to the repo)
+## Governed-profile locations (all committed to the repo)
 
 ```
 SPEC.md                         # the spec — authoritative, at repo root
@@ -232,7 +235,7 @@ masks**, and the next mask is unknown. So don't defend by listing exploits; for
 artifact that turns this gate green while a knowledgeable person would say the
 intent isn't met.* If that cheat exists, the check is only a proxy — **harden the
 measure** to close it (make the cheat the probe's negative control), or accept it as
-a **floor** and require an **independent intent-level review** (a WEAK gate, but one
+a **floor** and require an **independent intent-level review** (`Judged`, and one
 that must gate "done", never self-reviewed). This procedure generalizes to any
 domain; a fixed cheat-list does not. See `references/probes.md`, "A gate is a proxy
 for an intent."
@@ -259,7 +262,7 @@ not complete; add any load-bearing dimension it misses.
 
 A project's **domain gates** (your `G1`, `G2`… — the load-bearing truths the design
 rests on, like the GPU example in `references/probes.md`) are one thing. There is
-also a small, **standard kit of *closure* probes** every project carries: they don't
+also a small, **standard kit of *closure* probes** every governed project carries: they don't
 test a domain truth, they test **whether the spec/gate set is still coherent with
 itself and the current spec** — the failure where the drift-detector itself drifts
 (a green board worth nothing because the probes test a superseded spec). Instantiate
@@ -295,9 +298,10 @@ Do a **small, safe-to-stop chunk** each run: persist, update `STATE.md`, then
 either continue or stop. Re-running `/spec` always resumes cleanly.
 
 ### Step 0 — Rehydrate (always first)
-Read `.spec/STATE.md` (if present), `SPEC.md`, and the `.spec/knowledge/` index;
-scan the tail of `.spec/investigation.log` (if present) so questions the last
-run already investigated aren't re-explored from scratch.
+Read `SPEC.md` first and recover its `Profile`. For `governed`, read
+`.spec/STATE.md` and the `.spec/knowledge/` index; scan the tail of
+`.spec/investigation.log` so prior investigation is not repeated. A `minimal`
+project has no `.spec/` state to rehydrate.
 Reconstruct: current phase, current step, the core problem as understood so far,
 what's done, what's pending, the next action. **Tell the human where things
 stand** in one short status line, e.g.:
@@ -307,7 +311,10 @@ stand** in one short status line, e.g.:
 Also note each record's **age** (its timestamp vs the current OS time) and flag
 anything that looks stale — by judgment (see Time above) — for the human.
 
-If `.spec/` doesn't exist, initialize it: create `.spec/` and a fresh `STATE.md`
+If no SPEC exists, derive `minimal` vs `governed` from the project's uncertainty
+and record the choice `[auto]` (ask only when auditability/ceremony is itself a
+human preference). For `minimal`, create only the short pinned SPEC. For
+`governed`, if `.spec/` doesn't exist, initialize it: create `.spec/` and a fresh `STATE.md`
 from `references/STATE.template.md`, and a `SPEC.md` skeleton from
 `references/SPEC.template.md` **only if no `SPEC.md` exists yet** — an existing
 `SPEC.md` is authoritative input and is **never overwritten** (Rule 0's
@@ -379,20 +386,22 @@ through. A runnable probe (Step 5) is one of these avenues, not the whole of it.
   you're not ready to ask** — and (c) if the human asks "why are you asking me
   this," you answer from the log, not from memory. It's a working trail, not an
   archive: at phase seal (Step 7), entries whose conclusions are already
-  distilled into `.spec/knowledge/` or `SPEC.md` may be compacted away, keeping
-  the tail a resumed run scans bounded.
+  distilled into `.spec/knowledge/` or `SPEC.md` may be moved to a dated,
+  content-addressed `.spec/evidence/investigation-archive-<ts>-<sha>.log`; keep an
+  archive pointer in the live log so provenance remains append-only.
 
-**Dependency selection (standard flow):** for any external dependency — search
+**Dependency selection (standard flow):** for any external dependency that bears
+on a declared contract or gate — search
 the library **and its peers**, capture **stable + latest versions + alternatives**,
 and give a **recommendation**. Then: if the choice is genuinely **load-bearing or
 contested** (the gate-test spirit — it shapes a contract, an architecture, or a
 declared constraint), let the **human decide**; otherwise **decide it yourself and
 register `[auto]`** — Principle 3 applies to dependencies too, so never make the
-human adjudicate a mechanical pick with a de-facto standard. Either way, **pin the
-version** and **persist the library's necessary knowledge/docs** to
-`.spec/knowledge/<lib>.md`. The decision (which lib, which pinned version) goes in
-`SPEC.md`; the detailed docs stay in the knowledge cache (referenced from
-`SPEC.md`). For a dependency choice that is itself contested or load-bearing (not
+human adjudicate a mechanical pick with a de-facto standard. Pin implementation
+versions in build tooling/lockfiles and persist necessary knowledge to
+`.spec/knowledge/<lib>.md`. Only declared or load-bearing dependency constraints
+go in `SPEC.md`; implementation-only libraries stay below the spec line. For a
+dependency choice that is itself contested or load-bearing (not
 merely "an active ecosystem"), the same optional `/deep-research` fallback above
 applies before finalizing the recommendation.
 
@@ -466,14 +475,27 @@ the thing the consistency lens elicits; left as implicit prose it drifts and can
 verified against. A `[human]`-set intent must not be silently overwritten by a later
 `[auto]` derivation — that's a spec conflict for the human, not a self-decision.
 
+**Give every locked requirement an evidence identity.** Record `Revision: <N>` and
+`Changed: <real UTC timestamp>`; increment the revision whenever Intent,
+Acceptance, or Methods change materially. A Probed method and its raw output both
+declare the revision they test (`requirement: R7@3`). A judged trace declares that
+same revision plus `artifact-kind: file|manifest`, `artifact-path:`, and its
+recomputable `sha256:<64-hex>`. A multi-file trace also declares `artifact-root:`;
+its manifest must exactly equal every file under that root and list
+`sha256  relative/path` for each one.
+`verdict: pass|fail`, and `reviewed-at:`. File names and mtimes
+are not identity. Methods are composable and independently checked (`Probed`,
+`CitedFact`, `HumanApproval`, `Judged:L1|L2`, `OPEN`); one judged residue never
+exempts a Probed half of the same requirement.
+
 **Author the *method* for every load-bearing acceptance, not just its description.**
 A requirement's acceptance is itself a gate: recording *what* to accept without
 *how* it is verified leaves prose that a builder will "verify" by reading code and
 eyeballing — which passes written-but-unreached code and silently-skipped
-behaviors. So resolve each load-bearing acceptance into **Probed** (a red-able
-`.spec/probes/<R>.sh` with a negative control), **OPEN** (no red-able check
-constructible ⇒ requirement stays visibly unclosed), or **WEAK** (un-scriptable
-quality ⇒ cited/judge sign-off) — **never prose alone** (see `references/probes.md`,
+behaviors. Resolve it into independently checked **Methods**: **Probed** (a
+revision-bound red-able `.spec/probes/<R>.sh`), **CitedFact**,
+**HumanApproval**, **Judged:L1|L2**, or **OPEN** (no honest method yet, so the
+requirement remains unclosed) — **never prose alone** (see `references/probes.md`,
 "Every load-bearing acceptance needs a method"). Pick the probe's **modality
 silently** — it's derived, not a preference: user-visible/interaction behavior ⇒
 **drive the running product end-to-end** (e.g. Playwright) observed at the real
@@ -484,12 +506,10 @@ the human **only** on the genuine-fork residue that already qualifies under
 Principle 3 / Step 3 — a subjective bar only they can set, or "no test harness
 exists here and standing one up is a real cost." "Build passes / all tests pass"
 is never a behavioral acceptance. When the
-truth isn't scriptable (e.g. a researched fact, a standard, a legal sign-off), a
-**cited finding** backs it, marked WEAK (non-probed) with its named source — this
-holds whether the citation came from ordinary search or a `/deep-research`
-sweep; it's still WEAK (non-probed), not a new evidence tier, and an
-unverifiable claim either surfaces as a WEAK finding with the caveat noted or
-falls to the "can't be verified" path below — never a new label. Don't
+truth isn't scriptable, choose its actual semantics: researched facts use
+**CitedFact**, approvals use **HumanApproval**, and subjective quality uses
+**Judged**. An unverifiable claim is **OPEN**, never disguised as a generic weak
+pass. Don't
 manufacture probes for commonsense facts. Capture raw probe output to
 `.spec/evidence/`. Evidence informs the GO; it doesn't bureaucratically block the
 human. If a load-bearing truth can't be verified, that's a finding you report —
@@ -504,8 +524,9 @@ any `## build` section verbatim** — it is owned by `/build` (its progress, and
 conflict it recorded for you to reconcile). Fold newer evidence back into the
 spec, too: if `.spec/evidence/` holds a fresher run of a gate's probe (e.g. from
 `/build`'s done-check), refresh that gate's Last-run/Status row; and when the
-build section reports a phase's construction complete, record that in the phases
-ledger.
+build section reports a phase's construction complete, record that in the mutable
+**Construction Ledger** outside sealed phase blocks. Never edit a sealed phase
+block to record operational progress.
 
 **Reconcile the probe SET to the CHANGED spec — every re-run (load-bearing).** When
 a later run adds, changes, or supersedes a requirement, `SPEC.md` moving is only
@@ -523,8 +544,9 @@ drifts). So on every re-run, for each affected requirement:
 "Sealed / 固化" freezes the **record of what was decided** (read-only history), it
 does **not** freeze the gate set's duty to match the *current* spec. **Coherence
 invariant (a closure check):** every `[locked]` requirement whose Method is Probed
-has an existing `.spec/probes/<R>.sh`; no probe file is left orphaned by a
-superseded requirement. If they don't line up, the spec isn't closed — fix the set. **Stamp every record you write with
+has an existing `.spec/probes/<R>.sh` declaring the same requirement revision; no
+probe is orphaned, and no historical review trace closes a current
+artifact/revision. If they don't line up, the spec isn't closed — fix the set. **Stamp every record you write with
 real OS time (see Time above) — never a guessed timestamp.** Ensure `CLAUDE.md` has the managed
 authority block (create if missing; replace only between the markers) so all
 later work reads `SPEC.md` first:
@@ -563,7 +585,7 @@ live example of the pattern.
 
 ### Step 7 — Closure & phases (emergent)
 **Closure = every decision in scope confirmed, and every gate carries its strongest
-appropriate evidence — a green probe, a cited finding accepted as WEAK (Step 5),
+appropriate evidence — a green probe, current CitedFact/HumanApproval/Judged evidence,
 or an explicit, recorded deferral — and no blocking open question remains.**
 (*Blocking* = its answer could still change an in-scope decision or gate; a
 question deferred to a later phase doesn't block this one.)
@@ -578,7 +600,9 @@ closure**, not the sealed phase's — sealing with a deferral doesn't make the
 sealed phase unbuildable; and supersession isn't only for *human* disagreement —
 if a staleness check or probe re-run shows a sealed conclusion no longer holds,
 **reality's disagreement opens the superseding phase the same way** (the sealed
-text stays untouched; the correction lives in the new phase).
+text stays untouched; the correction lives in the new phase). Construction is a
+separate mutable projection: update the Construction Ledger, never a sealed phase
+block.
 
 Report status (current step / done / pending / next) on closure or whenever you
 stop.
@@ -640,8 +664,8 @@ when an item is "too fine (will churn)" or "too vague (can't verify)".
 - **Gates are load-bearing.** A gate must pass the three tests (load-bearing,
   uncertain, consequential-if-wrong). Commonsense facts (free port, writable dir,
   tool on PATH) are never gates and never a downstream coding focus.
-- **Words are never evidence** — a load-bearing gate is backed by a probe that can
-  go red, or (when unscriptable) a cited source marked WEAK; never fabricate.
+- **Words alone are never evidence** — a load-bearing gate uses a red-able probe or
+  an explicit CitedFact/HumanApproval/Judged method with current evidence.
 - **One authority per concern** — no two places claim the same truth.
 - **Idempotent & resumable** — every run rehydrates from `STATE.md`; with no new
   input and no drift, a re-run changes nothing but the timestamp.

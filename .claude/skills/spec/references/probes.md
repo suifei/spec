@@ -59,12 +59,15 @@ behavior that was silently skipped. So a load-bearing requirement's **acceptance
 is itself a gate**: `/spec` must resolve it into exactly one of three states —
 never leave it as prose alone:
 
-1. **Probed** — a red-able check in `.spec/probes/<R>.sh` with a negative control.
-2. **OPEN** — no red-able check is constructible yet ⇒ the requirement stays
-   unclosed (an open question / a later phase), *visibly*. Never a silent pass.
-3. **WEAK** — genuinely un-scriptable (a quality/subjective judgment) ⇒ a cited
-   finding or a named human/LLM-judge sign-off, marked WEAK — honest, not a fake
-   probe.
+Methods are composable and checked independently:
+
+1. **Probed** — a red-able check with a negative control, bound to `Rn@revision`.
+2. **CitedFact** — an external factual source with capture date and citation.
+3. **HumanApproval** — a named approval with timestamp and evidence reference.
+4. **Judged:L1|L2** — subjective/quality judgment with an artifact-bound trace.
+5. **OPEN** — no honest method exists yet, so the requirement stays unclosed.
+
+A Judged or CitedFact residue never exempts a Probed half of the same requirement.
 
 **Prose acceptance with no method is an incomplete requirement**, the same defect
 as a gate with no evidence. Prove it by construction: if you cannot describe the
@@ -82,7 +85,7 @@ acceptance's nature ─▶ method
           assert what the USER observes — not a component in isolation, not source read by eye
   pure function / module contract   ─▶ Probed(unit): assert input→output
   service / API / cross-process     ─▶ Probed(integration): hit the real endpoint or seam
-  quality / subjective bar ("is the payoff satisfying")  ─▶ WEAK (above)
+  quality / subjective bar ("is the payoff satisfying")  ─▶ Judged:L1|L2
 ```
 
 Rendering `<X/>` in a unit test proves nothing about whether `<X/>` is mounted on
@@ -106,7 +109,7 @@ The artifact is not always code. It may be prose (a novel, a report), a
 curriculum, a plan, a dataset. These have load-bearing gates too — "every planted
 mystery is paid off before its deadline chapter", "every learning objective is
 assessed", "every claim is sourced" — but they are **not machine-checkable by
-default**, so the naive move is to shrug and mark them all WEAK, quietly losing a
+default**, so the naive move is to mark them all subjective, quietly losing a
 gate that *could* have gone red.
 
 **So for a non-code gate, the first step is to instrument the artifact** — design
@@ -114,8 +117,8 @@ a small, machine-checkable convention the probe can scan. In prose that means
 lightweight tags in invisible comments (e.g. `<!-- ANCHOR:M2 deadline=6 -->` where
 the setup is planted, `<!-- PAYOFF:M2 -->` where it lands); the probe greps them
 and goes red on a dangling anchor. The convention is the price of a red-able prose
-gate. A project unwilling to instrument keeps that gate **WEAK** (a named
-human/LLM-judge read) — an honest degrade, chosen with eyes open, not a silent
+gate. A project unwilling to instrument uses **Judged** (a named
+human/LLM review) — an honest degrade, chosen with eyes open, not a silent
 collapse. Instrumenting the artifact is the non-code analog of wiring code to a
 real entrypoint: without it, the gate cannot observe the thing it claims to prove.
 
@@ -158,11 +161,11 @@ This catches the whole family — 人设崩塌 / 数值崩坏 / 姓名漂移 / �
 memory across 100 chapters", which is how long works rot.
 
 **Consistency is checkable even when *quality* is not.** Don't fold everything
-subjective into one WEAK bucket. "Is the prose good / the character compelling / the
-twist earned" is genuinely WEAK. But *consistency* of the same material — a single
+subjective into one bucket. "Is the prose good / the character compelling / the
+twist earned" is genuinely Judged. But *consistency* of the same material — a single
 POV person, one tense, terminology drawn from the glossary, a rank that never
 regresses — is a **red-able sub-gate**. Split them: probe the consistency half, mark
-only the taste half WEAK.
+only the taste half Judged.
 
 ## A gate is a proxy for an intent — assume the builder optimizes the proxy
 
@@ -192,7 +195,7 @@ ways it will diverge. Apply two moves that generalize to any gate, any domain:
    different metric will need a different hardening you derive the same way.)
 2. **Verify the intent, not the letter.** Where the measure cannot fully capture the
    intent — quality, authenticity, "does it actually work / read / solve the
-   problem" — that residue is **WEAK** (unscriptable), and an autonomous loop will
+   problem" — that residue is **Judged** (unscriptable), and an autonomous loop will
    *silently skip* it unless it is made part of "done." So make it one: an
    **independent, intent-level review**, whose single question is always *"does this
    achieve the requirement's purpose, or merely its measure?"* — open-ended, never a
@@ -239,7 +242,13 @@ ways it will diverge. Apply two moves that generalize to any gate, any domain:
      *auditable and forgery-resistant* — a present, well-formed trace is no longer the cheapest
      path to green; writing one still engages the actual intents and the actual artifact.
      (Reference shape: `eval/cn-novel/.spec/probes/_review-coherence.sh`; template:
-     `references/coherence.template.sh`.)
+     `references/coherence.template.sh`.) The trace identity header is mandatory:
+     `requirement: Rn@revision`, `artifact-kind: file|manifest`,
+     `artifact-path: <path>`, recomputed `artifact: sha256:<64-hex>`; a multi-file
+     trace adds `artifact-root: <dir>` and its manifest must list exactly every
+     file under that root as `sha256  relative/path`,
+     `verdict: pass|fail`, and `reviewed-at: <UTC>`. A trace for an older
+     requirement or artifact is not evidence for the current one.
 
 **Defense in depth.** The hardened measure is cheap, deterministic, catches the
 crude gaming; the intent review catches the subtle miss a probe can't (output that

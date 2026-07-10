@@ -14,6 +14,9 @@ targeted requirement's acceptance holds, the load-bearing gates are green
 (re-run `.spec/probes/`), and — for generated/quality work — an independent
 review has signed off (the done-condition; see `build/SKILL.md` principle 3).
 Show the diff + green gates before committing.
+`/build` requires `Profile: governed`; route a minimal project to `/spec` for an
+atomic profile upgrade. Evidence must bind the current requirement revision and
+candidate artifact; any post-review change invalidates the sign-off.
 
 If reality contradicts `SPEC.md`, **stop and route me to `/spec`** — never silently
 patch the spec. Default surface: propose-then-apply with checkpoints.
