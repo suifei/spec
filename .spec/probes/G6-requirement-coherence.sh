@@ -27,8 +27,8 @@ locked_reqs() {
 assert_parser_sane() {
   local SPEC="$1" n
   n=$(locked_reqs "$SPEC" | grep -c . || true)
-  if [ "$n" -eq 0 ] && grep -qF '[locked]' "$SPEC"; then
-    echo "  RED  parser recognized ZERO locked reqs yet SPEC contains '[locked]' — requirement shape unrecognized (probe is blind, not green); align SPEC.md's requirement markdown with the PARSER CONTRACT or extend locked_reqs()"
+  if [ "$n" -eq 0 ] && grep -qE 'R[0-9]+.*\[locked\]|\[locked\].*R[0-9]+' "$SPEC"; then
+    echo "  RED  parser recognized ZERO locked reqs yet SPEC has a requirement tagged '[locked]' — requirement shape unrecognized (probe is blind, not green); align SPEC.md's requirement markdown with the PARSER CONTRACT or extend locked_reqs()"
     return 1
   fi
   return 0
@@ -59,6 +59,10 @@ if [ "${1:-}" = "--selftest" ]; then
   printf '%s\n' '### R1 [locked] heading form. *Intent:* [auto] x. *Acceptance:* works. *Method:* WEAK(cited).' > "$tmp/blind.md"
   check "$tmp/blind.md" >/dev/null 2>&1 && { echo "NEG FAIL: parser-blind SPEC was silent GREEN"; exit 1; } \
     || echo "  neg-control ok: parser-blind SPEC -> RED"
+  # prose-mention of [locked] (not a real tag) + only provisional reqs stays GREEN.
+  printf '%s\n' 'Requirements carry the [locked] tag once evidence-backed.' '- **R1.** [provisional] first. *Intent:* [auto] x. *Acceptance:* y. *Method:* OPEN.' > "$tmp/prose.md"
+  check "$tmp/prose.md" >/dev/null 2>&1 && echo "  pos-control ok: prose [locked] mention -> GREEN" \
+    || { echo "POS FAIL: prose-mention of [locked] false-RED'd"; exit 1; }
   printf '%s\n' '- **R1** [locked] a thing. *Acceptance:* it works. *(D1)*' > "$tmp/S.md"
   check "$tmp/S.md" >/dev/null 2>&1 && { echo "NEG FAIL: Acceptance-only locked req not caught"; exit 1; } \
     || echo "  neg-control ok: Acceptance-only -> RED"

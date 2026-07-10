@@ -62,15 +62,16 @@ locked_reqs() {
 # the check prints a bare header and exits 0: a GREEN over a spec the probe never
 # actually parsed. That is the drift-detector's OWN vacuous-green (the very failure
 # this kit exists to catch), so it must be its own negative control: if the raw SPEC
-# still contains the `[locked]` token but locked_reqs() recognized none, the parser
+# still has a requirement tagged `[locked]` (an R<n>…[locked] line, not a prose mention)
+# but locked_reqs() recognized none, the parser
 # is blind -> RED, never a quiet green. (probes.md "A gate is a proxy for an intent";
 # consistency-lens law 5, referential integrity.) A SPEC that genuinely has no
 # `[locked]` reqs is legitimately empty -> GREEN (nothing to check).
 assert_parser_sane() {
   local SPEC="$1" n
   n=$(locked_reqs "$SPEC" | grep -c . || true)
-  if [ "$n" -eq 0 ] && grep -qF '[locked]' "$SPEC"; then
-    echo "  RED  parser recognized ZERO locked reqs yet SPEC contains '[locked]' — requirement shape unrecognized (probe is blind, not green); align SPEC.md's requirement markdown with the PARSER CONTRACT or extend locked_reqs()"
+  if [ "$n" -eq 0 ] && grep -qE 'R[0-9]+.*\[locked\]|\[locked\].*R[0-9]+' "$SPEC"; then
+    echo "  RED  parser recognized ZERO locked reqs yet SPEC has a requirement tagged '[locked]' — requirement shape unrecognized (probe is blind, not green); align SPEC.md's requirement markdown with the PARSER CONTRACT or extend locked_reqs()"
     return 1
   fi
   return 0
@@ -110,7 +111,7 @@ check_spec_probe_coherence() {
     # "not-yet-instantiated" markers: a req whose probe is deliberately unbuilt
     # yet — Phase/deferred/⤳/OPEN/WEAK, plus `实例化` ("instantiate [at construction]",
     # the cn-novel eval project's convention). These are waited on, not RED.
-    deferred=0; grep -qE 'Phase|实例化|OPEN|WEAK|deferred' <<<"$line" && deferred=1
+    deferred=0; grep -qE 'Phase|实例化|OPEN|WEAK|deferred|⤳' <<<"$line" && deferred=1
     for r in $refs; do
       base=$(basename "$r")
       if [ -f "$PROBES/$base" ]; then echo "  OK   locked req -> $base exists"
@@ -147,7 +148,10 @@ check_review_coherence() {
     for trace in "$EVID"/review-"$rid"-*.md; do
       [ -e "$trace" ] || continue
       found=1
-      grep -qiE '^level:[[:space:]]*L2\b' "$trace" && is_l2=1
+      # NB: L2 classification comes ONLY from the SPEC entry's *Review:* field (set
+      # above) — never from this trace. The trace is the artifact under inspection;
+      # letting it self-declare "level: L2" would escalate an honest L1 req and
+      # false-RED it (A1-1). is_l2 is fixed for the whole requirement now.
       # cited iff it anchors to SPEC AND reckons Intent AND quotes a concrete passage
       if grep -qi 'SPEC\.md' "$trace" && grep -qiE 'intent:|意图:' "$trace" \
          && grep -qE '^[[:space:]]*> |quote:|引用:|anchor:|line[[:space:]]*:|§|ch[0-9]+|章节|manuscript/|src/|[a-z0-9_-]+/[a-z0-9_.-]+\.(md|txt)' "$trace"; then
@@ -193,6 +197,12 @@ if [ "${1:-}" = "--selftest" ]; then
   printf '%s\n' '### R1 [provisional] not locked yet.' > "$tmp/empty.md"
   if check_requirement_coherence "$tmp/empty.md" >/dev/null 2>&1; then echo "  pos-control ok: SPEC with zero [locked] -> GREEN (nothing to check)"
   else echo "  POS FAIL: legitimately-empty SPEC flagged"; rc=1; fi
+  # prose-mention of [locked] (not a real tag) + only provisional reqs stays GREEN — the
+  # tightened oracle (R<n>…[locked], not bare [locked]) must not false-RED on format-doc
+  # prose. SPEC.template itself generates "Requirements carry the [locked] tag …".
+  printf '%s\n' 'Requirements carry the [locked] tag once evidence-backed, else [provisional].' '- **R1.** [provisional] first. *Intent:* [auto] x. *Acceptance:* y. *Method:* OPEN.' > "$tmp/prose.md"
+  if check_requirement_coherence "$tmp/prose.md" >/dev/null 2>&1; then echo "  pos-control ok: prose [locked] mention + zero real locked reqs -> GREEN"
+  else echo "  POS FAIL: prose-mention of [locked] false-RED'd"; rc=1; fi
 
   # requirement coherence: a [locked] req with only Acceptance -> RED
   printf '%s\n' '- **R1** [locked] a thing. *Acceptance:* it works. *(D1)*' > "$tmp/S.md"
@@ -235,6 +245,13 @@ if [ "${1:-}" = "--selftest" ]; then
   printf 'ref: SPEC.md R2\nlevel: L2\nproducer-engine: claude-sonnet-5\nreviewer-engine: claude-opus-4-8\nintent: met\n> "passage"\n' > "$tmp/evid/review-R2-x.md"
   if check_review_coherence "$tmp/S2.md" "$tmp/evid" >/dev/null 2>&1; then echo "  pos-control ok: L2 distinct engines -> GREEN"
   else echo "  POS FAIL: L2 distinct-engine trace flagged"; rc=1; fi
+  # A1-1 regression guard: an HONEST L1 req whose trace carries a stray 'level: L2'
+  # line must stay GREEN — the trace must not escalate the requirement's classification;
+  # only the SPEC's *Review:* field decides L1 vs L2.
+  printf '%s\n' '- **R3** [locked] thing. *Method:* WEAK(cited). *Review:* L1. *Intent:* [auto] x.' > "$tmp/S3.md"
+  printf 'ref: SPEC.md R3\nlevel: L2\nintent: met\n> "passage"\n' > "$tmp/evid/review-R3-x.md"
+  if check_review_coherence "$tmp/S3.md" "$tmp/evid" >/dev/null 2>&1; then echo "  pos-control ok: L1 req + stray L2-trace level -> GREEN (trace can't escalate)"
+  else echo "  POS FAIL: L1 req false-RED'd by trace's level: L2"; rc=1; fi
 
   [ "$rc" -eq 0 ] && echo "RESULT: coherence.template self-test passed (all three checks non-vacuous)" || echo "RESULT: self-test FAILED"
   exit "$rc"

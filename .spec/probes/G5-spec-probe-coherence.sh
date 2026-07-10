@@ -25,8 +25,8 @@ locked_reqs() {
 assert_parser_sane() {
   local SPEC="$1" n
   n=$(locked_reqs "$SPEC" | grep -c . || true)
-  if [ "$n" -eq 0 ] && grep -qF '[locked]' "$SPEC"; then
-    echo "  RED  parser recognized ZERO locked reqs yet SPEC contains '[locked]' — requirement shape unrecognized (probe is blind, not green); align SPEC.md's requirement markdown with the PARSER CONTRACT or extend locked_reqs()"
+  if [ "$n" -eq 0 ] && grep -qE 'R[0-9]+.*\[locked\]|\[locked\].*R[0-9]+' "$SPEC"; then
+    echo "  RED  parser recognized ZERO locked reqs yet SPEC has a requirement tagged '[locked]' — requirement shape unrecognized (probe is blind, not green); align SPEC.md's requirement markdown with the PARSER CONTRACT or extend locked_reqs()"
     return 1
   fi
   return 0
@@ -40,7 +40,7 @@ check() {
     [ -z "$refs" ] && continue
     # "not-yet-instantiated" markers: Phase/deferred/OPEN/WEAK, plus `实例化`
     # ("instantiate [at construction]", the cn-novel eval's convention). Waited, not RED.
-    deferred=0; grep -qE 'Phase|实例化|OPEN|WEAK|deferred' <<<"$line" && deferred=1
+    deferred=0; grep -qE 'Phase|实例化|OPEN|WEAK|deferred|⤳' <<<"$line" && deferred=1
     for r in $refs; do
       base=$(basename "$r")
       if [ -f "$PROBES/$base" ]; then echo "  OK   locked req -> $base exists"
@@ -63,6 +63,10 @@ if [ "${1:-}" = "--selftest" ]; then
   printf '%s\n' '### R1 [locked] heading form. *Method:* Probed(.spec/probes/G-real.sh). *Intent:* [auto] x.' > "$tmp/blind.md"
   check "$tmp/blind.md" "$tmp/probes" >/dev/null 2>&1 && { echo "NEG FAIL: parser-blind SPEC was silent GREEN"; exit 1; } \
     || echo "  neg-control ok: parser-blind SPEC -> RED"
+  # prose-mention of [locked] (not a real tag) + only provisional reqs stays GREEN.
+  printf '%s\n' 'Requirements carry the [locked] tag once evidence-backed.' '- **R1.** [provisional] first.' > "$tmp/prose.md"
+  check "$tmp/prose.md" "$tmp/probes" >/dev/null 2>&1 && echo "  pos-control ok: prose [locked] mention -> GREEN" \
+    || { echo "POS FAIL: prose-mention of [locked] false-RED'd"; exit 1; }
   printf '%s\n' '- **R1** [locked] a thing. *Method:* Probed(.spec/probes/G-missing.sh). *Intent:* [auto] x.' > "$tmp/S.md"
   check "$tmp/S.md" "$tmp/probes" >/dev/null 2>&1 && { echo "NEG FAIL: ungated locked req not caught"; exit 1; } \
     || echo "  neg-control ok: missing referenced probe -> RED"

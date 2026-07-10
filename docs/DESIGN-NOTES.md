@@ -1705,6 +1705,39 @@ L2 逻辑空转不误伤)。定性:本轮把 D-71 L2 拆分的"执行侧空洞"�
 coherence 探针能 RED 的结构约束;A2 的可机检部分闭合,不可机检部分(判断真独立)并入 Honest limit、与 A1
 (done-rule)同列结构性下界。
 
+## 第 43 轮 · 2026-07-10 — 五轮评审收口:849dedc 的 code-review 修复(D-80)
+
+对 commit 849dedc(第 40-42 轮)跑 `/code-review --fix`(10 角度 finder → 核验 → 扫漏),修掉 6 个确认缺陷,
+5 个低价值/越界项跳过。
+
+- **P0 A1-2(假红,latent 于本仓)**:`assert_parser_sane` 的 oracle `grep -qF '[locked]'` 把 SPEC 里的*散文
+  提及*(如 SPEC.template 自带的"Requirements carry the [locked] tag")+ 零真实 locked 需求误判为解析失明→红。
+  本仓当前因 R1–R5 是 locked(n>0)被掩盖,一旦转 provisional 即全部闭包探针假红。**修**:oracle 改
+  `grep -qE 'R[0-9]+.*\[locked\]|\[locked\].*R[0-9]+'`(要求 [locked] 与需求号同行的真实标签,非散文提及)。
+  模板 + G5/G6/G8 四处同改,各自 selftest 增"散文提及 + provisional → 绿"正控。
+- **P0 A1-1(假红 + 误导消息)**:review-trace 的 `level: L2` 行会把诚实的 `*Review:* L1` 需求*升格*为 L2,
+  反过来索要它从不需要的不同 engine → 红,且消息谎称"R1 is *Review:* L2"(SPEC 实为 L1)。**根因**:让被审查的
+  制品(trace)自行定义需求的分级,违反"SPEC 是权威"。**修**:删 trace 的 `level:` 升格行,L2 分级只来自 SPEC
+  的 `*Review:* L2`。模板 + G8 同改,增"L1 需求 + 杂散 L2-trace → 绿"正控。
+- **P1 A5-2(陈旧注释/正则不符)**:PARSER CONTRACT 注释(L44/L111)与 deferred 注释把 `⤳` 列为认可的延期标记,
+  但 deferred grep `'Phase|实例化|OPEN|WEAK|deferred'` 实无 `⤳`——裸 `⤳`(无 Phase/deferred 字)的需求会被误报
+  UNGATED。**修**:grep 增 `|⤳`(模板 + G5),代码与文档契约一致。
+- **P1 A4-1(D-74 漏网)**:spec/SKILL.md:422 残留 `D-59`(分布式 skill 文件里唯一的 D-NN;安装器只打 .claude/,
+  用户无法解析)。**修**:改为概念名"the independent review"(与 consistency-lens.md:43 去锚后的措辞一致)。
+- **P2 A4-2(kit 与模板计数不符)**:kit 节声明 5 角色、指 readers 去 coherence.template.sh,但该模板只文档
+  "Three invariants"(requirement/spec↔probe/review-trace);subject-essence/writeback/tick-ceiling 无模板来源,
+  首次 persist 会漏建这三个闭包探针。**修**:kit 节如实说明三角色从模板、另三角色按角色描述自建。
+- **P2 A4-3(G2…G9 越界)**:"numbers its kit G2…G9" 把示例性的 G2(done-rule)算进闭包 kit;实际 kit 是 G3–G9。
+  **修**:括注澄清 G2 是示例 done-rule、kit 本体 G3–G9。
+
+跳过(记):A5-1 四处拷贝守卫(模板→dogfood 是文档化的设计取舍)、A5-3 cited 正则引文/路径混淆(D-75 设计,
+收紧会误红现存过审留痕如 cn-novel R8/R9)、A5-4 engine 抽取微 DRY、A4-4 yolo「Each firing」冗余(D-76 主观)、
+A4-5 yolo/build L2 触发措辞张力(预存、可辩护)。
+
+回归:模板 + dogfood G2–G9 `--selftest` 全绿、真跑全绿;两处原假红复跑转绿;`⤳`-延期转 wait/绿;spec/SKILL.md
+零 D-NN。定性:本轮把第 41/42 轮引入的两个假红(B2 守卫的散文误判、A2 的 trace 自升格)在潜伏期就堵上——
+闭包探针"能红"之外,补上"只在该红时红"。
+
 ---
 
 ## 决策日志(Consolidated Decision Log)
@@ -1713,6 +1746,7 @@ coherence 探针能 RED 的结构约束;A2 的可机检部分闭合,不可机检
 
 | ID | 决策 | 依据 / 来源 | 轮次 |
 |----|------|------------|------|
+| D-80 | **五轮 code-review 修复**:849dedc 的 `/code-review --fix` 修 6 缺陷。①A1-2 假红:`assert_parser_sane` oracle `grep -qF '[locked]'` 把散文提及误判解析失明(本仓 latent),改 `R[0-9]+.*\[locked\]\|[locked].*R[0-9]+`(真实标签才红);②A1-1 假红:trace `level: L2` 把 L1 升格索要 engine→删升格,L2 只来自 SPEC `*Review:*`;③A5-2:`⤳` 加入 deferred grep(契约一致);④A4-1:spec/SKILL.md:422 残留 D-59 去锚(D-74 漏网);⑤A4-2:kit 节如实说明 3 角色有模板、3 角色自建;⑥A4-3:G2…G9 括注 G2 是示例 done-rule。各探针 selftest 增对应正控;跳过 5 低价值/越界项(A5-1/A5-3/A5-4/A4-4/A4-5) | `/code-review --fix` on 849dedc;两假红(B2 散文误判 + A2 trace 自升格)潜伏期堵上 | 43 |
 | D-79 | **四轮评审 Tier 2:L2 独立性的可机检部分(把最廉价伪造做成负控)**。D-71 拆 L1/L2 后 /yolo"须 L2"是纯荣誉系统——review-trace 闭包(D-65/D-75)查不出"同模型 L1 贴标成 L2"。修:L2 评审留痕须声明 `producer-engine:`/`reviewer-engine:` 且不同;模板 `check_review_coherence()`+dogfood `G8` 增 L2 判定(`*Review:* L2` 或 `level: L2`;缺字段或同 engine→RED,负控=同 engine;selftest 三用例 同/缺/异 engine);`probes.md`/`SPEC.template §4`/`build Step4`/`yolo prompt` 四处教契约。诚实边界:不可验"真不同模型",但把最廉价伪造(relabel-L1-as-L2)做成 RED、留痕留可抽查 engine 声明——同 D-75"可审计非确定"标准。cn-novel `_review-coherence.sh`(D-65 旧版、零 L2 需求)分叉不动 | GLM-5.2 四轮评审 Tier 2(A2);D-71 L2 拆分执行侧空洞 | 42 |
 | D-78 | **四轮评审 P0:反身性盲区——skill 源码自身的悬空引用 + 探针解析器静默绿灯**。①`coherence.template.sh`(3 处)+ dogfood `G5`/`G8`(各 1 处)把参考实现写成不存在的 `eval/cn-novel/_coherence.sh`/`_review-coherence.sh`(真实在 `.spec/probes/` 下;`probes.md:233` 写对了)——违反法则⑤引用完整、且出在抓悬空引用的模板自身(coherence 探针射程不含 skill 源码,故无人抓);5 处断链全修。②`locked_reqs()` 解析失明时(需求 markdown 形态漂离 PARSER CONTRACT)`check_*()` 的 while 循环跑 0 次→exit 0 静默 GREEN——漂移探测器自身的空转绿灯,且 `--selftest` 从不测此分支;模板+G5/G6/G8 加 `assert_parser_sane()` 守卫(raw 含 `[locked]` 而解析 0 条→RED,合法零-locked 仍绿)+ selftest 增解析失明负控与合法空集正控 | GLM-5.2 四轮评审 P0;D-69 闭包 kit 未覆盖 skill 自身源码、D-77 PARSER CONTRACT 未配解析失明负控 | 41 |
 | D-77 | **三轮评审 F5/F6**:「需评审」改语义触发——需求加结构化 `*Review:*`(L1/L2)字段(`SPEC.template` §4 + 示例),`coherence.template.sh`/dogfood `G8` 触发改为 `\*Review:\*?[[:space:]]*\S`(有值)优先、`独立…评审` 措辞兜底(反作弊工具自身的 proxy-vs-intent 缝;cn-novel 仍用措辞、被兜底捕获,不破坏 eval);`locked_reqs()` 上方加「PARSER CONTRACT」注释声明它要求的字段 token 与「SPEC.template 格式即契约」 | GLM-5.2 三轮评审 F5/F6 | 40 |

@@ -263,9 +263,11 @@ also a small, **standard kit of *closure* probes** every project carries: they d
 test a domain truth, they test **whether the spec/gate set is still coherent with
 itself and the current spec** — the failure where the drift-detector itself drifts
 (a green board worth nothing because the probes test a superseded spec). Instantiate
-them from `references/coherence.template.sh` (and `references/probe.template.sh` for
-the done-rule) on first persist; **name them in your project's own scheme and
-reference them by *role*, never by another project's gate numbers.** The roles:
+the requirement-completeness / spec↔probe / review-trace checks from
+`references/coherence.template.sh` (the done-rule from `references/probe.template.sh`)
+on first persist, and author the subject-essence / writeback / tick-ceiling checks per
+their role description below; **name them in your project's own scheme and reference
+them by *role*, never by another project's gate numbers.** The roles:
 
 - **requirement-completeness** — every `[locked]` requirement carries Intent + Method
   (never Acceptance alone).
@@ -279,7 +281,8 @@ reference them by *role*, never by another project's gate numbers.** The roles:
   the done-condition stays coherent across skill files and wrappers; construction is
   written back to the phases ledger; `/yolo`'s tick ceiling is structurally enforced.
 
-This repo's own `SPEC.md` numbers its kit `G2…G9` — that is *this* dogfood's
+This repo's own `SPEC.md` numbers its probes `G2…G9` (G2 is the illustrative done-rule;
+the closure kit itself is G3–G9) — that is *this* dogfood's
 numbering, not a convention you inherit. A closure probe is still a probe: it must be
 able to go red (`--selftest`), and like every proxy it is a *floor* — green means
 "the set matches itself," not "the project is correct" (see Honest limit).
@@ -419,7 +422,7 @@ consistency lens (`references/consistency-lens.md`) as a **derivation engine fir
 a dimension (and its intent) the basis + investigation settle with high confidence
 is decided `[auto]`, **not asked**. Bring to the human only the genuinely
 undecidable residue — which dimensions truly bear load, and what a *violation* of
-each means (the intent D-59 needs, theirs to state) — and when you do, **lead with a
+each means (the intent the independent review needs, theirs to state) — and when you do, **lead with a
 curated option-set you generated from the basis + research, with a recommendation
 (expand their space), never a blank prompt or the eight laws as a form**: the
 human's strength is judgment and receptivity, not breadth of recall, so do the

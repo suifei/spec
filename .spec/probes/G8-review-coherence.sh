@@ -30,8 +30,8 @@ locked_reqs() {
 assert_parser_sane() {
   local SPEC="$1" n
   n=$(locked_reqs "$SPEC" | grep -c . || true)
-  if [ "$n" -eq 0 ] && grep -qF '[locked]' "$SPEC"; then
-    echo "  RED  parser recognized ZERO locked reqs yet SPEC contains '[locked]' — requirement shape unrecognized (probe is blind, not green); align SPEC.md's requirement markdown with the PARSER CONTRACT or extend locked_reqs()"
+  if [ "$n" -eq 0 ] && grep -qE 'R[0-9]+.*\[locked\]|\[locked\].*R[0-9]+' "$SPEC"; then
+    echo "  RED  parser recognized ZERO locked reqs yet SPEC has a requirement tagged '[locked]' — requirement shape unrecognized (probe is blind, not green); align SPEC.md's requirement markdown with the PARSER CONTRACT or extend locked_reqs()"
     return 1
   fi
   return 0
@@ -51,7 +51,10 @@ check() {
     for trace in "$EVID"/review-"$rid"-*.md; do
       [ -e "$trace" ] || continue
       found=1
-      grep -qiE '^level:[[:space:]]*L2\b' "$trace" && is_l2=1
+      # NB: L2 classification comes ONLY from the SPEC entry's *Review:* field (set
+      # above) — never from this trace. The trace is the artifact under inspection;
+      # letting it self-declare "level: L2" would escalate an honest L1 req and
+      # false-RED it (A1-1). is_l2 is fixed for the whole requirement now.
       # cited iff it anchors to SPEC AND reckons Intent AND quotes a concrete passage
       if grep -qi 'SPEC\.md' "$trace" && grep -qiE 'intent:|意图:' "$trace" \
          && grep -qE '^[[:space:]]*> |quote:|引用:|anchor:|line[[:space:]]*:|§|ch[0-9]+|章节|manuscript/|src/|[a-z0-9_-]+/[a-z0-9_.-]+\.(md|txt)' "$trace"; then
@@ -82,6 +85,10 @@ if [ "${1:-}" = "--selftest" ]; then
   printf '%s\n' '### R1 [locked] heading form. *Method:* WEAK(cited). *Review:* L1. *Intent:* [auto] x.' > "$tmp/blind.md"
   check "$tmp/blind.md" "$tmp/evid" >/dev/null 2>&1 && { echo "NEG FAIL: parser-blind SPEC was silent GREEN"; exit 1; } \
     || echo "  neg-control ok: parser-blind SPEC -> RED"
+  # prose-mention of [locked] (not a real tag) + only provisional reqs stays GREEN.
+  printf '%s\n' 'Requirements carry the [locked] tag once evidence-backed.' '- **R1.** [provisional] first.' > "$tmp/prose.md"
+  check "$tmp/prose.md" "$tmp/evid" >/dev/null 2>&1 && echo "  pos-control ok: prose [locked] mention -> GREEN" \
+    || { echo "POS FAIL: prose-mention of [locked] false-RED'd"; exit 1; }
   printf '%s\n' '- **R1** [locked] a thing. *Method:* WEAK(cited). *Review:* L1. *Intent:* [auto] x.' > "$tmp/S.md"
   check "$tmp/S.md" "$tmp/evid" >/dev/null 2>&1 && { echo "NEG FAIL: missing review trace not caught"; exit 1; } \
     || echo "  neg-control ok: review-requiring req with no trace -> RED"
@@ -102,6 +109,12 @@ if [ "${1:-}" = "--selftest" ]; then
   printf 'ref: SPEC.md R2\nlevel: L2\nproducer-engine: claude-sonnet-5\nreviewer-engine: claude-opus-4-8\nintent: met\n> "passage"\n' > "$tmp/evid/review-R2-x.md"
   check "$tmp/S2.md" "$tmp/evid" >/dev/null 2>&1 && echo "  pos-control ok: L2 distinct engines -> GREEN" \
     || { echo "POS FAIL: L2 distinct-engine trace flagged"; exit 1; }
+  # A1-1 regression guard: an HONEST L1 req whose trace carries a stray 'level: L2'
+  # line must stay GREEN — only the SPEC's *Review:* field decides L1 vs L2.
+  printf '%s\n' '- **R3** [locked] thing. *Method:* WEAK(cited). *Review:* L1. *Intent:* [auto] x.' > "$tmp/S3.md"
+  printf 'ref: SPEC.md R3\nlevel: L2\nintent: met\n> "passage"\n' > "$tmp/evid/review-R3-x.md"
+  check "$tmp/S3.md" "$tmp/evid" >/dev/null 2>&1 && echo "  pos-control ok: L1 req + stray L2-trace level -> GREEN (trace can't escalate)" \
+    || { echo "POS FAIL: L1 req false-RED'd by trace's level: L2"; exit 1; }
   echo "RESULT: G8 self-test passed (non-vacuous, forgery caught)"; exit 0
 fi
 
