@@ -29,8 +29,8 @@ every later run. Code/identifiers/paths/URLs/timestamps stay verbatim.
 *is*, established from an official/primary source — cite it (URL / `.spec/knowledge/`
 ref); or `OPEN` if not yet established. Architecting for a subject you haven't
 actually identified is the worst, most common failure — catch it first. The
-`.spec/probes/G7-subject-essence.sh` closure check goes RED if §1 asserts the
-subject with no authoritative citation.>
+**subject-essence** closure probe (see `SKILL.md` "The closure probe kit") goes RED
+if §1 asserts the subject with no authoritative citation.>
 <The core problem (not surface symptoms), for whom, what success looks like.>
 
 ## 2. Scope & boundaries
@@ -67,10 +67,18 @@ Each load-bearing requirement carries three fields: **Intent** (the purpose it p
 set it), **Acceptance** (the observable *what*), and **Method** (the *how it's verified*:
 `.spec/probes/<R>.sh` Probed, `OPEN` — no red-able check yet, or `WEAK(cited)` — un-scriptable).
 Intent is first-class because it is what the independent review verifies against (proxy-vs-intent,
-`references/probes.md`/D-59) and what the consistency lens elicits (`references/consistency-lens.md`);
+`references/probes.md`) and what the consistency lens elicits (`references/consistency-lens.md`);
 never leave it as implicit prose. Never Acceptance alone; "build/tests pass" is not an acceptance.
 UI/interaction behavior ⇒ an **E2E** method at the real entrypoint. (See `references/probes.md`.)
-- **R1.** `[locked]` The system SHALL <…>. *Intent:* `[auto|human]` <the purpose; what a violation looks like>. *Acceptance:* <observable behavior at the real entrypoint>. *Method:* `.spec/probes/R1.sh` (E2E | unit | integration) — neg-control breaks the wiring, not just the logic.
+A requirement whose acceptance is **generated against a metric** (prose, generated content, any
+gameable quantity/quality) adds a fourth field — **Review**: `L1` (independent same-model review)
+or `L2` (judgment-independent: a different model / human / different-engine `/code-review`) — marking
+that `/build`'s done-condition also requires an independent intent-review with a cited trace
+(`.spec/evidence/review-<Rn>-<ts>.md` reckoning the recorded Intent + quoting the artifact). The
+**review-trace** closure probe RED-flags a `*Review:*` requirement whose trace is missing or hollow;
+for `L2` it also requires the trace to declare distinct `producer-engine:` / `reviewer-engine:`
+(the machine-checkable proxy for "a different judgment basis" — same-engine relabeling goes RED).
+- **R1.** `[locked]` The system SHALL <…>. *Intent:* `[auto|human]` <the purpose; what a violation looks like>. *Acceptance:* <observable behavior at the real entrypoint>. *Method:* `.spec/probes/R1.sh` (E2E | unit | integration) — neg-control breaks the wiring, not just the logic. *(For generative/quality work, add* `*Review:*` `L1|L2`.)*
 - **R2.** `[provisional→Phase 2]` The system SHALL <…>. *Unlocked by:* <trigger>
 
 ## 5. Dependencies (chosen tech)

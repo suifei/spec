@@ -39,7 +39,8 @@ time in UTC (run the platform's date command; never guess).
 - next: <…>
 - ticks: <N — present only while /yolo has a live loop: the monotonic tick counter,
   incremented each firing, ≤ the ceiling (default 20, override via `CEILING` env).
-  `.spec/probes/G9-tick-monotonic.sh` enforces it stays ≤ ceiling and never goes
-  backwards (a fresh-context tick overwriting a stale count is the ceiling-silently-
-  inflates risk). Absent when no loop is active.>
+  The **tick-ceiling** closure probe (see `SKILL.md` "The closure probe kit")
+  enforces it stays ≤ ceiling and never goes backwards (a fresh-context tick
+  overwriting a stale count is the ceiling-silently-inflates risk). Absent when no
+  loop is active.>
 - conflict: <none | what contradicts what · evidence path · code state left behind>

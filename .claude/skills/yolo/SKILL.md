@@ -57,8 +57,9 @@ never ask; code/paths/URLs/timestamps verbatim.
    where the scheduler exposes one, a cumulative cost/token budget. On hitting
    either, **stop and hand back to the human** with a status summary; never let an
    autonomous loop run unbounded. The ceiling is not honor-system in a
-   fresh-context-per-firing loop: `.spec/probes/G9-tick-monotonic.sh` enforces
-   `ticks` ≤ ceiling and never going backwards (a tick overwriting the counter with
+   fresh-context-per-firing loop: the **tick-ceiling** closure probe (see `/spec`'s
+   "The closure probe kit") enforces `ticks` ≤ ceiling and never going backwards (a
+   tick overwriting the counter with
    a stale value is the ceiling-silently-inflates risk). An infinite (or
    infinitely-expensive) loop is exactly the harm `/yolo` must fail safe against.
 
@@ -95,22 +96,27 @@ deliberate or narrate. Do these in order, as actual tool calls:
    > rehydrate from `.spec/STATE.md` `## build`; (2) if buildable `[locked]` work
    > remains, run the `/build` cycle to green — plan → construct → re-run gates +
    > acceptance — and commit the code on green (never the plan); (3) review this
-   > round's diff; **for generated / quality-or-quantity work, the review must be an
-   > INDEPENDENT reviewer** — default **L1**: spawn a fresh **`general-purpose`**
-   > sub-agent (always-available; do **not** assume a specialized
-   > `code-reviewer`/`reviewer` agent exists — that call errors out); escalate to
-   > **L2** (a different model / human / `/code-review` on a different engine) for
-   > high-stakes generative quality, or when L1 passed output that smells gamed. It
-   > **reads `SPEC.md` + the artifact from disk itself** (give it the *paths*, not
-   > content this loop pastes in — a relayed copy would defeat the independence) and
-   > asks *"is each requirement's **recorded
-   > Intent** genuinely met, or only its letter?"* — reasoning from that stated
-   > purpose (metric-gaming / padding / faked requirements are non-exhaustive
-   > examples, not a checklist), citing offending passages — **never a self-review
-   > by this loop's own context**,
-   > which would pass its own shortcuts; write the sign-off as an auditable trace
-   > `.spec/evidence/review-<Rn>-<ts>.md` citing the requirement's Intent + the artifact
-   > (a done review-requiring req with no cited trace is a red coherence finding); fix
+   > round's diff; **for a requirement generated against a metric (marked `*Review:*`
+   > in SPEC), the review must be an INDEPENDENT reviewer** — default **L1**: spawn a
+   > fresh **`general-purpose`** sub-agent (always-available; do **not** assume a
+   > specialized `code-reviewer`/`reviewer` agent exists — that call errors out). **In
+   > this autonomous loop, L1 alone is weak**: a clean context of the *same* model
+   > shares this loop's optimizer blind spots and can still pass hollow output it is
+   > biased to like — so **high-stakes generative quality requires L2** (a different
+   > model / human / `/code-review` on a different engine), not merely "escalate if it
+   > smells gamed." It **reads `SPEC.md` + the artifact from disk itself** (give it the
+   > *paths*, not content this loop pastes in — a relayed copy would defeat the
+   > independence) and asks *"is each requirement's **recorded Intent** genuinely met,
+   > or only its letter?"* — reasoning from that stated purpose (metric-gaming /
+   > padding / faked requirements are non-exhaustive examples, not a checklist),
+   > quoting the offending passage — **never a self-review by this loop's own
+   > context**, which would pass its own shortcuts; write the sign-off as an auditable
+   > trace `.spec/evidence/review-<Rn>-<ts>.md` that **reckons each recorded Intent and
+   > quotes a concrete artifact passage** (a hollow trace that only names SPEC +
+   > artifact is the cheapest forgery — it goes red; a done review-requiring req with
+   > no cited trace is a red coherence finding; an **L2** review's trace must also
+   > declare distinct `producer-engine:`/`reviewer-engine:` — same-engine relabeling
+   > goes red); fix
    > verified findings, re-running gates if a fix touched anything gated; (4) checkpoint `## build`
    > with a real UTC timestamp; then **end the turn** so the schedule fires the
    > next round. When no buildable `[locked]` work remains — **and the phase's
@@ -136,17 +142,15 @@ never stop after one tick — inline, the turn ends only at a termination
 condition. "One tick, then silence" is exactly the failure this command exists
 to prevent.
 
-### Each firing (what the schedule runs; the same cycle, inline, on fallback)
-The loop prompt above *is* the tick — this restates it for the inline path and
-for clarity. In order: **re-read `SPEC.md` + acceptance + anti-patterns from disk**
-(retained context erodes across a long loop), rehydrate from `## build`, reconcile
-the worktree (interrupted-tick residue handled per `/build` Step 0); if buildable
-targets remain, run `/build` **autonomous-to-green** and commit on green (never the
-plan); review the diff — **independent clean-context reviewer for generated/quality
-work, never a self-review** — and fix verified findings, re-running gates if the
-fixes touched anything gated; checkpoint `## build` (real UTC — every tick, even a
-no-op). Then let the schedule fire the next round (inline: go straight into the
-next tick). Evaluate the termination conditions each firing.
+### Each firing (the inline-fallback delta only)
+The loop prompt under **"Fire the loop"** *is* the tick — each scheduled firing runs
+exactly that cycle, stateless, re-reading from disk. This section does **not**
+re-derive that cycle (restating it here is the drift surface the fixed prompt exists
+to avoid); it states only the **inline fallback** delta: when neither the `loop`
+skill nor `CronCreate` exists, run that same tick contract back-to-back **in this
+turn**, never stopping after one tick — the turn ends only at a termination
+condition. "One tick, then silence" is exactly the failure this command exists to
+prevent.
 
 ### Termination — the delete is part of "done"
 A firing that meets **any** condition does **not** build — it deletes the loop

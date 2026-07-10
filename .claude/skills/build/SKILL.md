@@ -49,19 +49,23 @@ block construction on it. *(This repo's pin: English.)*
    the persisted middle layer is the drift surface; we don't keep one.
 3. **Done = green gates + (for generative/quality work) an independent review.**
    *(This principle is the single authority for the done-condition; `/yolo` and the
-   command wrappers **reference** it, they do not redefine it — see the self-coherence
-   probe `.spec/probes/G3-done-coherence.sh`.)*
-   Construction is "done" **only** when each targeted requirement's acceptance holds
-   and the load-bearing gates are green — by **re-running** `.spec/probes/`. A red
-   gate blocks done. **But green gates alone are not done when the artifact is
-   something you *generated* against a metric** (prose, generated content, anything
-   with a quantity/quality acceptance): a probe can go green on **metric-gamed**
-   output (padding, filler, a threshold hit with nothing real behind it — see
-   `/spec`'s `references/probes.md`, "When the builder optimizes the metric"). For
-   such requirements, done **also** requires an **independent, clean-context,
-   adversarial review** that signs off with a cited, auditable evidence trace — a
-   reviewer that is **not** this build's own context (which has every incentive to
-   pass itself). Never self-certify "looks finished." (Honest limit: this closure is
+   command wrappers **reference** it, they do not redefine it — see the **done-coherence**
+   closure probe in `/spec`'s "The closure probe kit".)*
+   Construction is "done" **only** when **all** of:
+   - each targeted requirement's **acceptance** holds;
+   - the load-bearing **gates are green** by **re-running** `.spec/probes/` — and
+     "green" means green against the *current* spec, so the gate set must still match
+     it (spec↔probe coherence; a stale-green set is not done — see Step 4);
+   - for a requirement **generated against a metric** (prose, generated content, any
+     gameable quantity/quality), an **independent, clean-context, adversarial review**
+     has signed off with a cited, auditable evidence trace — a reviewer that is **not**
+     this build's own context (which has every incentive to pass itself).
+   A red gate, a stale gate set, or a missing/hollow review trace blocks done. The
+   generative/metric case (bullet 3) exists because a probe can go green on
+   **metric-gamed** output (padding, filler, a threshold hit with nothing real behind
+   it — see `/spec`'s `references/probes.md`, "When the builder optimizes the
+   metric"); the independent review is the only gate for that residue. Never
+   self-certify "looks finished." (Honest limit: this closure is
    *auditable, not certain* — it depends on the executor actually running an honest
    review; see `references/probes.md`, "Honest limit".)
 4. **No silent contradiction — route conflicts to `/spec` (R1).** If reality
@@ -172,11 +176,18 @@ batch that touched a generative-quality or gameable-quantity gate**, run an
   is a spec gap → Step 6 / `/spec`, not something the reviewer invents.)
 - **Gates done, with fixes** — a review that finds a defect blocks done: fix (or
   regenerate the offending part), re-run gates, re-review. Capture the sign-off as an
-  **auditable trace** — `.spec/evidence/review-<Rn>-<ts>.md` citing the requirement's
-  Intent + the artifact location (see `references/probes.md`; a done review-requiring
-  requirement with no cited trace is a red coherence-probe finding). This is the deliberate exception to
+  **auditable trace** — `.spec/evidence/review-<Rn>-<ts>.md` that **reckons each
+  recorded Intent** (states, per intent, whether genuinely met or only its letter)
+  **and quotes a concrete artifact passage** (a line / anchor / quoted text — not just
+  the artifact's name). A hollow trace that only names `SPEC.md` + the artifact is the
+  cheapest forgery and goes **red** — make that cheat the trace probe's negative
+  control (see `references/probes.md`; a review-requiring requirement with no cited
+  trace is a red coherence-probe finding). This is the deliberate exception to
   "probes-only": generative quality is unscriptable, so an *honest* AI review
-  (independent, adversarial, evidence-backed) is the only gate for it.
+  (independent, adversarial, evidence-backed) is the only gate for it. For an **L2**
+  review the trace also declares distinct `producer-engine:` / `reviewer-engine:` —
+  the coherence probe RED-flags an L2 trace missing them or reusing the same engine
+  (relabeling an L1 as L2 is the forgery this catches).
 
 **A load-bearing acceptance with no red-able *method* is an incomplete gate, not
 an assumed pass.** If the acceptance is prose with no `.spec/probes/<R>.sh` to

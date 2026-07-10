@@ -3,7 +3,7 @@
 # spec: every [locked] requirement whose Method references a .spec/probes/<X>.sh
 # has that file; no probe file is orphaned (referenced by nothing in SPEC). RED
 # on either — a stale set is a false green (the drift-detector drifting).
-# (Template: references/coherence.template.sh; reference impl: eval/cn-novel/_coherence.sh. D-69.)
+# (Template: references/coherence.template.sh; reference impl: eval/cn-novel/.spec/probes/_coherence.sh. D-69.)
 set -euo pipefail
 
 locked_reqs() {
@@ -12,11 +12,34 @@ locked_reqs() {
        { if(e!=""){ print e; e="" } } END { if(e!="") print e }' "$1" | grep -F '[locked]'
 }
 
+# ---- parser-health guard (anti-vacuous-green) --------------------------------
+# locked_reqs() is a brittle awk heuristic bound to a PARSER CONTRACT (a
+# requirement = a list item whose first line matches `^- **R<n>.**` carrying
+# `[locked]`). If SPEC.md drifts from that shape (headings instead of list items,
+# a different bullet, fields wrapped across a blank line), locked_reqs() silently
+# matches ZERO entries and the check() loop never runs -> GREEN over a spec the
+# probe never parsed (the drift-detector's own vacuous-green). So make it the
+# negative control: if the raw SPEC contains `[locked]` but locked_reqs()
+# recognized none, the parser is blind -> RED. (probes.md "A gate is a proxy for
+# an intent"; consistency-lens law 5.) Legitimately-zero-[locked] stays GREEN.
+assert_parser_sane() {
+  local SPEC="$1" n
+  n=$(locked_reqs "$SPEC" | grep -c . || true)
+  if [ "$n" -eq 0 ] && grep -qF '[locked]' "$SPEC"; then
+    echo "  RED  parser recognized ZERO locked reqs yet SPEC contains '[locked]' — requirement shape unrecognized (probe is blind, not green); align SPEC.md's requirement markdown with the PARSER CONTRACT or extend locked_reqs()"
+    return 1
+  fi
+  return 0
+}
+
 check() {
   local SPEC="$1" PROBES="$2" fail=0 line refs deferred r base f
+  assert_parser_sane "$SPEC" || return 1
   while IFS= read -r line; do
     refs=$(grep -oE '\.spec/probes/[A-Za-z0-9_-]+\.sh' <<<"$line" || true)
     [ -z "$refs" ] && continue
+    # "not-yet-instantiated" markers: Phase/deferred/OPEN/WEAK, plus `实例化`
+    # ("instantiate [at construction]", the cn-novel eval's convention). Waited, not RED.
     deferred=0; grep -qE 'Phase|实例化|OPEN|WEAK|deferred' <<<"$line" && deferred=1
     for r in $refs; do
       base=$(basename "$r")
@@ -35,6 +58,11 @@ check() {
 
 if [ "${1:-}" = "--selftest" ]; then
   tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT; mkdir -p "$tmp/probes"
+  # parser-blindness: a SPEC whose [locked] req is in an UNRECOGNIZED shape (heading)
+  # must RED — not silent GREEN because locked_reqs() matched zero. (assert_parser_sane)
+  printf '%s\n' '### R1 [locked] heading form. *Method:* Probed(.spec/probes/G-real.sh). *Intent:* [auto] x.' > "$tmp/blind.md"
+  check "$tmp/blind.md" "$tmp/probes" >/dev/null 2>&1 && { echo "NEG FAIL: parser-blind SPEC was silent GREEN"; exit 1; } \
+    || echo "  neg-control ok: parser-blind SPEC -> RED"
   printf '%s\n' '- **R1** [locked] a thing. *Method:* Probed(.spec/probes/G-missing.sh). *Intent:* [auto] x.' > "$tmp/S.md"
   check "$tmp/S.md" "$tmp/probes" >/dev/null 2>&1 && { echo "NEG FAIL: ungated locked req not caught"; exit 1; } \
     || echo "  neg-control ok: missing referenced probe -> RED"

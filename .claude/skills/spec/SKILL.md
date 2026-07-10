@@ -252,8 +252,37 @@ project onto. Use it as an **elicitation scaffold, never a checklist to enshrine
 *intent* behind each ("what would count as violating this?") — out of the human
 interactively** (Step 3, low-burden), because *which* dimensions matter and what
 each *means* are the human's to state, and that stated intent is exactly what every
-gate's proxy-vs-intent test (D-59) needs. Stay open — the basis is well-grounded,
+gate's proxy-vs-intent test needs. Stay open — the basis is well-grounded,
 not complete; add any load-bearing dimension it misses.
+
+## The closure probe kit (the drift-detector that watches the drift-detector)
+
+A project's **domain gates** (your `G1`, `G2`… — the load-bearing truths the design
+rests on, like the GPU example in `references/probes.md`) are one thing. There is
+also a small, **standard kit of *closure* probes** every project carries: they don't
+test a domain truth, they test **whether the spec/gate set is still coherent with
+itself and the current spec** — the failure where the drift-detector itself drifts
+(a green board worth nothing because the probes test a superseded spec). Instantiate
+them from `references/coherence.template.sh` (and `references/probe.template.sh` for
+the done-rule) on first persist; **name them in your project's own scheme and
+reference them by *role*, never by another project's gate numbers.** The roles:
+
+- **requirement-completeness** — every `[locked]` requirement carries Intent + Method
+  (never Acceptance alone).
+- **spec ↔ probe** — every Probed `[locked]` requirement has its probe file; no
+  orphan probe (a stale set is a false green).
+- **review-trace** — every review-requiring `[locked]` requirement has a cited
+  independent-review trace.
+- **subject-essence** — the spec's first section establishes the subject from an
+  authoritative source (define the noun before the verb).
+- **done-coherence / writeback / tick-ceiling** — when `/build`/`/yolo` are in use:
+  the done-condition stays coherent across skill files and wrappers; construction is
+  written back to the phases ledger; `/yolo`'s tick ceiling is structurally enforced.
+
+This repo's own `SPEC.md` numbers its kit `G2…G9` — that is *this* dogfood's
+numbering, not a convention you inherit. A closure probe is still a probe: it must be
+able to go red (`--selftest`), and like every proxy it is a *floor* — green means
+"the set matches itself," not "the project is correct" (see Honest limit).
 
 ---
 
@@ -429,8 +458,8 @@ provenance).** Alongside Acceptance (the *what*) and Method (the *how*), write t
 **Intent** — the purpose the requirement protects, stated as *what would count as
 violating it* — and tag its provenance `[auto]` (you derived it) or `[human]` (the
 human set it, e.g. via the consistency-lens elicitation). Intent is not decoration:
-it is the thing the independent review checks against (proxy-vs-intent, D-59) and
-the thing the lens elicits (D-60); left as implicit prose it drifts and can't be
+it is the thing the independent review checks against (proxy-vs-intent) and
+the thing the consistency lens elicits; left as implicit prose it drifts and can't be
 verified against. A `[human]`-set intent must not be silently overwritten by a later
 `[auto]` derivation — that's a spec conflict for the human, not a self-decision.
 
@@ -480,7 +509,7 @@ a later run adds, changes, or supersedes a requirement, `SPEC.md` moving is only
 half the update: the **gate set must move with it**, or `/build` re-runs a stale
 set and goes green against a spec it no longer matches (the drift detector itself
 drifts). So on every re-run, for each affected requirement:
-- **new** load-bearing requirement → **author its probe** (Step 5 / D-54) — a new
+- **new** load-bearing requirement → **author its probe** (Step 5) — a new
   requirement with no method is ungated, a silent false green;
 - **changed** acceptance → **replace the stale probe** — a probe still testing the
   *old* behavior passes while the new behavior is unverified, which is worse than

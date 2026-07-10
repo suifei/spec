@@ -10,7 +10,7 @@ budget), but they project onto a small **universal basis**.
 scaffold.** You are the analyst; the basis is your internal differential. Derive which dimensions bear
 load where you can, and **draw the rest — and the *intent* behind each — out of the human
 interactively.** The human owns what "consistent" *means* for their project; you own spotting the gaps
-and asking well. (This is also what closes the anti-cheat loop: D-59's "verify intent, not letter" needs
+and asking well. (This is also what closes the anti-cheat loop: the "verify intent, not letter" principle needs
 an intent, and intent can't be derived — it is the human's to state. Eliciting it here is where it comes
 from.)
 
@@ -27,7 +27,8 @@ from.)
 | 7 | **Genuine progress** — each active thread advances toward closure, no stall, and the advance is *real* (judged by intent, not faked) | novel: main/subplot advance, no 注水 · code: milestones truly close, no busywork · research: each pass reduces uncertainty | "For each thread: what counts as *real* progress here vs. going through the motions?" |
 | 8 | **Provenance** — every change is recorded, timestamped, attributable (the substrate that makes 1–7 checkable) | novel: chapter summaries · code: commits/changelog · research: lab notebook/decision log | (rarely elicited — you provide this via `STATE.md` / evidence / Decision Log) |
 
-Laws 1–6 govern the *state*; law 7 is the *goal* (D-58/59 live here); law 8 is the *substrate* that
+Laws 1–6 govern the *state*; law 7 is the *goal* — genuine progress, and the "verify
+intent, not letter" principle lives here; law 8 is the *substrate* that
 makes the rest verifiable.
 
 ## How to run it (derive first, ask sparingly, human owns intent)
@@ -39,7 +40,7 @@ makes the rest verifiable.
    **derivation engine first, an elicitation aid only for the residue.** A dimension (and its intent)
    that the basis + your investigation settle with **high confidence is decided and registered `[auto]`
    — you do NOT ask it.** The human's attention is spent only on what is *genuinely* undecidable: which
-   dimensions truly bear load here, and what a *violation* of each means (the intent D-59 needs — theirs
+   dimensions truly bear load here, and what a *violation* of each means (the intent the independent review needs — theirs
    to state). And when you do ask, **lead with a curated option-set you generated from the basis +
    research — candidate dimensions, candidate intents, framings they may not have considered — with a
    recommendation**, not a blank prompt. The human's strength is judgment, imagination, and receptivity,
@@ -53,7 +54,7 @@ makes the rest verifiable.
    **independent intent-level review** where it isn't (genuine progress/quality). Write the dimension's
    purpose into the requirement's first-class **Intent field** (tagged `[auto]` if you derived it,
    `[human]` if elicited) — that recorded intent is exactly what the independent review verifies against
-   (D-59); do not leave it as implicit prose. Then it's an ordinary gate, held to the three-part test in
+   (see `references/probes.md`); do not leave it as implicit prose. Then it's an ordinary gate, held to the three-part test in
    `SKILL.md`.
 4. **Stay open — the basis is well-grounded, not complete.** The human may name a load-bearing dimension
    it doesn't cover (an aesthetic bar, an ethical/legal constraint, a domain invariant). Add it as a

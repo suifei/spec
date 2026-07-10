@@ -213,7 +213,15 @@ ways it will diverge. Apply two moves that generalize to any gate, any domain:
      - **L2 — judgment-independent (stronger):** a different model, a human, or
        `/code-review` on a different engine — use for high-stakes generative
        quality, or when L1 passed output that smells gamed. Only L2 defends against
-       systematic bias. **Never a self-review.**
+       systematic bias. **Never a self-review.** Its trace records `producer-engine:`
+       and `reviewer-engine:` (e.g. `claude-sonnet-5` vs `claude-opus-4-8` / `human` /
+       `gpt-4o`) and the two must **differ** — the machine-checkable proxy for "a
+       different judgment basis." The review-trace coherence probe goes **red** on an
+       L2 review whose trace omits those fields or reuses the same engine (relabeling
+       an L1 — same model, clean context — as L2 is the forgery this catches). This is
+       a *floor, not certainty*: the strings can still be lied about, but a present
+       distinct pair is no longer the cheapest path to a fake L2 and leaves an auditable
+       claim a human can sanity-check.
    - **Adversarial and intent-anchored** — its job is to decide whether the *purpose*
      is genuinely met and to *find* where only the letter was satisfied. Known
      tricks (padding, filler, faked/skipped requirements, hollow output that
@@ -221,12 +229,17 @@ ways it will diverge. Apply two moves that generalize to any gate, any domain:
      reasons from intent, it does not tick a list.
    - **Cited evidence, not a verdict — leave an auditable trace** — it quotes the
      offending (or, on a pass, the corroborating) passage/line; a bare "looks fine" is not
-     evidence (words never are). Write the sign-off to `.spec/evidence/review-<Rn>-<ts>.md`
-     citing **both** (1) the requirement + its recorded **Intent** in `SPEC.md`, and (2) the
-     artifact location (section/line/quote). This makes the review *auditable*: no trace ⇒ the
-     review can't be shown to have happened — a coherence probe over `.spec/evidence/review-*.md`
-     goes **red** on a done review-requiring requirement with a missing/uncited trace (reference
-     implementation: `eval/cn-novel/.spec/probes/_review-coherence.sh`).
+     evidence (words never are). Write the sign-off to `.spec/evidence/review-<Rn>-<ts>.md` so it
+     **reckons each recorded Intent** (states, per intent, whether genuinely met or only its
+     letter) **and quotes a concrete artifact passage** (section/line/`>`-quoted text) — not just
+     names `SPEC.md` + the artifact. That hollow trace is the *cheapest forgery* (a fake review),
+     and the coherence probe over `.spec/evidence/review-*.md` makes it the negative control: it
+     goes **red** on a review-requiring requirement whose trace is missing **or** present-but-hollow
+     (names SPEC + artifact but reckons no Intent and quotes nothing). This makes the closure
+     *auditable and forgery-resistant* — a present, well-formed trace is no longer the cheapest
+     path to green; writing one still engages the actual intents and the actual artifact.
+     (Reference shape: `eval/cn-novel/.spec/probes/_review-coherence.sh`; template:
+     `references/coherence.template.sh`.)
 
 **Defense in depth.** The hardened measure is cheap, deterministic, catches the
 crude gaming; the intent review catches the subtle miss a probe can't (output that
@@ -309,7 +322,16 @@ The independent-review + done-gating that guards generated/quality work is
 **probabilistic, dependent on the executor model actually following these
 instructions — not a mechanical guarantee.** A determined or budget-starved
 optimizer can still satisfy the cheapest reading (run the review for show, or
-skip it). The review-trace probe (above) makes the closure **auditable, not
-certain** — no trace ⇒ red, but a present trace proves a review happened, not
-that it was honest. Hold this pipeline to the same standard it holds user
-projects: a lower bound on verified truth, not a correctness proof.
+skip it). Hardening the trace to *reckon each Intent + quote a concrete passage*
+(above) raises that cost — a hollow "looks fine" trace is no longer the cheapest
+path to green, it is the negative control — but a well-formed trace still proves
+only that a review *engaged the artifact*, not that the reviewer was independent or
+honest. The L2 `producer-engine:`/`reviewer-engine:` inequality check closes the
+*cheapest* L2 forgery (same-engine relabeling) but not a determined lie about the
+strings — it raises the cost and makes the claim auditable, it does not certify it. **This gap is widest exactly where optimizer pressure is maximal: an
+autonomous `/yolo` loop.** There L1 (a clean context of the *same* model) shares the
+loop's own blind spots and can pass hollow output it is biased to like, so
+high-stakes generative quality requires L2 (a different model / human /
+different-engine `/code-review`), not an L1 the loop can satisfy from its own
+toolbox. Hold this pipeline to the same standard it holds user projects: a lower
+bound on verified truth, not a correctness proof.

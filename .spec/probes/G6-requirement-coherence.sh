@@ -14,8 +14,29 @@ locked_reqs() {
        { if(e!=""){ print e; e="" } } END { if(e!="") print e }' "$1" | grep -F '[locked]'
 }
 
+# ---- parser-health guard (anti-vacuous-green) --------------------------------
+# locked_reqs() is a brittle awk heuristic bound to a PARSER CONTRACT (a
+# requirement = a list item whose first line matches `^- **R<n>.**` carrying
+# `[locked]`). If SPEC.md drifts from that shape (headings instead of list items,
+# a different bullet, fields wrapped across a blank line), locked_reqs() silently
+# matches ZERO entries and the check() loop never runs -> GREEN over a spec the
+# probe never parsed (the drift-detector's own vacuous-green). So make it the
+# negative control: if the raw SPEC contains `[locked]` but locked_reqs()
+# recognized none, the parser is blind -> RED. (probes.md "A gate is a proxy for
+# an intent"; consistency-lens law 5.) Legitimately-zero-[locked] stays GREEN.
+assert_parser_sane() {
+  local SPEC="$1" n
+  n=$(locked_reqs "$SPEC" | grep -c . || true)
+  if [ "$n" -eq 0 ] && grep -qF '[locked]' "$SPEC"; then
+    echo "  RED  parser recognized ZERO locked reqs yet SPEC contains '[locked]' — requirement shape unrecognized (probe is blind, not green); align SPEC.md's requirement markdown with the PARSER CONTRACT or extend locked_reqs()"
+    return 1
+  fi
+  return 0
+}
+
 check() {
   local SPEC="$1" fail=0 entry has_intent has_method rid
+  assert_parser_sane "$SPEC" || return 1
   while IFS= read -r entry; do
     has_intent=0; has_method=0
     grep -qiE '\*Intent:|\*意图:' <<<"$entry" && has_intent=1
@@ -33,6 +54,11 @@ check() {
 
 if [ "${1:-}" = "--selftest" ]; then
   tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
+  # parser-blindness: a SPEC whose [locked] req is in an UNRECOGNIZED shape (heading)
+  # must RED — not silent GREEN because locked_reqs() matched zero. (assert_parser_sane)
+  printf '%s\n' '### R1 [locked] heading form. *Intent:* [auto] x. *Acceptance:* works. *Method:* WEAK(cited).' > "$tmp/blind.md"
+  check "$tmp/blind.md" >/dev/null 2>&1 && { echo "NEG FAIL: parser-blind SPEC was silent GREEN"; exit 1; } \
+    || echo "  neg-control ok: parser-blind SPEC -> RED"
   printf '%s\n' '- **R1** [locked] a thing. *Acceptance:* it works. *(D1)*' > "$tmp/S.md"
   check "$tmp/S.md" >/dev/null 2>&1 && { echo "NEG FAIL: Acceptance-only locked req not caught"; exit 1; } \
     || echo "  neg-control ok: Acceptance-only -> RED"

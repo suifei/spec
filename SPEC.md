@@ -1,6 +1,6 @@
 # /spec → /build — Specification (this repo)
 
-> **Version:** v1 · **Updated:** 2026-07-08 · **Artifact language:** English — pinned 2026-06-30 (declared: global open-source audience; not re-asked)
+> **Version:** v1 · **Updated:** 2026-07-10 · **Artifact language:** English — pinned 2026-06-30 (declared: global open-source audience; not re-asked)
 > **Closure:** Phase 1 (`/spec`, Gate 1) ✅ sealed · Phase 2 (`/build`, Gate 1.5) ✅ sealed (spec settled 2026-06-30) · construction ✅ built 2026-06-30 (recorded 2026-07-06)
 >
 > Authoritative, highest-priority reference for this repo. Maintained by `/spec`.
@@ -115,6 +115,12 @@ over `SPEC.md` + `.spec/`, instantiated from the shipped `references/coherence.t
 - **Honest limit:** these are coherence checks (does the set match itself / the spec?),
   illustrative over prompt files the way G2 is illustrative over the done-rule;
   behavioral proof that the pipeline actually runs them lives in `eval/`.
+- **Third-pass hardening (2026-07-10, Round 40 / D-74…D-77):** the closure kit is now declared **by role**
+  in `spec/SKILL.md` ("The closure probe kit"), so the distributed skill no longer hardcodes this dogfood's
+  `G2…G9` numbers (the `G1`-vs-closure-kit namespace is now disambiguated); and G8's review-trace bar is
+  hardened — a cited trace must **reckon the recorded Intent + quote a concrete artifact passage**, and a
+  hollow trace (only names SPEC + artifact) goes RED as the selftest's negative control (the forgery made
+  the probe's red). Details: `docs/DESIGN-NOTES.md` Round 40.
 - **R1.** `[locked]` `/build` SHALL treat `SPEC.md` + `.spec/` as authoritative input and SHALL NOT contradict it; on a spec-vs-reality conflict it SHALL stop and route back to `/spec`. *Intent:* [auto] the build conforms to the settled contract and never silently overrides it — a violation is editing `SPEC.md` to make a build pass, or swallowing a spec-vs-reality conflict instead of routing it back. *Acceptance:* a conflicting build halts with a `/spec` hand-off, no SPEC edit. *Method:* WEAK(cited) — `/build` is a prompt skill with no importable function to exercise; the conflict-routing is not mechanically gated on the dogfood, only evidenced by `eval/` behavioral runs + the done-rule probes. *(D1)*
 - **R2.** `[locked]` `/build` SHALL regenerate the design/tasks plan each run and SHALL NOT commit it as a source of truth. *Intent:* [auto] the middle layer never hardens into a source of truth (the drift surface Spec Kit/Kiro accept) — a violation is a plan/tasks artifact committed as authoritative. *Acceptance:* no plan artifact enters the repo as authoritative; re-run reproduces it. *Method:* WEAK(cited) — prompt-skill behavior; evidenced by the gitignored `.spec/plan/` convention + `eval/`, no mechanical gate. *(D2)*
 - **R3.** `[locked]` `/build` SHALL declare construction **done** only when each targeted requirement's acceptance holds **and** the load-bearing gates are green (probes re-run). *Intent:* [auto] construction closes on verified truth, not "looks finished" — a violation is self-certified done, or green gates trusted without re-running them. *Acceptance:* behavioral evidence in `eval/` — the full pipeline gates "done" on real artifacts (red→green logs + `_coherence.sh`); G2 is an illustrative logic-check of the rule, not the behavioral proof. *Method:* WEAK(cited) — `/build` has no importable `done()`; behavioral proof lives in `eval/` (red→green logs + `_coherence.sh`); `.spec/probes/G2-done-by-gate.sh` models the rule, it is not the behavioral gate. *(D3)*
