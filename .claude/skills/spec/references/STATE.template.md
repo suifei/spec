@@ -40,12 +40,14 @@ time in UTC (run the platform's date command; never guess).
   with no phase falls back to an imprecise whole-file check).>
 - remaining: <…>
 - next: <…>
-- ticks: <N — present only while /yolo has a live loop. NOT a counter the firing
-  increments from memory: N MIRRORS `wc -l .spec/evidence/ticks.log` (each firing's
-  first action appends one line there — the append IS the increment, so a fresh
-  context can't forget-to-increment and loop forever). ≤ the ceiling (default 20,
-  override via `CEILING` env); `.spec/probes/G9-tick-monotonic.sh` cross-checks
-  log ↔ field and the ceiling after the fact. Absent when no loop is active.>
+- run_id: <UTC + random suffix; immutable for one /yolo run>
+- job_id: <scheduler id | inline>
+- run_status: <active|done|blocked|stuck|ceiling|stopped>
+- ceiling: <positive integer; default 20>
+- tick_log: <.spec/evidence/yolo/<run_id>/ticks.log>
+- ticks: <N — mirror of this run's tick_log only. Before a firing, if N >= ceiling,
+  stop without appending/building; otherwise append and N becomes the new count.>
+- artifact: <git:<commit> | sha256:<digest> covered by the final passing review>
 - last_failure: <none | one line: what this tick failed on — the anchor that lets the
   NEXT fresh-context firing detect "2nd identical failure" and stop>
 - no_progress_streak: <0..N — consecutive ticks with NO material progress (no gate

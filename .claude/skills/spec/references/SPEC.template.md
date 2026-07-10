@@ -12,7 +12,7 @@ every later run. Code/identifiers/paths/URLs/timestamps stay verbatim.
 
 # <Project Name> — Specification
 
-> **Version:** v<N> · **Updated:** <YYYY-MM-DD> · **Artifact language:** <English | 中文 | 日本語 | … — pinned <YYYY-MM-DD>, asked once>
+> **Version:** v<N> · **Updated:** <YYYY-MM-DD> · **Artifact language:** <English | 中文 | 日本語 | … — pinned <YYYY-MM-DD>, asked once> · **Profile:** <minimal|governed>
 > **Closure:** <Phase 1 ✅ sealed (gates green) · Phase 2 ⏳ open>
 >
 > Authoritative, highest-priority reference. Maintained by `/spec`. Gates are
@@ -41,11 +41,11 @@ if §1 asserts the subject with no authoritative citation.>
 ## 3. Gates (load-bearing sources of truth)
 List **only load-bearing** gates — a truth a real decision *hinges* on
 (load-bearing and uncertain and consequential-if-wrong). One authority per concern,
-backed by the strongest evidence: a probe that can go red, or (when unscriptable) a
-cited source marked WEAK. **Do not list commonsense facts** (a free port, a
+backed by the strongest evidence: a probe, CitedFact, HumanApproval, or Judged trace.
+**Do not list commonsense facts** (a free port, a
 writable dir, a tool on PATH) — they are not gates. Status ∈ {unverified,
 ✅ verified, ❌ failed/refuted, ⤳ deferred→Phase N}; a non-probed cited gate is
-annotated `✅ verified (research / WEAK)` — it satisfies closure as WEAK, not as
+annotated with its actual method — it satisfies closure only with current evidence, not as
 probe-passing.
 
 | Gate | Concern (decision it gates) | Authoritative source | Invariant | Evidence | Last run (when/where) | Status |
@@ -58,31 +58,33 @@ probe-passing.
 - **Source / Invariant:** <…>  · **Evidence:** `.spec/probes/G1.sh` (+ neg-control)
 - **Evidence (raw):** `GPU: <name>, <mem> · bogus index rejected`
 - **Status:** <✅ verified — YYYY-MM-DD, host — only after the probe actually ran>
-- (Non-scriptable gates — e.g. "legal approved" — mark **WEAK (non-probed)** with a named source, not a fake probe; this applies the same whether the source came from ordinary search or a `/deep-research` sweep — still WEAK, not a new tier.)
+- (Non-scriptable gates use their actual semantics: researched fact=`CitedFact`, legal approval=`HumanApproval`, subjective quality=`Judged`; never a generic weak pass.)
 
 ## 4. Requirements
 Numbered, verifiable. Use SHALL/MUST. Tag `[locked]` (evidence-backed) or `[provisional→Phase N]`.
-Each load-bearing requirement carries three fields: **Intent** (the purpose it protects —
+Each load-bearing requirement carries an evidence identity (`Revision` + real UTC
+`Changed`) and three fields: **Intent** (the purpose it protects —
 *what would count as violating it*, tagged `[auto]` if you derived it or `[human]` if the human
-set it), **Acceptance** (the observable *what*), and **Method** (the *how it's verified*:
-`.spec/probes/<R>.sh` Probed, `OPEN` — no red-able check yet, or `WEAK(cited)` — un-scriptable).
+set it), **Acceptance** (the observable *what*), and composable **Methods** (each
+independently checked: revision-bound `Probed`, `CitedFact`, `HumanApproval`,
+`Judged:L1|L2`, or `OPEN`).
 Intent is first-class because it is what the independent review verifies against (proxy-vs-intent,
 `references/probes.md`) and what the consistency lens elicits (`references/consistency-lens.md`);
 never leave it as implicit prose. Never Acceptance alone; "build/tests pass" is not an acceptance.
 UI/interaction behavior ⇒ an **E2E** method at the real entrypoint. (See `references/probes.md`.)
-A requirement whose acceptance is **generated against a metric** (prose, generated content, any
-gameable quantity/quality) adds a fourth field — **Review**: `L1` (independent same-model review)
-or `L2` (judgment-independent: a different model / human / different-engine `/code-review`) — marking
-that `/build`'s done-condition also requires an independent intent-review with a cited trace
+A requirement whose acceptance is generated/gameable includes `Judged:L1` (clean-context same-model)
+or `Judged:L2` (different model / human / different-engine `/code-review`) in **Methods**, marking
+that `/build` also requires an independent intent-review with a current trace
 (`.spec/evidence/review-<Rn>-<ts>.md` reckoning the recorded Intent + quoting the artifact). The
-**review-trace** closure probe RED-flags a `*Review:*` requirement whose trace is missing or hollow;
+**review-trace** closure probe RED-flags a `Judged:*` requirement whose trace is missing, stale, or hollow;
 for `L2` it also requires the trace to declare distinct `producer-engine:` / `reviewer-engine:`
 (the machine-checkable proxy for "a different judgment basis" — same-engine relabeling goes RED).
-- **R1.** `[locked]` The system SHALL <…>. *Intent:* `[auto|human]` <the purpose; what a violation looks like>. *Acceptance:* <observable behavior at the real entrypoint>. *Method:* `.spec/probes/R1.sh` (E2E | unit | integration) — neg-control breaks the wiring, not just the logic. *(For generative/quality work, add* `*Review:*` `L1|L2`.)*
+- **R1.** `[locked]` The system SHALL <…>. *Revision:* 1. *Changed:* <YYYY-MM-DDTHH:MM:SSZ>. *Intent:* `[auto|human]` <the purpose; what a violation looks like>. *Acceptance:* <observable behavior at the real entrypoint>. *Methods:* `Probed(.spec/probes/R1.sh; requirement=R1@1; E2E|unit|integration)` — neg-control breaks wiring. *(For generative/quality work add* `Judged:L1|L2`; its trace binds `requirement: R1@1`, `artifact-kind: file|manifest`, `artifact-path: <path>`, recomputed `artifact: sha256:<64-hex>`, `verdict: pass`, and `reviewed-at:`; multi-file traces add `artifact-root: <dir>` and the manifest path set must equal every file under that root.)*
 - **R2.** `[provisional→Phase 2]` The system SHALL <…>. *Unlocked by:* <trigger>
 
-## 5. Dependencies (chosen tech)
-Decisions only; details/pinned docs in `.spec/knowledge/<lib>.md`.
+## 5. Contract dependencies
+Only declared constraints or load-bearing gates. Implementation-only libraries and
+exact versions stay below the spec line in lockfiles/build tooling/knowledge.
 
 | Concern | Chosen (pinned) | Considered | Why | Knowledge |
 |---------|-----------------|------------|-----|-----------|
@@ -111,10 +113,12 @@ green (or explicitly deferred) with no blocking open question. Sealed = read-onl
 ### Phase 1 — <name> · status: <open|sealed YYYY-MM-DD>
 - **Goal:** <what this closure establishes>
 - **Gates:** G1  · **Key decisions:** D1, D2 (see Decision Log)
-- **Construction:** <not started | ✅ built YYYY-MM-DD (recorded YYYY-MM-DD)> —
-  written back by `/spec` from `STATE.md`'s `## build` section; a separate axis
-  from spec closure (a phase can be sealed but not yet built)
 - **Supersedes:** <none | "阶段K 的第X条 — 因 …">
+
+### Construction Ledger (mutable projection; sealed phase blocks remain verbatim)
+| Phase | Status | Last update | Evidence |
+|---|---|---|---|
+| Phase 1 | <not started|in progress|built|blocked> | <UTC timestamp> | <STATE/evidence refs> |
 
 ## 8. Open Questions (the closure gate)
 Only **genuine forks** the human must own (value/priority/risk/business) or

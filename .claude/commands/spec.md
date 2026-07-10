@@ -5,8 +5,9 @@ argument-hint: "[an idea, a PRD, a repo/path to read, or nothing to resume]"
 
 Invoke the `spec` skill.
 
-First **rehydrate** from `.spec/STATE.md` (+ `SPEC.md`, `.spec/knowledge/`) and tell
-me where things stand. Then **investigate first** — investigation is research: read
+First read `SPEC.md` and its profile; for a governed project **rehydrate** from
+`.spec/STATE.md` + `.spec/knowledge/`, then tell me where things stand. Then
+**investigate first** — investigation is research: read
 what I point at, check the knowledge cache, mine the project's own data, search your
 knowledge and the web, use skills/MCP (including the optional `/deep-research`
 fallback for a contested, load-bearing question, when available), reason it
@@ -18,6 +19,11 @@ reasoning + conclusion in the Decision Log.** Present your findings, then ask me
 proposed. Back load-bearing gates with real evidence (no probes for commonsense
 facts), and persist everything (SPEC.md + .spec/) — one safe-to-stop chunk,
 updating `.spec/STATE.md`.
+
+Use the profile recorded in `SPEC.md`: `minimal` creates only a short SPEC and is
+not `/build`/`/yolo` ready; `governed` uses `.spec/` plus the closure kit. Upgrade
+minimal→governed atomically before construction or when load-bearing uncertainty
+appears; never leave a half-created `.spec/`.
 
 Don't make me adjudicate what you can decide; bring me the calls that are truly
 mine.

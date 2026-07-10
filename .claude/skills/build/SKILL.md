@@ -101,7 +101,7 @@ interrupted run are part of "where things stand" — reconcile them against the
 regenerating a plan; never plan on top of unexplained local changes. And glance
 at the gates' Last-checked stamps: a green that predates a changed world is worth
 re-running **before** construction, not discovered red at Step 4. If `SPEC.md` is
-missing or has open blocking questions,
+missing, has `Profile: minimal`, or has open blocking questions,
 stop and send the human to `/spec` first (nothing to build against yet).
 
 ### Step 1 — Regenerate the ephemeral plan
@@ -141,6 +141,15 @@ exercise), that is itself a spec conflict — Step 6, so `/spec` sharpens the
 acceptance; never substitute your own judgment as "evidence". Capture
 fresh evidence to `.spec/evidence/` (real UTC time).
 
+**Evidence identity is mandatory.** A probe and its raw output must declare the
+targeted requirement's current `requirement: Rn@revision`. A judged trace must
+bind that revision to `artifact-kind: file|manifest`, `artifact-path:`, and its
+recomputable `sha256:<64-hex>`. Multi-file artifacts also declare `artifact-root:`
+and use a per-file SHA-256 manifest whose path set exactly equals that root,
+with `verdict:` and `reviewed-at:`. A historical trace,
+mtime, or matching file name is not current evidence. Check composable Methods
+independently; Judged/CitedFact never excuses a missing Probed half.
+
 **Independent review gates done for generated / quality-or-quantity work.** Green
 probes are necessary, not sufficient, when the artifact was *generated against a
 metric* — a probe can pass on metric-gamed output. So at **phase-close, and on any
@@ -176,7 +185,10 @@ batch that touched a generative-quality or gameable-quantity gate**, run an
   is a spec gap → Step 6 / `/spec`, not something the reviewer invents.)
 - **Gates done, with fixes** — a review that finds a defect blocks done: fix (or
   regenerate the offending part), re-run gates, re-review. Capture the sign-off as an
-  **auditable trace** — `.spec/evidence/review-<Rn>-<ts>.md` that **reckons each
+  **auditable trace** — `.spec/evidence/review-<Rn>-<ts>.md` that declares
+  `requirement: Rn@revision`, `artifact-kind: file|manifest`, `artifact-path: <path>`, recomputed
+  `artifact: sha256:<64-hex>`, `verdict: pass|fail`,
+  `reviewed-at: <UTC>`, and **reckons each
   recorded Intent** (states, per intent, whether genuinely met or only its letter)
   **and quotes a concrete artifact passage** (a line / anchor / quoted text — not just
   the artifact's name). A hollow trace that only names `SPEC.md` + the artifact is the
@@ -212,10 +224,12 @@ dead requirement's lingering probe counts for nothing.
 
 ### Step 5 — Checkpoint: approve & commit
 Show the diff + the green gate results. On approval, commit the **code** (never the
-ephemeral plan). Update the `## build` section of `.spec/STATE.md` (built /
+ephemeral plan). Verify the committed tree is the same artifact identity covered
+by the final passing review; any post-review change invalidates the trace and
+returns to Step 4. Update the `## build` section of `.spec/STATE.md` (built /
 remaining / next); when this completes a phase's construction (all its targeted
 requirements green), say so there — the next `/spec` run records it in `SPEC.md`'s
-phases ledger (you never edit `SPEC.md` yourself).
+mutable Construction Ledger (you never edit `SPEC.md` yourself).
 
 ### Step 6 — Conflict → `/spec` (not a silent patch)
 If a gate can't be met or a decision is wrong, **first write the conflict into

@@ -21,20 +21,9 @@ jobs:
           TAG="${{ github.ref_name }}"
           ZIP="spec-skills-${TAG}.zip"
 
-          # List exactly the 11 distributable files - no staging dir needed
-          zip -r "$ZIP" \
-            .claude/skills/spec/SKILL.md \
-            .claude/skills/spec/references/probes.md \
-            .claude/skills/spec/references/SPEC.template.md \
-            .claude/skills/spec/references/STATE.template.md \
-            .claude/skills/spec/references/knowledge.template.md \
-            .claude/skills/spec/references/questioning.md \
-            .claude/skills/build/SKILL.md \
-            .claude/skills/yolo/SKILL.md \
-            .claude/commands/spec.md \
-            .claude/commands/build.md \
-            .claude/commands/yolo.md \
-            CLAUDE_template.md
+          bash scripts/verify-distribution.sh
+          cut -d'|' -f2 scripts/distributable-files.txt | zip "$ZIP" -@
+          sha256sum "$ZIP" > "$ZIP.sha256"
 
           # Verify zip contents
           echo "=== ZIP contents ==="
@@ -55,13 +44,15 @@ jobs:
             --title "Skills ${TAG}" \
             --notes '## /spec + /build + /yolo Skills Package
 
-            Extract this zip into your project root.
+            Extract this zip into a temporary directory, then use its transactional
+            installer with that directory as the local source. Do not unzip over an
+            existing project.
 
             ### Contents
 
             ```
+            CLAUDE_template.md
             .claude/
-            ├── CLAUDE_template.md
             ├── skills/
             │   ├── spec/
             │   │   ├── SKILL.md
@@ -80,13 +71,15 @@ jobs:
 
             **PowerShell**
             ```powershell
-            Expand-Archive -Path spec-skills-*.zip -DestinationPath . -Force
+            Expand-Archive spec-skills-*.zip -DestinationPath $env:TEMP\spec-skills -Force
+            & $env:TEMP\spec-skills\scripts\install.ps1 -Source $env:TEMP\spec-skills -Target <project>
             ```
 
             **Bash**
             ```bash
-            unzip -o spec-skills-*.zip
+            tmp=$(mktemp -d); unzip spec-skills-*.zip -d "$tmp"
+            SPEC_INSTALL_SOURCE="$tmp" bash "$tmp/scripts/install.sh" <project>
             ```
 
-            Then run `/spec` in Claude Code.' \
-            "$ZIP"
+            Verify `spec-skills-<tag>.zip.sha256`, extract, then run `/spec` in Claude Code.' \
+            "$ZIP" "$ZIP.sha256"

@@ -1,5 +1,5 @@
 ---
-description: Autonomous construct-to-green loop over /build. Schedules itself, reviews itself, deletes itself when done.
+description: Autonomous construct-to-green loop over /build. Schedules itself, obtains independent review where required, and deletes itself when done.
 argument-hint: "[phase/requirements to target, or nothing = everything buildable]"
 ---
 

@@ -1799,6 +1799,11 @@ A4-5 yolo/build L2 触发措辞张力(预存、可辩护)。
 
 | ID | 决策 | 依据 / 来源 | 轮次 |
 |----|------|------------|------|
+| D-86 | **分发只有一份带角色的产品定义**：`scripts/distributable-files.txt` 是唯一清单，`runtime` 是三条路径必须相同的 skill 载荷，`support` 是 release 的离线安装辅助；release 与两安装器都先验证完整性，发布附 SHA-256；离线安装也调用同一事务而非直接覆盖项目；安装先 stage/validate、替换失败恢复 payload+revision。修复 release 漏发三份被 SKILL 直接引用资源和 Bash/PowerShell 产物不一致 | 第 45 轮纯 skill 边界审计；实际漏包复现 + 独立终审 | 45 |
+| D-85 | **profile 是状态，不是散文例外**：`minimal` 只落短 SPEC、无 `.spec/`、不可 build/yolo；`governed` 才有完整 closure kit；触发施工或承重不确定性时原子升级 | 小项目降级与 Step 0 无条件初始化不可同时执行 | 45 |
+| D-84 | **sealed history 与 construction projection 分离**：phase block 只存不可变决策；运行进度写独立可变 Construction Ledger，build 仍只写 STATE、下次 spec 投影 | sealed 逐字只读与 post-build writeback 的结构冲突 | 45 |
+| D-83 | **/yolo 每 run 独立且 review-before-commit**：run_id/job_id/status/ceiling/tick_log 全落 STATE；`n >= ceiling` 在 append/build 前停；施工→门→评审→修复→重跑→最终评审→commit，只有最终评审覆盖的 artifact 可提交 | 全局 ticks.log 跨作业污染、正常触顶制造红、先提交后评审 | 45 |
+| D-82 | **证据身份 = requirement revision + artifact identity**：locked requirement 记录 Revision/Changed；Probed 绑定 `Rn@rev`；Judged trace 绑定 revision + git/sha256 + verdict + reviewed-at；多 Methods 独立核，不因 WEAK/Judged 豁免 Probed 半边 | 文件名/mtime 不能阻止旧 probe/旧 review 复用；整行 WEAK 豁免已复现 | 45 |
 | D-81 | **五轮 code-review 修复**:849dedc 的 `/code-review --fix` 修 6 缺陷。①A1-2 假红:`assert_parser_sane` oracle `grep -qF '[locked]'` 把散文提及误判解析失明(本仓 latent),改 `R[0-9]+.*\[locked\]\|[locked].*R[0-9]+`(真实标签才红);②A1-1 假红:trace `level: L2` 把 L1 升格索要 engine→删升格,L2 只来自 SPEC `*Review:*`;③A5-2:`⤳` 加入 deferred grep(契约一致);④A4-1:spec/SKILL.md:422 残留 D-59 去锚(D-75 漏网);⑤A4-2:kit 节如实说明 3 角色有模板、3 角色自建;⑥A4-3:G2…G9 括注 G2 是示例 done-rule。各探针 selftest 增对应正控;跳过 5 低价值/越界项(A5-1/A5-3/A5-4/A4-4/A4-5) | `/code-review --fix` on 849dedc;两假红(B2 散文误判 + A2 trace 自升格)潜伏期堵上 | 43 |
 | D-80 | **四轮评审 Tier 2:L2 独立性的可机检部分(把最廉价伪造做成负控)**。D-71 拆 L1/L2 后 /yolo"须 L2"是纯荣誉系统——review-trace 闭包(D-65/D-76)查不出"同模型 L1 贴标成 L2"。修:L2 评审留痕须声明 `producer-engine:`/`reviewer-engine:` 且不同;模板 `check_review_coherence()`+dogfood `G8` 增 L2 判定(`*Review:* L2` 或 `level: L2`;缺字段或同 engine→RED,负控=同 engine;selftest 三用例 同/缺/异 engine);`probes.md`/`SPEC.template §4`/`build Step4`/`yolo prompt` 四处教契约。诚实边界:不可验"真不同模型",但把最廉价伪造(relabel-L1-as-L2)做成 RED、留痕留可抽查 engine 声明——同 D-76"可审计非确定"标准。cn-novel `_review-coherence.sh`(D-65 旧版、零 L2 需求)分叉不动 | GLM-5.2 四轮评审 Tier 2(A2);D-71 L2 拆分执行侧空洞 | 42 |
 | D-79 | **四轮评审 P0:反身性盲区——skill 源码自身的悬空引用 + 探针解析器静默绿灯**。①`coherence.template.sh`(3 处)+ dogfood `G5`/`G8`(各 1 处)把参考实现写成不存在的 `eval/cn-novel/_coherence.sh`/`_review-coherence.sh`(真实在 `.spec/probes/` 下;`probes.md:233` 写对了)——违反法则⑤引用完整、且出在抓悬空引用的模板自身(coherence 探针射程不含 skill 源码,故无人抓);5 处断链全修。②`locked_reqs()` 解析失明时(需求 markdown 形态漂离 PARSER CONTRACT)`check_*()` 的 while 循环跑 0 次→exit 0 静默 GREEN——漂移探测器自身的空转绿灯,且 `--selftest` 从不测此分支;模板+G5/G6/G8 加 `assert_parser_sane()` 守卫(raw 含 `[locked]` 而解析 0 条→RED,合法零-locked 仍绿)+ selftest 增解析失明负控与合法空集正控 | GLM-5.2 四轮评审 P0;D-69 闭包 kit 未覆盖 skill 自身源码、D-78 PARSER CONTRACT 未配解析失明负控 | 41 |
@@ -1992,5 +1997,26 @@ A4-5 yolo/build L2 触发措辞张力(预存、可辩护)。
 - `README.md` —— D-52:定位段、Install、Usage(含"理想日常形态")、Files 树
 - `CLAUDE.md` —— D-52:第三指令说明 + "run /yolo" 一句
 - `docs/USER-GUIDE.zh-CN.md` —— D-52:§1.3 分工表加 `/yolo` 行 + 规则不变说明
+
+## 第 45 轮 · 2026-07-10 — 纯 skill 边界的干净上下文审计：把证据身份、运行生命周期与分发变成真正契约（D-82…D-86）
+
+用户纠正了审计边界：根 `SPEC.md`、`.spec/`、`eval/` 是 dogfood/样本，纯产品是
+`SPEC.template.md + .claude/** + 安装/发布链路`。在这个边界上，独立审计确认五个根因：
+
+1. 证据只有名字，没有身份：probe/review 未绑定 requirement revision 与 artifact digest，旧绿可复用。
+2. `/yolo` 只有全局 tick 文件，没有 run/job 生命周期；且先 commit 后 review，闭环顺序倒置。
+3. sealed phase 同时被要求只读和承接 construction writeback，历史与运行投影混在一个结构。
+4. “小项目可降级”与“无条件初始化全套”没有 profile 状态，执行器只能猜优先级。
+5. release 手写清单漏发 `consistency-lens.md`、`coherence.template.sh`、`probe.template.sh`；安装与发布不是同一个产品。
+
+决策是从状态模型修，不再追加词法补丁：证据绑定 revision/digest；yolo 每 run 独立且 final review
+在 commit 前；construction ledger 移出 sealed phase；minimal/governed 明确成 profile；唯一 manifest
+驱动安装、发布与完整性验证。根 SPEC 新开 Phase 3 只是本仓库的 dogfood 权威同步，不作为纯 skill
+设计来源。
+
+收口采用多轮独立复核而不是一次自证。复核先后抓出 installer trap 时序与 revision rollback、
+L2 跨 trace 拼接、job/status 空接线、runtime/support 清单漏项、单/多文件 artifact 旧签字复用
+与 manifest 子集作弊；每项都先复现，再成为负控。最终复核无剩余 P0/P1，G11/G12 正跑与
+selftest 均绿。PowerShell 路径完成同构事务与静态检查，但当前 macOS 环境无 `pwsh`，未冒充实机通过。
 
 *设计文档结束。实现见 `.claude/skills/spec/`、`.claude/skills/build/` 与 `.claude/skills/yolo/`。*
