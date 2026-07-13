@@ -1,5 +1,7 @@
 # /spec  - 我要验牌，牌没有问题
 
+![alt text](woyaoyanpai.png)
+
 A single, repeatable Claude Code command in which the AI plays an **expert
 requirements-elicitation analyst** — it takes your vague idea and turns it into one
 authoritative, *feasible* specification.
