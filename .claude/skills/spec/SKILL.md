@@ -286,8 +286,13 @@ them by *role*, never by another project's gate numbers.** The roles:
 - **subject-essence** — the spec's first section establishes the subject from an
   authoritative source (define the noun before the verb).
 - **done-coherence / writeback / tick-ceiling** — when `/build`/`/yolo` are in use:
-  the done-condition stays coherent across skill files and wrappers; construction is
-  written back to the phases ledger; `/yolo`'s tick ceiling is structurally enforced.
+  the done-condition stays coherent across `SPEC.md`'s own done requirement, the
+  skill files and the wrappers; construction is written back to the Construction
+  Ledger; `/yolo`'s tick ceiling leaves an auditable trail — the in-loop stop is
+  executor-honored (each firing's first action appends to the append-only tick log
+  and checks the count), and the probe audits that trail after the fact. It is
+  **not** structurally enforced; a violation leaves visible red, it is not made
+  impossible (see Honest limit).
 
 This repo's own `SPEC.md` numbers its probes `G2…G9` (G2 is the illustrative done-rule;
 the closure kit itself is G3–G9) — that is *this* dogfood's
