@@ -1858,6 +1858,12 @@ G13 在存根形态下均绿。定性:这是第一条由**外部用户的工程�
 一致——先核对提案与既有学说的关系,改掉与模型不兼容的部分,再用一条可变红的门把新规则从"自觉"变成
 "可审计"。
 
+**同日补记(措辞回归)。** `spec/SKILL.md`"The closure probe kit"一节在第 41–45 轮的修订中重新写入了
+"`/yolo`'s tick ceiling is structurally enforced"——这正是第 40 轮 D-74 明确去掉的夸大:天花板是
+执行者自觉执行(每拍第一动作追加 tick 日志并查数)+ 探针事后审计,违规会留下可见的红,但不是"不可能
+发生"。同一句里"across skill files and wrappers"漏掉 D-74 加入的 SPEC R3 检查面,"written back to the
+phases ledger"与 D-84 的 Construction Ledger 不一致。三处一并改回与 D-74/D-84 一致的措辞;不新增决策。
+
 ---
 
 ## 决策日志(Consolidated Decision Log)
