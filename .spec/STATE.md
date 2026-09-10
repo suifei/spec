@@ -1,11 +1,12 @@
 # /spec progress
 
-- **updated:** 2026-07-10T10:30Z   # real OS time, UTC
+- **updated:** 2026-09-10T09:00Z   # real OS time, UTC
 - **current_phase:** 3
 - **current_step:** 闭环   # Phase 3 sealed and built; G11/G12 green
 - **core_problem:** define the missing Gate 1.5 — a /build skill that constructs code from the authoritative SPEC.md without re-introducing drift (ephemeral plan; gate-closed)
 
 ## done
+- 2026-09-10 — **seal = compact by reference** (D-87, Round 46): Phase 2 body moved verbatim to `.spec/archive/phase-2.md`, one-line stub left in `SPEC.md` (construction stays in the Construction Ledger, D-84); new G13 (archive pointers / supersedes / cited D<n> must resolve); Step 0 size guard + on-demand archive read in spec/build SKILL.md
 - 2026-07-10 — Phase 3 built: evidence revision+artifact binding, isolated yolo lifecycle, mutable Construction Ledger, explicit profiles, transactional role-manifest distribution; G11/G12 green; independent review found no remaining P0/P1
 - 2026-06-30 — **subject established first** (define-the-noun-before-verb): a construction layer = Spec→Plan→Tasks→Implement; Spec Kit & Kiro PERSIST the middle layer (cited)
 - 2026-06-30 — Phase 1 (`/spec`, Gate 1) **sealed by reference** to docs/DESIGN-NOTES.md (D-01…D-39) + .claude/skills/spec/
