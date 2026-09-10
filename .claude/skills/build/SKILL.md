@@ -86,8 +86,11 @@ block construction on it. *(This repo's pin: English.)*
 
 ### Step 0 — Rehydrate & target
 Read `CLAUDE.md` → `SPEC.md`, `.spec/STATE.md`, `.spec/knowledge/`, and the gates
-table. **Actually re-read them from disk every run — do not trust retained
-context.** On a long or compacted build the acceptance criteria and anti-patterns
+table. `.spec/archive/` (sealed phases' full text, compacted out of `SPEC.md` by
+`/spec`) is history: open it only when following a `supersedes …` / `full text:`
+pointer, never as part of routine rehydration — `SPEC.md`'s stubs carry what
+construction needs. **Actually re-read them from disk every run — do not trust
+retained context.** On a long or compacted build the acceptance criteria and anti-patterns
 are exactly what erodes from the window first, and a build that has forgotten the
 spec drifts (and rationalizes shortcuts). The filesystem is the source of truth;
 re-hydrate the *full* targeted requirements + their Methods + the anti-patterns

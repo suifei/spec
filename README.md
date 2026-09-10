@@ -206,6 +206,7 @@ SPEC.md                                # the spec (the /spec → /build pipeline
 .spec/knowledge/<topic>.md             # persisted reconnaissance (pinned deps/facts)
 .spec/probes/<gate>.sh                 # executable probes
 .spec/evidence/<gate>-<ts>.log         # captured probe output
+.spec/archive/phase-<N>.md             # sealed phases' full text, compacted out of SPEC.md by reference (stub stays)
 ```
 
 ## Design rationale

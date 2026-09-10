@@ -77,6 +77,7 @@ Status ∈ {unverified, ✅ verified, ❌ refuted, ⤳ deferred→Phase N}.
 | G10 | the ephemeral-plan gitignore convention (R2 mechanical half) | runnable probe | `.spec/plan/` stays gitignored and untracked; a committed file under it is the drift Spec Kit/Kiro accept and R2 forbids | `.spec/probes/G10-plan-untracked.sh` (+ `--selftest`) | 2026-07-09 / vm | ✅ verified (probe) |
 | G11 | protocol state/evidence lifecycle is internally coherent | runnable meta-probe | yolo runs are isolated and stop without over-ceiling residue; requirement probes/reviews bind to the current requirement/artifact revision; review precedes commit | `.spec/probes/G11-protocol-lifecycle.sh` (+ `--selftest`) | 2026-07-10T10:30:23Z / macOS | ✅ verified (semantic negative controls + independent review) |
 | G12 | the shipped distribution is complete and reproducible | runnable packaging probe | one role manifest drives release + installers; runtime/support sets are complete; staged install validates before replacement and records/restores revision | `.spec/probes/G12-distribution-integrity.sh` (+ `--selftest`) | 2026-07-10T10:30:23Z / macOS | ✅ verified (probe + install/rollback E2E) |
+| G13 | sealed history compacted by reference still resolves (D-87) | runnable probe | every `.spec/archive/` pointer exists; every `supersedes Phase K` has a `### Phase K` stub; every cited `D<n>` is a row in `SPEC.md`'s log or the archive — a dangling pointer is a broken spec | `.spec/probes/G13-archive-pointers.sh` (+ `--selftest`) | 2026-09-10 / vm | ✅ verified (probe) |
 
 ### Gate detail
 #### G1 — the subject (research; established before designing /build)
@@ -172,16 +173,13 @@ over `SPEC.md` + `.spec/`, instantiated from the shipped `references/coherence.t
   its implementation in `.claude/skills/spec/`.
 - **Supersedes:** none.
 
-### Phase 2 — `/build` (Gate 1.5) · status: **sealed** (spec settled 2026-06-30) · construction: **✅ built 2026-06-30** (recorded 2026-07-06)
-- **Goal:** the construction skill specified above — ephemeral plan, gate-closed,
-  conforms to `SPEC.md`. Built as `.claude/skills/build/SKILL.md` +
-  `.claude/commands/build.md`, per R1–R5; G2 probe green (2026-06-30T04:26Z, vm).
-- **Ledger note (2026-07-06):** construction completed 2026-06-30 but this ledger
-  was never updated — no step owned the post-build write-back. That gap is now a
-  defined duty (D-50: `/build` reports completion in `STATE.md`'s `## build`
-  section; the next `/spec` run records it here). This entry is that record,
-  made late and marked as such.
-- **Supersedes:** none (fills the previously-undefined gap between `/spec` and code).
+### Phase 2 — `/build` (Gate 1.5) · status: **sealed** (spec settled 2026-06-30) · construction: **✅ built 2026-06-30** (recorded 2026-07-06) · supersedes: none · superseded-by: none · full text: `.spec/archive/phase-2.md`
+
+> Sealed phases are compacted **by reference** (Step 7, D-87): the body lives in
+> `.spec/archive/`, verbatim and append-only; the stub above is what `supersedes`
+> citations and G13 resolve through. Construction progress is the Construction
+> Ledger's below (D-84, read by G4), never the stub's. Phase 1 keeps its earlier
+> by-reference pointer to `docs/DESIGN-NOTES.md`.
 
 ### Phase 3 — protocol and distribution closure · status: **sealed 2026-07-10**
 - **Goal:** close the clean-context audit defects in evidence identity, yolo lifecycle, immutable history, operational profiles, and distribution integrity.

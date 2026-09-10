@@ -148,7 +148,11 @@ or cognitive burden — it is collaboration, not paperwork.
    destructive: **rewrite the non-sealed parts; a *sealed* phase's recorded text is
    moved verbatim, not re-authored** (sealed = read-only, Step 7) — "rewrite as a
    whole" means the *file stays one coherent whole*, not that sealed history is
-   rewritten each run.
+   rewritten each run. "One document" is about **the current contract**, not about
+   carrying every sealed phase's full text forever: sealed history is compacted
+   **by reference** into `.spec/archive/` (Step 7), leaving a one-line stub in
+   `SPEC.md` that every citation still resolves through. `SPEC.md` stays the single
+   source of *what is true now*; the archive is its read-only history.
 9. **Right-size through an explicit profile, never an informal exception.** Every
    project records `Profile: minimal|governed` beside the artifact-language pin.
    `minimal` creates only a short `SPEC.md` for a bounded, low-uncertainty artifact
@@ -194,6 +198,7 @@ SPEC.md                         # the spec — authoritative, at repo root
 .spec/knowledge/<topic>.md      # persisted reconnaissance (deps, prior art, facts)
 .spec/probes/<gate>.sh          # executable probes (truth-finding)
 .spec/evidence/<gate>-<ts>.log  # captured probe output
+.spec/archive/phase-<N>.md      # sealed history, verbatim + append-only (Step 7); SPEC.md keeps a stub
 CLAUDE.md                       # points at SPEC.md as the supreme, read-first reference
 ```
 
@@ -310,6 +315,26 @@ stand** in one short status line, e.g.:
 
 Also note each record's **age** (its timestamp vs the current OS time) and flag
 anything that looks stale — by judgment (see Time above) — for the human.
+
+**Read the current contract, not the history.** Rehydrate reads `SPEC.md` +
+`STATE.md` + the knowledge index; `.spec/archive/` (sealed phases' full text,
+Step 7) is opened **only on demand** — when you follow a `supersedes …` or
+`full text:` pointer to check a specific past conclusion — never as part of
+routine rehydration. That is the whole point of archiving: `SPEC.md` is re-read on
+every `/spec` run, every `/build` run and every `/yolo` tick, so its size is a
+per-tick cost, not a one-off.
+
+**Size guard.** After reading, check `SPEC.md`'s size. Above a soft threshold
+(~600 lines or ~50 KB — a few tens of thousands of tokens re-read per tick), report
+it in the status line and **propose** compaction (propose-then-apply, never a silent
+delete). First ask which of two things grew, because they have different cures:
+(a) *legitimate history* — sealed phases carrying full text, Decision Log rows no
+current requirement cites → compact by reference per Step 7's archive rule;
+(b) *leaked detail* — feature-level / PRD-level content that belongs to `/build`'s
+ephemeral plan, not to the contract (Principle 7: spec governs the contract surface
+only) → that is not archived, it is removed. Archiving cures (a); it would merely
+tidy (b). A file the Read tool can't take whole (~256 KB) is a hard stop: compact
+before doing anything else.
 
 If no SPEC exists, derive `minimal` vs `governed` from the project's uncertainty
 and record the choice `[auto]` (ask only when auditability/ceremony is itself a
@@ -603,6 +628,37 @@ if a staleness check or probe re-run shows a sealed conclusion no longer holds,
 text stays untouched; the correction lives in the new phase). Construction is a
 separate mutable projection: update the Construction Ledger, never a sealed phase
 block.
+
+**Seal = compact by reference.** Because a sealed phase is read-only, its full
+text costs `SPEC.md` size on every re-read while never changing — so at seal
+(and, for already-sealed phases, whenever the Step 0 size guard proposes it and
+the human agrees) move it out **verbatim**:
+- The phase body goes to **`.spec/archive/phase-<N>.md`** — copied verbatim under
+  its original `### Phase N …` heading, append-only, never edited afterwards (a
+  correction is a new phase citing `supersedes`, exactly as before). A phase whose
+  record already lives elsewhere by reference (this repo's Phase 1 → its
+  `docs/DESIGN-NOTES.md` rounds) keeps that pointer instead.
+- `SPEC.md` keeps a **one-line stub**: the sealed `### Phase N …` heading line
+  **verbatim** (phase number + name · status + seal date, plus whatever it already
+  carried) followed by `supersedes:` · `superseded-by:` ·
+  `full text: .spec/archive/phase-<N>.md`. Construction progress is **not** the
+  stub's business — it lives in the mutable Construction Ledger (D-84), which is
+  what the write-back probe reads — so a stub is never edited after it is written.
+  See `references/SPEC.template.md` §7 for the stub form.
+- **Decision Log rows move with their phase when nothing current cites them:** a
+  row that belongs to the sealed phase and is cited by no current requirement, gate,
+  open phase, or open question goes into the same archive file under a
+  `## Decisions` heading; a row still cited stays in `SPEC.md`. The test is
+  mechanical (grep the ID across §3/§4/§7/§8), not a judgment call — if in doubt,
+  it stays.
+- **Every pointer must resolve** — a `full text:` path that doesn't exist, a
+  `supersedes Phase K` naming no Phase K stub, or a cited decision ID present
+  neither in `SPEC.md` nor in the archive is a broken spec, not a cosmetic slip.
+  Gate it with a red-able probe (this repo's `.spec/probes/G13-archive-pointers.sh`
+  is the reference: it goes red on each of those three). Without that gate,
+  archiving is one more honor-system rule.
+- Principle 9 applies: a small spec with one or two short phases has nothing worth
+  archiving; the rule earns its ceremony only once history is what's growing.
 
 Report status (current step / done / pending / next) on closure or whenever you
 stop.

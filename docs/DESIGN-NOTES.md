@@ -1793,12 +1793,80 @@ A4-5 yolo/build L2 触发措辞张力(预存、可辩护)。
 
 ---
 
+## 第 45 轮 · 2026-07-10 — 纯 skill 边界的干净上下文审计：把证据身份、运行生命周期与分发变成真正契约（D-82…D-86）
+
+用户纠正了审计边界：根 `SPEC.md`、`.spec/`、`eval/` 是 dogfood/样本，纯产品是
+`SPEC.template.md + .claude/** + 安装/发布链路`。在这个边界上，独立审计确认五个根因：
+
+1. 证据只有名字，没有身份：probe/review 未绑定 requirement revision 与 artifact digest，旧绿可复用。
+2. `/yolo` 只有全局 tick 文件，没有 run/job 生命周期；且先 commit 后 review，闭环顺序倒置。
+3. sealed phase 同时被要求只读和承接 construction writeback，历史与运行投影混在一个结构。
+4. “小项目可降级”与“无条件初始化全套”没有 profile 状态，执行器只能猜优先级。
+5. release 手写清单漏发 `consistency-lens.md`、`coherence.template.sh`、`probe.template.sh`；安装与发布不是同一个产品。
+
+决策是从状态模型修，不再追加词法补丁：证据绑定 revision/digest；yolo 每 run 独立且 final review
+在 commit 前；construction ledger 移出 sealed phase；minimal/governed 明确成 profile；唯一 manifest
+驱动安装、发布与完整性验证。根 SPEC 新开 Phase 3 只是本仓库的 dogfood 权威同步，不作为纯 skill
+设计来源。
+
+收口采用多轮独立复核而不是一次自证。复核先后抓出 installer trap 时序与 revision rollback、
+L2 跨 trace 拼接、job/status 空接线、runtime/support 清单漏项、单/多文件 artifact 旧签字复用
+与 manifest 子集作弊；每项都先复现，再成为负控。最终复核无剩余 P0/P1，G11/G12 正跑与
+selftest 均绿。PowerShell 路径完成同构事务与静态检查，但当前 macOS 环境无 `pwsh`，未冒充实机通过。
+
+*设计文档结束。实现见 `.claude/skills/spec/`、`.claude/skills/build/` 与 `.claude/skills/yolo/`。*
+
+---
+
+## 第 46 轮 · 2026-09-10 — 大项目的 SPEC.md 体量:密封即按引用压缩(D-87)
+
+用户转来一条反馈:项目一大,`SPEC.md` 会膨胀到每次 rehydrate 都烧大量 token,提议按触发条件
+(阶段密封 / Build 完成一周 / >2000 行 / >150KB)把已密封阶段归档到 Obsidian 笔记、从 `SPEC.md`
+移除、更新 `_MOC.md`。这是真实工程问题,方向对,但具体设计要改三处;另有两点比提案本身更要紧。
+
+**提案里对的部分,且本仓早有伏笔。** "密封 = 决策冻结,天然适合归档"完全成立:密封阶段只读、重写时
+原样搬移、反对只能开新阶段引用 `supersedes`——只读的东西搬去哪里都不影响正确性。本仓 Phase 1 早就是
+`sealed by reference` 指向 DESIGN-NOTES D-01…D-39;`investigation.log` 也早有"密封时压缩已沉淀条目"的
+规则(Step 1)。本轮只是把这个先例制度化。体量的真实代价还被低估:`SPEC.md` 不是 `/spec` 读一次,
+`/build` 每次、`/yolo` 每一拍都重读,150KB≈4 万 token 是**每拍**开销,2000 行才动手太晚。
+
+**要改的三处。** ①目的地不能是 Obsidian:可恢复性建立在"固定位置、全部进仓库"上,外部 vault 里的
+历史在新上下文、新机器、新协作者那里都追溯不到,`supersedes 阶段K 的第X条` 会悬空。归档放
+`.spec/archive/phase-<N>.md`,原样、只追加。②"从 SPEC.md 移除"改为"缩成一行存根":整块删掉会让所有
+`supersedes 阶段K` 引用失去落点;存根 = 密封时的 `### Phase N` 标题行原样 + supersedes、superseded-by、
+`full text:` 指针。施工进度不归存根管:第 45 轮 D-84 已把它分离到可变的 Construction Ledger(G4 读的
+就是它),所以存根写下后永不再改。③"Build 完成后 1 周"的时间触发与
+模型不兼容——`/spec` 不是常驻进程,没有时钟;可行触发只有密封那一刻(必做)与 Step 0 的体量守卫
+(propose-then-apply,D6 自治规则,不静默删)。
+
+**提案没提但更重要的两点。** 真正单调增长的是 Decision Log 而非阶段账本(本仓 3 个阶段已 86 条):
+属于已密封阶段、且当前 §3/§4/§7/§8 无任何引用的决策行随阶段一起归档,判定是机械 grep 不是判断。
+其次要先分辨"历史膨胀"还是"细节泄漏":`SPEC.md` 是决策与可行性契约不是 PRD,功能级细节属于 `/build`
+的临时计划;守卫报告时先问这个问题,否则会把一个该瘦身的文件"整齐地归档"起来。
+
+**落地。** `spec/SKILL.md`:原则 8 补"one document 指当前契约、非全部历史";固定位置加
+`.spec/archive/`;Step 0 加"只读当前契约、归档按需打开"与体量守卫(软阈值约 600 行 / 50KB,先问
+历史还是泄漏,Read 装不下即硬停);Step 7 加"Seal = compact by reference"完整规则。
+`SPEC.template.md` §6/§7 给出存根形态与决策行迁移规则。`build/SKILL.md` Step 0 注明归档只在追指针时
+打开。新增 **`G13-archive-pointers.sh`**,三种红:归档指针悬空、`supersedes` 指向无存根的阶段、被引用的
+`D<n>` 在 `SPEC.md` 日志与归档中均不存在(另:`D-NN` 引用须是 DESIGN-NOTES 的一行——写本轮时它先
+变红、写完 D-87 才转绿,门在起作用)。本仓 dogfood:Phase 2 正文真的搬进 `.spec/archive/phase-2.md`,
+`SPEC.md` 留一行存根;D1–D6 全部仍被 `[locked]` 需求引用,按规则一条都不归档。
+
+回归:仓库门 G2–G13(12 条)+ 9 条 eval 探针,真跑 + `--selftest` 全绿;G4(读 Construction Ledger)与
+G13 在存根形态下均绿。定性:这是第一条由**外部用户的工程反馈**驱动的规则,和前三轮"审计驱动"不同;处理方式
+一致——先核对提案与既有学说的关系,改掉与模型不兼容的部分,再用一条可变红的门把新规则从"自觉"变成
+"可审计"。
+
+---
+
 ## 决策日志(Consolidated Decision Log)
 
 > 历轮讨论提炼出的所有锁定决策。状态全部 **锁定**;实现已落码(`.claude/skills/spec/`)。
 
 | ID | 决策 | 依据 / 来源 | 轮次 |
 |----|------|------------|------|
+| D-87 | **密封即按引用压缩(大项目 SPEC.md 体量)**:密封阶段正文原样搬入仓库内固定位置 `.spec/archive/phase-<N>.md`(只追加、永不编辑),`SPEC.md` 留一行存根(密封标题行原样 + supersedes/superseded-by/`full text:` 指针;施工进度归 D-84 的 Construction Ledger,存根永不再改);属于该阶段且当前 §3/§4/§7/§8 无引用的 Decision Log 行随之归档(机械 grep 判定,存疑则留)。Rehydrate 只读当前契约(`SPEC.md`+`STATE.md`+knowledge),归档仅在追 `supersedes`/`full text:` 指针时打开——体量是每拍成本(`/build` 每次、`/yolo` 每拍都重读)。Step 0 加体量守卫:约 600 行/50KB 即报告并**提议**(propose-then-apply,不静默删),先分辨"历史膨胀(归档)"还是"细节泄漏(删除,SPEC 非 PRD)";Read 装不下即硬停。否决提案中三点:外部 Obsidian 目的地(破坏仓内可恢复性)、整块移除(破坏 supersedes 落点)、时间触发(`/spec` 无时钟)。新增 `G13-archive-pointers.sh`:归档指针悬空 / `supersedes` 无存根 / 被引 `D<n>` 无定义,任一即红。本仓 Phase 2 已按此归档 | 用户转来的工程反馈(大项目 SPEC.md 膨胀);本仓 Phase 1 by-reference 与 investigation.log 密封压缩两个先例 | 46 |
 | D-86 | **分发只有一份带角色的产品定义**：`scripts/distributable-files.txt` 是唯一清单，`runtime` 是三条路径必须相同的 skill 载荷，`support` 是 release 的离线安装辅助；release 与两安装器都先验证完整性，发布附 SHA-256；离线安装也调用同一事务而非直接覆盖项目；安装先 stage/validate、替换失败恢复 payload+revision。修复 release 漏发三份被 SKILL 直接引用资源和 Bash/PowerShell 产物不一致 | 第 45 轮纯 skill 边界审计；实际漏包复现 + 独立终审 | 45 |
 | D-85 | **profile 是状态，不是散文例外**：`minimal` 只落短 SPEC、无 `.spec/`、不可 build/yolo；`governed` 才有完整 closure kit；触发施工或承重不确定性时原子升级 | 小项目降级与 Step 0 无条件初始化不可同时执行 | 45 |
 | D-84 | **sealed history 与 construction projection 分离**：phase block 只存不可变决策；运行进度写独立可变 Construction Ledger，build 仍只写 STATE、下次 spec 投影 | sealed 逐字只读与 post-build writeback 的结构冲突 | 45 |
@@ -1997,26 +2065,3 @@ A4-5 yolo/build L2 触发措辞张力(预存、可辩护)。
 - `README.md` —— D-52:定位段、Install、Usage(含"理想日常形态")、Files 树
 - `CLAUDE.md` —— D-52:第三指令说明 + "run /yolo" 一句
 - `docs/USER-GUIDE.zh-CN.md` —— D-52:§1.3 分工表加 `/yolo` 行 + 规则不变说明
-
-## 第 45 轮 · 2026-07-10 — 纯 skill 边界的干净上下文审计：把证据身份、运行生命周期与分发变成真正契约（D-82…D-86）
-
-用户纠正了审计边界：根 `SPEC.md`、`.spec/`、`eval/` 是 dogfood/样本，纯产品是
-`SPEC.template.md + .claude/** + 安装/发布链路`。在这个边界上，独立审计确认五个根因：
-
-1. 证据只有名字，没有身份：probe/review 未绑定 requirement revision 与 artifact digest，旧绿可复用。
-2. `/yolo` 只有全局 tick 文件，没有 run/job 生命周期；且先 commit 后 review，闭环顺序倒置。
-3. sealed phase 同时被要求只读和承接 construction writeback，历史与运行投影混在一个结构。
-4. “小项目可降级”与“无条件初始化全套”没有 profile 状态，执行器只能猜优先级。
-5. release 手写清单漏发 `consistency-lens.md`、`coherence.template.sh`、`probe.template.sh`；安装与发布不是同一个产品。
-
-决策是从状态模型修，不再追加词法补丁：证据绑定 revision/digest；yolo 每 run 独立且 final review
-在 commit 前；construction ledger 移出 sealed phase；minimal/governed 明确成 profile；唯一 manifest
-驱动安装、发布与完整性验证。根 SPEC 新开 Phase 3 只是本仓库的 dogfood 权威同步，不作为纯 skill
-设计来源。
-
-收口采用多轮独立复核而不是一次自证。复核先后抓出 installer trap 时序与 revision rollback、
-L2 跨 trace 拼接、job/status 空接线、runtime/support 清单漏项、单/多文件 artifact 旧签字复用
-与 manifest 子集作弊；每项都先复现，再成为负控。最终复核无剩余 P0/P1，G11/G12 正跑与
-selftest 均绿。PowerShell 路径完成同构事务与静态检查，但当前 macOS 环境无 `pwsh`，未冒充实机通过。
-
-*设计文档结束。实现见 `.claude/skills/spec/`、`.claude/skills/build/` 与 `.claude/skills/yolo/`。*
