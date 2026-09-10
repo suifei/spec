@@ -209,6 +209,48 @@ SPEC.md                                # the spec (the /spec → /build pipeline
 .spec/archive/phase-<N>.md             # sealed phases' full text, compacted out of SPEC.md by reference (stub stays)
 ```
 
+## What changed in v2026-09-10 — sealed history is compacted by reference
+
+**The problem (an engineering one, not a doctrinal one).** In a large project
+`SPEC.md` keeps growing, and it is not read once: `/spec` re-reads it every run,
+`/build` every run, `/yolo` every tick. A 150 KB spec is ~40k tokens of fixed cost
+*per tick*. A user raised this with a concrete proposal (archive sealed phases to
+an Obsidian vault on size/time triggers). The direction was right; three details
+had to change to fit the model. The revision logic:
+
+```mermaid
+flowchart TD
+    A["Phase is sealed<br/>(read-only by doctrine)"] --> B{"Where does its<br/>full text go?"}
+    B -->|"proposal: Obsidian vault"| X1["✗ outside the repo:<br/>a fresh context can't follow<br/><code>supersedes Phase K</code>"]
+    B -->|"adopted"| C["<code>.spec/archive/phase-N.md</code><br/>verbatim · append-only · committed"]
+    C --> D{"What stays in SPEC.md?"}
+    D -->|"proposal: remove the block"| X2["✗ every <code>supersedes</code><br/>citation loses its landing point"]
+    D -->|"adopted"| E["one-line stub: sealed heading verbatim<br/>+ supersedes · superseded-by · full-text pointer<br/>(construction progress stays in the<br/>Construction Ledger, so a stub is never edited)"]
+    E --> F{"When does it happen?"}
+    F -->|"proposal: 1 week after build"| X3["✗ /spec has no clock"]
+    F -->|"adopted"| G["at seal (always) +<br/>Step 0 size guard: ~600 lines / 50 KB<br/>→ report and <b>propose</b>, never delete silently"]
+    G --> H{"Why did it grow?"}
+    H -->|"legitimate history"| I["archive by reference —<br/>incl. Decision Log rows<br/>nothing current cites"]
+    H -->|"leaked PRD-level detail"| J["not archived: removed —<br/>SPEC.md is a contract, not a PRD"]
+    I --> K["G13 probe: every archive pointer,<br/>every <code>supersedes</code>, every cited<br/>decision ID must resolve — else RED"]
+    style X1 fill:#fee,stroke:#c33
+    style X2 fill:#fee,stroke:#c33
+    style X3 fill:#fee,stroke:#c33
+    style K fill:#efe,stroke:#393
+```
+
+Rehydration now reads the **current contract** (`SPEC.md` + `STATE.md` +
+knowledge) and opens `.spec/archive/` only when following a pointer. The rule is
+gated, not honor-system: `.spec/probes/G13-archive-pointers.sh` goes red on a
+dangling pointer, a `supersedes` naming a phase with no stub, or a cited decision
+defined nowhere. This repo dogfoods it — Phase 2's body now lives in
+`.spec/archive/phase-2.md`. Full reasoning: `docs/DESIGN-NOTES.md` round 46 / D-87.
+
+**Thanks to 周先生 (Mr. Zhou)** for raising the problem with a concrete, well-argued
+proposal — the kind of real-world engineering feedback this project needs. The
+parts we changed are documented above; the core insight ("sealed = frozen =
+archivable") was his.
+
 ## Design rationale
 
 `docs/DESIGN-NOTES.md` records the whole design conversation — from "port OpenSpec"
