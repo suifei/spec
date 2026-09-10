@@ -99,7 +99,12 @@ whose full reasoning trail is worth preserving beyond this terse row (see
 `SKILL.md`'s optional "Design Notes" companion), point the Evidence column at the
 round's actual heading anchor in `docs/DESIGN-NOTES.md` (e.g. `#round-N` for an
 English-language journal — match whatever the journal's real headings slugify to)
-instead of duplicating the narrative here.
+instead of duplicating the narrative here. This table holds the decisions that
+are **still load-bearing**: when a phase is sealed and compacted by reference
+(§7), rows belonging to it that no current requirement / gate / open phase / open
+question cites move verbatim to `.spec/archive/phase-<N>.md` under `## Decisions`;
+a row still cited anywhere stays here. Cited IDs must resolve either here or in
+the archive (probe-gated; see `SKILL.md` Step 7).
 
 | # | Decision | Reasoning (why, over alternatives) | Evidence | By | Date |
 |---|----------|------------------------------------|----------|----|------|
@@ -109,8 +114,14 @@ instead of duplicating the narrative here.
 ## 7. Phases (ledger — emergent from closure)
 A phase is **sealed** when all its decisions are confirmed and its gates are
 green (or explicitly deferred) with no blocking open question. Sealed = read-only.
+A sealed phase is **compacted by reference**: its body moves verbatim to
+`.spec/archive/phase-<N>.md` and only a one-line stub stays here (first form
+below; construction progress lives in the Construction Ledger, never in the stub).
+The open phase keeps the full form.
 
-### Phase 1 — <name> · status: <open|sealed YYYY-MM-DD>
+### Phase 1 — <name> · status: **sealed YYYY-MM-DD** · supersedes: none · superseded-by: none · full text: `.spec/archive/phase-1.md`
+
+### Phase 2 — <name> · status: open
 - **Goal:** <what this closure establishes>
 - **Gates:** G1  · **Key decisions:** D1, D2 (see Decision Log)
 - **Supersedes:** <none | "阶段K 的第X条 — 因 …">
