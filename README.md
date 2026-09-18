@@ -10,49 +10,67 @@
 
 ## 介绍视频 · 1 分 48 秒
 
-<video src="https://github.com/suifei/spec/releases/download/v2026-09-10/video-narrated.mp4" poster="video/spec-intro/renders/poster.jpg" controls width="100%"></video>
+https://github.com/user-attachments/assets/589849df-9629-42b7-b2f5-66a5c5d59012
 
-[![观看介绍视频](video/spec-intro/renders/poster.jpg)](https://github.com/suifei/spec/releases/download/v2026-09-10/video-narrated.mp4)
-
-六段，每段讲一个点，点图单独看：
+六段，每段讲一个点：
 
 <table>
 <tr>
-<td width="33%" align="center">
-<a href="https://github.com/suifei/spec/releases/download/v2026-09-10/01-hook.mp4"><img src="video/spec-intro/renders/thumbs/01-hook.jpg" alt="问题" width="100%"></a><br>
+<td width="50%" valign="top">
+
+https://github.com/user-attachments/assets/f78f1e35-e081-403e-9124-9f5e88c7483f
+
 <b>① 问题</b> · 17s<br><sub>需求散在聊天里，一路绿灯却说不清凭什么</sub>
+
 </td>
-<td width="33%" align="center">
-<a href="https://github.com/suifei/spec/releases/download/v2026-09-10/02-install.mp4"><img src="video/spec-intro/renders/thumbs/02-install.jpg" alt="安装" width="100%"></a><br>
+<td width="50%" valign="top">
+
+https://github.com/user-attachments/assets/6fc0b821-8fa4-4bbe-9c63-b4a6c5e2393f
+
 <b>② 安装</b> · 13s<br><sub>一行装好，只碰 <code>.claude/</code></sub>
-</td>
-<td width="33%" align="center">
-<a href="https://github.com/suifei/spec/releases/download/v2026-09-10/03-gates.mp4"><img src="video/spec-intro/renders/thumbs/03-gates.jpg" alt="三道门" width="100%"></a><br>
-<b>③ 三道门</b> · 20s<br><sub><code>/spec</code> → <code>/build</code> → <code>/yolo</code></sub>
+
 </td>
 </tr>
 <tr>
-<td width="33%" align="center">
-<a href="https://github.com/suifei/spec/releases/download/v2026-09-10/04-collab.mp4"><img src="video/spec-intro/renders/thumbs/04-collab.jpg" alt="人机协同" width="100%"></a><br>
+<td width="50%" valign="top">
+
+https://github.com/user-attachments/assets/805ba9ab-0c4d-4b3f-af45-b3fafbd91920
+
+<b>③ 三道门</b> · 20s<br><sub><code>/spec</code> → <code>/build</code> → <code>/yolo</code></sub>
+
+</td>
+<td width="50%" valign="top">
+
+https://github.com/user-attachments/assets/a5176a5b-684b-48ee-b2cb-3bd3ca69c6ef
+
 <b>④ 人机协同</b> · 18s<br><sub>AI 扛重活，只有真分叉才问你</sub>
+
 </td>
-<td width="33%" align="center">
-<a href="https://github.com/suifei/spec/releases/download/v2026-09-10/05-probe.mp4"><img src="video/spec-intro/renders/thumbs/05-probe.jpg" alt="核心能力" width="100%"></a><br>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+https://github.com/user-attachments/assets/9adcc4ef-9794-4817-8c15-380954c52ce4
+
 <b>⑤ 核心能力</b> · 20s<br><sub>探针必须能变红，这个绿才算数</sub>
+
 </td>
-<td width="33%" align="center">
-<a href="https://github.com/suifei/spec/releases/download/v2026-09-10/06-proof.mp4"><img src="video/spec-intro/renders/thumbs/06-proof.jpg" alt="效果" width="100%"></a><br>
+<td width="50%" valign="top">
+
+https://github.com/user-attachments/assets/f21e70bb-4d31-4b26-bb4c-831b8fed3e96
+
 <b>⑥ 效果</b> · 19s<br><sub>自己管自己，22 条探针全绿</sub>
+
 </td>
 </tr>
 </table>
 
 <sub>片子用 [HyperFrames](https://github.com/heygen-com/hyperframes) 制作（HTML → 确定性渲染 MP4），
 源码与构建说明在 [`video/`](video/)，配音用 NowVoice（云泽·纪录片解说）生成。
-整片与六个分段都作为 release 资产发布（不绑分支，合并后依然有效）。
-GitHub 的 README 会过滤 `<video>`／`<iframe>`，所以上面是封面图与缩略图的可点回退——
-GitHub 只把形如 `github.com/user-attachments/assets/<uuid>` 的链接转成内嵌播放器，
-而那种链接只能靠把 MP4 拖进 issue/PR 评论框生成，release 资产链接不会被转换。</sub>
+上面是 GitHub 的内嵌播放器：README 会过滤 `<video>`／`<iframe>` 标签，只有形如
+`github.com/user-attachments/assets/<uuid>` 的链接会被转成播放器，且每条须独占一个段落。
+想下载原文件，整片与六个分段也都在
+[v2026-09-10 release](https://github.com/suifei/spec/releases/tag/v2026-09-10) 里。</sub>
 
 ---
 
