@@ -16,3 +16,7 @@ build/__pycache__/
 # narration audio is generated locally with the nowvoice-tts skill (see README).
 # The MP3s themselves are not committed — regenerate them from narration/*.txt.
 spec-intro/audio/
+
+# the narrated master is a build product of add-narration.sh (silent master + audio/).
+# It ships as a release asset, which is what the README links to — not committed here.
+spec-intro/renders/video-narrated.mp4
