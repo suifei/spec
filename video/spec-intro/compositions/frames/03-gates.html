@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frame 3 — 三个命令，是三道门</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "WenQuanYi Zen Hei"; src: local("WenQuanYi Zen Hei"); }
+        @font-face { font-family: "DejaVu Sans Mono"; src: local("DejaVu Sans Mono"); }
+        #root {
+          position: absolute; inset: 0; overflow: hidden; color: #e6edf3;
+          font-family: "WenQuanYi Zen Hei", sans-serif;
+        }
+        #f3-bg { position: absolute; inset: 0; background: #0d1117; }
+        #f3-grid {
+          position: absolute; inset: 0;
+          background-image: linear-gradient(#30363d 1px, transparent 1px),
+            linear-gradient(90deg, #30363d 1px, transparent 1px);
+          background-size: 64px 64px; opacity: 0.15;
+        }
+        #f3-wrap {
+          position: absolute; left: 120px; top: 0; width: 1680px; height: 100%;
+          display: flex; flex-direction: column; justify-content: center;
+        }
+        #f3-title { display: block; font-size: 72px; font-weight: 700; letter-spacing: -0.02em; }
+        #f3-row { display: flex; gap: 18px; align-items: stretch; margin-top: 58px; }
+        .f3-card {
+          flex: 1; background: #161b22; border: 1px solid #30363d;
+          border-radius: 16px; padding: 40px 34px; position: relative; overflow: hidden;
+        }
+        .f3-top { position: absolute; left: 0; top: 0; height: 5px; width: 100%; transform-origin: left center; }
+        .f3-cmd { display: block; font-family: "DejaVu Sans Mono", monospace; font-size: 52px; font-weight: 700; }
+        .f3-gate { display: block; font-size: 25px; color: #7d8590; margin-top: 10px; }
+        .f3-line { display: block; font-size: 34px; margin-top: 28px; }
+        .f3-desc { display: block; font-size: 26px; color: #7d8590; margin-top: 18px; line-height: 1.6; }
+        .f3-arrow { display: flex; align-items: center; font-size: 46px; color: #30363d; padding: 0 4px; }
+        #f3-foot { display: block; margin-top: 62px; font-size: 42px; text-align: center; }
+      </style>
+
+      <div id="root" data-composition-id="03-gates" data-width="1920" data-height="1080" data-duration="21">
+        <div id="f3-bg"></div>
+        <div id="f3-grid"></div>
+
+        <div id="f3-wrap">
+          <span id="f3-title">三个命令，是<span style="color: #3fb950">三道门</span></span>
+
+          <div id="f3-row">
+            <div class="f3-card" id="f3-c1">
+              <span class="f3-top" id="f3-t1" style="background: #3fb950"></span>
+              <span class="f3-cmd" style="color: #3fb950">/spec</span>
+              <span class="f3-gate">Gate 1</span>
+              <span class="f3-line" id="f3-l1">想法 → 契约</span>
+              <span class="f3-desc" id="f3-d1">追问 · 查证 · 推演，产出 SPEC.md</span>
+            </div>
+
+            <div class="f3-arrow" id="f3-a1">→</div>
+
+            <div class="f3-card" id="f3-c2">
+              <span class="f3-top" id="f3-t2" style="background: #58a6ff"></span>
+              <span class="f3-cmd" style="color: #58a6ff">/build</span>
+              <span class="f3-gate">Gate 1.5</span>
+              <span class="f3-line" id="f3-l2">契约 → 代码</span>
+              <span class="f3-desc" id="f3-d2">计划每次重生成、<span style="color: #f85149">从不留存</span></span>
+              <span class="f3-desc" id="f3-d2b" style="margin-top: 8px">没有中间层，就没有漂移</span>
+            </div>
+
+            <div class="f3-arrow" id="f3-a2">→</div>
+
+            <div class="f3-card" id="f3-c3">
+              <span class="f3-top" id="f3-t3" style="background: #bc8cff"></span>
+              <span class="f3-cmd" style="color: #bc8cff">/yolo</span>
+              <span class="f3-gate">自动挡</span>
+              <span class="f3-line" id="f3-l3">同规则 · 换节奏</span>
+              <span class="f3-desc" id="f3-d3">自循环 · 自评审，完事自删定时器</span>
+            </div>
+          </div>
+
+          <span id="f3-foot">改变的是<span style="color: #3fb950">节奏</span>，从不改变<span style="color: #3fb950">规则</span>。</span>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+
+          // Scene 1 (0–2.5s): the thesis, alone on frame
+          tl.fromTo("#f3-title", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.1);
+
+          // card N enters only when the VO names that command — never all three at once
+          function gate(card, top, line, descs, t) {
+            tl.fromTo(card, { opacity: 0, y: 40, scale: 0.96 },
+              { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "power3.out" }, t);
+            tl.fromTo(top, { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power3.out" }, t + 0.1);
+            tl.fromTo(line, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, t + 0.5);
+            descs.forEach(function (d, i) {
+              tl.fromTo(d, { opacity: 0 }, { opacity: 1, duration: 0.45 }, t + 0.85 + i * 0.5);
+            });
+          }
+
+          // Scene 2 (2.5–7s): /spec
+          gate("#f3-c1", "#f3-t1", "#f3-l1", ["#f3-d1"], 2.6);
+
+          // Scene 3 (7–13s): arrow draws, then /build — "从不留存" lands red, then the payoff
+          tl.fromTo("#f3-a1", { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 6.9);
+          gate("#f3-c2", "#f3-t2", "#f3-l2", ["#f3-d2", "#f3-d2b"], 7.3);
+
+          // Scene 4 (13–17.5s): second arrow, then /yolo completes the line
+          tl.fromTo("#f3-a2", { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 12.9);
+          gate("#f3-c3", "#f3-t3", "#f3-l3", ["#f3-d3"], 13.3);
+
+          // Scene 5 (17.5–20.5s): the rule that does not move — then stillness
+          tl.fromTo("#f3-foot", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 17.6);
+
+          window.__timelines["03-gates"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

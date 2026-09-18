@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frame 1 — 问题：说不清的那句“完成了”</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "WenQuanYi Zen Hei"; src: local("WenQuanYi Zen Hei"); }
+        @font-face { font-family: "WenQuanYi Zen Hei Mono"; src: local("WenQuanYi Zen Hei Mono"); }
+        @font-face { font-family: "DejaVu Sans Mono"; src: local("DejaVu Sans Mono"); }
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          color: #e6edf3;
+          font-family: "WenQuanYi Zen Hei", sans-serif;
+        }
+        #f1-bg {
+          position: absolute;
+          inset: 0;
+          background: #0d1117;
+        }
+        #f1-grid {
+          position: absolute;
+          inset: 0;
+          background-image: linear-gradient(#30363d 1px, transparent 1px),
+            linear-gradient(90deg, #30363d 1px, transparent 1px);
+          background-size: 64px 64px;
+          opacity: 0.15;
+        }
+        #f1-vignette {
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse 78% 58% at 48% 46%, transparent 38%, #0d1117 100%);
+        }
+        .f1-frag {
+          position: absolute;
+          display: block;
+          font-family: "DejaVu Sans Mono", "WenQuanYi Zen Hei Mono", monospace;
+          font-size: 30px;
+          color: #7d8590;
+          background: #161b22;
+          border: 1px solid #30363d;
+          border-radius: 12px;
+          padding: 14px 24px;
+          white-space: nowrap;
+        }
+        #f1-stack {
+          position: absolute;
+          left: 120px;
+          top: 0;
+          width: 1560px;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+        #f1-kicker {
+          display: block;
+          font-family: "DejaVu Sans Mono", monospace;
+          font-size: 28px;
+          letter-spacing: 0.16em;
+          color: #7d8590;
+          text-transform: uppercase;
+        }
+        #f1-mark {
+          display: block;
+          margin-top: 22px;
+          font-family: "DejaVu Sans Mono", monospace;
+          font-size: 140px;
+          font-weight: 700;
+          line-height: 1;
+          color: #3fb950;
+          letter-spacing: -0.02em;
+        }
+        #f1-pains {
+          display: flex;
+          gap: 30px;
+          align-items: center;
+          margin-top: 68px;
+        }
+        .f1-pain {
+          display: block;
+          font-size: 40px;
+          color: #f85149;
+        }
+        .f1-dot {
+          display: block;
+          font-size: 32px;
+          color: #5c6166;
+        }
+        #f1-close {
+          display: block;
+          margin-top: 58px;
+          font-size: 48px;
+          line-height: 1.4;
+        }
+        .f1-hl {
+          color: #3fb950;
+        }
+      </style>
+
+      <div id="root" data-composition-id="01-hook" data-width="1920" data-height="1080" data-duration="17.5">
+        <div id="f1-bg"></div>
+        <div id="f1-grid"></div>
+
+        <span class="f1-frag" id="f1-frag1" style="left: 190px; top: 210px">要不还是加个缓存吧</span>
+        <span class="f1-frag" id="f1-frag2" style="left: 1140px; top: 158px">先做登录，别的以后说</span>
+        <span class="f1-frag" id="f1-frag3" style="left: 1370px; top: 690px">这个字段是可选的吗</span>
+        <span class="f1-frag" id="f1-frag4" style="left: 250px; top: 792px">昨天说的那个逻辑改了</span>
+        <span class="f1-frag" id="f1-frag5" style="left: 830px; top: 880px">等等，兼容旧版本吗</span>
+
+        <div id="f1-vignette" data-layout-allow-occlusion></div>
+
+        <div id="f1-stack">
+          <span id="f1-kicker">Claude Code · Gate 1</span>
+          <span id="f1-mark">/spec</span>
+          <div id="f1-pains">
+            <span class="f1-pain" id="f1-pain1">✗ 需求散在聊天里</span>
+            <span class="f1-dot" id="f1-dot">/</span>
+            <span class="f1-pain" id="f1-pain2">✗ 一路绿灯，说不清凭什么</span>
+          </div>
+          <span id="f1-close">动工之前，<span class="f1-hl">先把该定的定下来</span>。</span>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+          const frags = ["#f1-frag1", "#f1-frag2", "#f1-frag3", "#f1-frag4", "#f1-frag5"];
+          const rot = [-7, 5, -4, 6, -5];
+
+          // Scene 1 (0–3s): fragments arrive staggered — the spec living in chat
+          frags.forEach(function (sel, i) {
+            tl.fromTo(
+              sel,
+              { opacity: 0, y: 26, rotation: rot[i], scale: 0.96 },
+              { opacity: 0.85, y: 0, rotation: rot[i], scale: 1, duration: 0.7, ease: "power3.out" },
+              0.25 + i * 0.5
+            );
+          });
+
+          // Scene 2 (3–7s): they drift up and die — the drift IS the argument
+          frags.forEach(function (sel, i) {
+            tl.to(
+              sel,
+              { opacity: 0, y: -80, duration: 1.5, ease: "power2.in" },
+              3.1 + i * 0.42
+            );
+          });
+
+          // Scene 3 (7–11s): the two costs land, left-staggered
+          tl.fromTo("#f1-pain1", { opacity: 0, x: -44 }, { opacity: 1, x: 0, duration: 0.7, ease: "power3.out" }, 7.2);
+          tl.fromTo("#f1-dot", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 7.9);
+          tl.fromTo("#f1-pain2", { opacity: 0, x: -44 }, { opacity: 1, x: 0, duration: 0.7, ease: "power3.out" }, 8.2);
+
+          // Scene 4 (11–14s): kicker, then the wordmark rises and sets
+          tl.fromTo("#f1-kicker", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 10.9);
+          tl.fromTo("#f1-mark", { opacity: 0, y: 46 }, { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 11.3);
+
+          // Scene 5 (14–17s): the promise, then STILLNESS to the end
+          tl.fromTo("#f1-close", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 13.9);
+
+          window.__timelines["01-hook"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>
