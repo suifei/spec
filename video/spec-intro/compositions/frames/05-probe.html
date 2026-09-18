@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frame 5 — 核心能力：能变红，这个绿才算数</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "WenQuanYi Zen Hei"; src: local("WenQuanYi Zen Hei"); }
+        @font-face { font-family: "DejaVu Sans Mono"; src: local("DejaVu Sans Mono"); }
+        #root {
+          position: absolute; inset: 0; overflow: hidden; color: #e6edf3;
+          font-family: "WenQuanYi Zen Hei", sans-serif;
+        }
+        #f5-bg { position: absolute; inset: 0; background: #0d1117; }
+        #f5-grid {
+          position: absolute; inset: 0;
+          background-image: linear-gradient(#30363d 1px, transparent 1px),
+            linear-gradient(90deg, #30363d 1px, transparent 1px);
+          background-size: 64px 64px; opacity: 0.15;
+        }
+        #f5-wrap {
+          position: absolute; left: 120px; top: 0; width: 1680px; height: 100%;
+          display: flex; flex-direction: column; justify-content: center;
+        }
+        #f5-title { display: block; font-size: 68px; font-weight: 700; letter-spacing: -0.02em; }
+        #f5-term {
+          margin-top: 42px; background: #161b22; border: 1px solid #30363d;
+          border-radius: 14px; overflow: hidden; position: relative;
+        }
+        #f5-termbar {
+          height: 54px; background: #21262d; display: flex; align-items: center;
+          gap: 10px; padding: 0 22px; border-bottom: 1px solid #30363d;
+        }
+        .f5-dot { display: block; width: 14px; height: 14px; border-radius: 50%; }
+        #f5-termname {
+          display: block; margin-left: 14px; font-family: "DejaVu Sans Mono", monospace;
+          font-size: 23px; color: #858d97;
+        }
+        #f5-termbody {
+          padding: 28px 38px; font-family: "DejaVu Sans Mono", monospace;
+          font-size: 27px; line-height: 1.85; position: relative;
+        }
+        #f5-flash { position: absolute; inset: 0; background: #f85149; opacity: 0; pointer-events: none; }
+        .f5-line { display: block; position: relative; }
+        .f5-verdict { font-weight: 700; }
+        #f5-cards { display: flex; gap: 22px; margin-top: 46px; }
+        .f5-card { flex: 1; background: #161b22; border: 1px solid #30363d; border-radius: 14px; padding: 32px 30px; }
+        .f5-ct { display: block; font-family: "DejaVu Sans Mono", monospace; font-size: 28px; }
+        .f5-cb { display: block; font-size: 27px; margin-top: 16px; line-height: 1.55; }
+        .f5-cm { color: #7d8590; }
+      </style>
+
+      <div id="root" data-composition-id="05-probe" data-width="1920" data-height="1080" data-duration="20.5">
+        <div id="f5-bg"></div>
+        <div id="f5-grid"></div>
+
+        <div id="f5-wrap">
+          <span id="f5-title">底线只有一条：<span style="color: #3fb950">证据不能是空话</span></span>
+
+          <div id="f5-term">
+            <div id="f5-termbar">
+              <span class="f5-dot" style="background: #ff5f57"></span>
+              <span class="f5-dot" style="background: #febc2e"></span>
+              <span class="f5-dot" style="background: #28c840"></span>
+              <span id="f5-termname">bash .spec/probes/G13-archive-pointers.sh --selftest</span>
+            </div>
+            <div id="f5-termbody">
+              <div id="f5-flash"></div>
+              <span class="f5-line" id="f5-r1"><span class="f5-verdict" style="color: #f85149">RED</span>&nbsp;&nbsp;<span class="f5-cm">坏例：归档指针悬空 → 探针正确变红</span></span>
+              <span class="f5-line" id="f5-r2"><span class="f5-verdict" style="color: #f85149">RED</span>&nbsp;&nbsp;<span class="f5-cm">坏例：被引决策无定义 → 正确变红</span></span>
+              <span class="f5-line" id="f5-g1"><span class="f5-verdict" style="color: #3fb950">GREEN</span>&nbsp;<span class="f5-cm">好例：全部指针可解析</span></span>
+              <span class="f5-line" id="f5-done" style="margin-top: 14px"><span style="color: #3fb950">✓</span> 自测通过 —— <span style="color: #d29922">能变红，这个绿才算数</span></span>
+            </div>
+          </div>
+
+          <div id="f5-cards">
+            <div class="f5-card" id="f5-k1">
+              <span class="f5-ct" style="color: #58a6ff">Intent / Acceptance / Method</span>
+              <span class="f5-cb">每条承重需求都带三样<span class="f5-cm">：什么算违反 · 怎么验收 · 用什么方法</span></span>
+            </div>
+            <div class="f5-card" id="f5-k2">
+              <span class="f5-ct" style="color: #bc8cff">独立评审</span>
+              <span class="f5-cb">生成类成果多一道关<span class="f5-cm">：</span><span id="f5-k2b" class="f5-cm">全新上下文，不许自己审自己</span></span>
+            </div>
+            <div class="f5-card" id="f5-k3">
+              <span class="f5-ct" style="color: #d29922">文件系统即记忆</span>
+              <span class="f5-cb">状态写在磁盘<span class="f5-cm">：上下文断了也能接着走</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+
+          // Scene 1 (0–3s): the thesis, then an empty terminal waiting to be proved
+          tl.fromTo("#f5-title", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.1);
+          tl.fromTo("#f5-term", { opacity: 0, y: 38 }, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0.7);
+
+          // Scene 2 (3–7s): TWO REDS — the emotional peak. A probe that cannot fail proves nothing.
+          function red(line, t) {
+            tl.fromTo(line, { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, t);
+            tl.fromTo("#f5-flash", { opacity: 0 }, { opacity: 0.16, duration: 0.12, ease: "power2.out" }, t);
+            tl.to("#f5-flash", { opacity: 0, duration: 0.75, ease: "power2.in" }, t + 0.12);
+          }
+          red("#f5-r1", 3.1);
+          red("#f5-r2", 4.9);
+
+          // Scene 3 (7–10s): green lands, and the line that earns it
+          tl.fromTo("#f5-g1", { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 7.0);
+          tl.fromTo("#f5-done", { opacity: 0 }, { opacity: 1, duration: 0.55 }, 8.2);
+
+          // Scene 4 (10–16s): the three mechanisms behind the green
+          [["#f5-k1", 10.3], ["#f5-k2", 11.6], ["#f5-k3", 12.9]].forEach(function (p) {
+            tl.fromTo(p[0], { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.65, ease: "power3.out" }, p[1]);
+          });
+
+          // Scene 5 (16–20s): the no-self-review line lands last, then total stillness
+          tl.fromTo("#f5-k2b", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 15.6);
+
+          window.__timelines["05-probe"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

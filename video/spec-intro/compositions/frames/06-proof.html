@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frame 6 — 效果：它自己管着自己</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "WenQuanYi Zen Hei"; src: local("WenQuanYi Zen Hei"); }
+        @font-face { font-family: "DejaVu Sans Mono"; src: local("DejaVu Sans Mono"); }
+        #root {
+          position: absolute; inset: 0; overflow: hidden; color: #e6edf3;
+          font-family: "WenQuanYi Zen Hei", sans-serif;
+        }
+        #f6-bg { position: absolute; inset: 0; background: #0d1117; }
+        #f6-grid {
+          position: absolute; inset: 0;
+          background-image: linear-gradient(#30363d 1px, transparent 1px),
+            linear-gradient(90deg, #30363d 1px, transparent 1px);
+          background-size: 64px 64px; opacity: 0.15;
+        }
+        #f6-vignette {
+          position: absolute; inset: 0; opacity: 0;
+          background: radial-gradient(ellipse 80% 60% at 50% 50%, transparent 42%, #0d1117 100%);
+        }
+        #f6-wrap {
+          position: absolute; left: 120px; top: 0; width: 1680px; height: 100%;
+          display: flex; flex-direction: column; justify-content: center;
+        }
+        #f6-title { display: block; font-size: 70px; font-weight: 700; letter-spacing: -0.02em; }
+        #f6-sub { display: block; font-size: 36px; color: #7d8590; margin-top: 20px; }
+        #f6-ticks { display: flex; flex-wrap: wrap; gap: 13px; max-width: 1080px; margin-top: 42px; }
+        .f6-tick {
+          display: flex; align-items: center; justify-content: center;
+          width: 44px; height: 44px; border-radius: 9px;
+          background: rgba(63, 185, 80, 0.14); border: 1px solid #3fb950;
+          color: #3fb950; font-size: 24px;
+          font-family: "DejaVu Sans Mono", monospace;
+        }
+        #f6-count { display: block; font-size: 36px; margin-top: 26px; }
+        #f6-num { font-family: "DejaVu Sans Mono", monospace; font-size: 52px; color: #3fb950; font-weight: 700; }
+        #f6-audit {
+          margin-top: 42px; background: #161b22; border-left: 5px solid #d29922;
+          border-radius: 10px; padding: 28px 38px;
+        }
+        #f6-audit-text { display: block; font-size: 31px; line-height: 1.65; }
+        #f6-end {
+          position: absolute; inset: 0; opacity: 0; display: flex; flex-direction: column;
+          align-items: center; justify-content: center; gap: 30px;
+        }
+        #f6-punch { display: block; font-size: 84px; font-weight: 700; letter-spacing: -0.03em; }
+        #f6-url { display: block; font-family: "DejaVu Sans Mono", monospace; font-size: 36px; color: #58a6ff; }
+      </style>
+
+      <div id="root" data-composition-id="06-proof" data-width="1920" data-height="1080">
+        <div id="f6-bg"></div>
+        <div id="f6-grid"></div>
+
+        <div id="f6-wrap">
+          <span id="f6-title">它<span style="color: #3fb950">自己管着自己</span></span>
+          <span id="f6-sub">这个仓库的规格、门与探针，就是它自己跑出来的产物。</span>
+
+          <div id="f6-ticks">
+            <span class="f6-tick">✓</span><span class="f6-tick">✓</span><span class="f6-tick">✓</span>
+            <span class="f6-tick">✓</span><span class="f6-tick">✓</span><span class="f6-tick">✓</span>
+            <span class="f6-tick">✓</span><span class="f6-tick">✓</span><span class="f6-tick">✓</span>
+            <span class="f6-tick">✓</span><span class="f6-tick">✓</span><span class="f6-tick">✓</span>
+            <span class="f6-tick">✓</span><span class="f6-tick">✓</span><span class="f6-tick">✓</span>
+            <span class="f6-tick">✓</span><span class="f6-tick">✓</span><span class="f6-tick">✓</span>
+            <span class="f6-tick">✓</span><span class="f6-tick">✓</span><span class="f6-tick">✓</span>
+            <span class="f6-tick">✓</span>
+          </div>
+
+          <span id="f6-count"><span id="f6-num">22</span> 条探针 · 真跑 + 负控 · <span style="color: #3fb950">全绿</span></span>
+
+          <div id="f6-audit">
+            <span id="f6-audit-text">
+              更能说明问题的是：一次<span style="color: #d29922">干净上下文的独立审计</span>，
+              抓出了它给自己写下的夸大措辞 —— 然后这些问题被<span style="color: #3fb950">逐条改掉</span>。
+            </span>
+          </div>
+        </div>
+
+        <div id="f6-vignette"></div>
+
+        <div id="f6-end">
+          <span id="f6-punch">规格不是文档。<span style="color: #3fb950">是契约。</span></span>
+          <span id="f6-url">github.com/suifei/spec</span>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+
+          // #f6-end / #f6-vignette start hidden in CSS (a t=0 tl.set never paints frame 0)
+
+          // Scene 1 (0–3s): the claim
+          tl.fromTo("#f6-title", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.1);
+          tl.fromTo("#f6-sub", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.6);
+
+          // Scene 2 (3–8s): 22 ticks land in a wave — the shape of the regression suite itself
+          const ticks = gsap.utils.toArray("#f6-ticks .f6-tick");
+          ticks.forEach(function (el, i) {
+            tl.fromTo(el, { opacity: 0, scale: 0.7 },
+              { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, 3.0 + i * 0.19);
+          });
+
+          // Scene 3 (8–11s): the count settles on the same beat the wave ends
+          tl.fromTo("#f6-count", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 7.4);
+
+          // Scene 4 (11–15.5s): the honesty beat — it caught itself overclaiming, and fixed it
+          tl.fromTo("#f6-audit", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.75, ease: "power3.out" }, 10.9);
+
+          // Scene 5 (15.5–19.5s): the ledger yields; the thesis and the repo hold to the end
+          tl.to("#f6-wrap", { opacity: 0, duration: 0.8, ease: "power2.inOut" }, 15.3);
+          tl.to("#f6-vignette", { opacity: 1, duration: 0.8 }, 15.3);
+          tl.to("#f6-end", { opacity: 1, duration: 0.05 }, 15.3);
+          tl.fromTo("#f6-punch", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 15.9);
+          tl.fromTo("#f6-url", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 16.8);
+
+          window.__timelines["06-proof"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

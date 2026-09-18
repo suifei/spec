@@ -2,6 +2,30 @@
 
 ![alt text](woyaoyanpai.png)
 
+## 介绍视频 · 1 分 48 秒
+
+<video src="https://github.com/suifei/spec/raw/feat/promo-video/video/spec-intro/renders/video.mp4" poster="video/spec-intro/renders/poster.jpg" controls width="100%"></video>
+
+[![观看介绍视频](video/spec-intro/renders/poster.jpg)](https://github.com/suifei/spec/raw/feat/promo-video/video/spec-intro/renders/video.mp4)
+
+六段，每段讲一个点，也可以单独看：
+
+| 段 | 时长 | 讲什么 |
+|---|---|---|
+| [问题](video/spec-intro/renders/segments/01-hook.mp4) | 17s | 需求散在聊天里，一路绿灯却说不清凭什么 |
+| [安装](video/spec-intro/renders/segments/02-install.mp4) | 13s | 一行装好，只碰 `.claude/` |
+| [三道门](video/spec-intro/renders/segments/03-gates.mp4) | 20s | `/spec` → `/build` → `/yolo` |
+| [人机协同](video/spec-intro/renders/segments/04-collab.mp4) | 18s | AI 扛重活，只有真分叉才问你 |
+| [核心能力](video/spec-intro/renders/segments/05-probe.mp4) | 20s | 探针必须能变红，这个绿才算数 |
+| [效果](video/spec-intro/renders/segments/06-proof.mp4) | 19s | 自己管自己，22 条探针全绿 |
+
+<sub>片子用 [HyperFrames](https://github.com/heygen-com/hyperframes) 制作（HTML → 确定性渲染 MP4），
+源码与构建说明在 [`video/`](video/)。GitHub 的 README 会过滤 `<video>` 标签，
+上面的封面图是可点的回退链接；想要内嵌播放器，把 MP4 拖进一条 issue 或 release 拿到
+`user-attachments` 链接再替换即可。</sub>
+
+---
+
 A single, repeatable Claude Code command in which the AI plays an **expert
 requirements-elicitation analyst** — it takes your vague idea and turns it into one
 authoritative, *feasible* specification.

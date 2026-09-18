@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frame 4 — 人机协同：只有真分叉才问你</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "WenQuanYi Zen Hei"; src: local("WenQuanYi Zen Hei"); }
+        @font-face { font-family: "DejaVu Sans Mono"; src: local("DejaVu Sans Mono"); }
+        #root {
+          position: absolute; inset: 0; overflow: hidden; color: #e6edf3;
+          font-family: "WenQuanYi Zen Hei", sans-serif;
+        }
+        #f4-bg { position: absolute; inset: 0; background: #0d1117; }
+        #f4-grid {
+          position: absolute; inset: 0;
+          background-image: linear-gradient(#30363d 1px, transparent 1px),
+            linear-gradient(90deg, #30363d 1px, transparent 1px);
+          background-size: 64px 64px; opacity: 0.15;
+        }
+        #f4-wrap {
+          position: absolute; left: 120px; top: 0; width: 1680px; height: 100%;
+          display: flex; flex-direction: column; justify-content: center;
+        }
+        #f4-title { display: block; font-size: 70px; font-weight: 700; letter-spacing: -0.02em; }
+        #f4-cols { display: flex; gap: 56px; margin-top: 50px; align-items: stretch; }
+        .f4-panel { background: #161b22; border: 1px solid #30363d; border-radius: 16px; padding: 38px 36px; }
+        .f4-head { display: block; font-size: 27px; margin-bottom: 24px; }
+        .f4-item { display: flex; gap: 16px; align-items: center; font-size: 31px; }
+        .f4-bullet { display: block; color: #3fb950; }
+        .f4-fork { display: block; font-size: 44px; font-weight: 700; }
+        #f4-quote {
+          margin-top: 46px; background: #161b22; border-left: 5px solid #f85149;
+          border-radius: 10px; padding: 30px 38px;
+        }
+        #f4-quote-text { display: block; font-size: 33px; line-height: 1.6; }
+      </style>
+
+      <div id="root" data-composition-id="04-collab" data-width="1920" data-height="1080" data-duration="18.5">
+        <div id="f4-bg"></div>
+        <div id="f4-grid"></div>
+
+        <div id="f4-wrap">
+          <span id="f4-title">它不是<span style="color: #7d8590">听话的记录员</span></span>
+
+          <div id="f4-cols">
+            <div class="f4-panel" id="f4-left" style="flex: 1.3">
+              <span class="f4-head" id="f4-lh" style="color: #3fb950">AI 扛的重活</span>
+              <div style="display: flex; flex-direction: column; gap: 19px">
+                <div class="f4-item" id="f4-i1"><span class="f4-bullet">▸</span><span>读你指的材料</span></div>
+                <div class="f4-item" id="f4-i2"><span class="f4-bullet">▸</span><span>搜自己的知识与网络</span></div>
+                <div class="f4-item" id="f4-i3"><span class="f4-bullet">▸</span><span>跑探针验证承重假设</span></div>
+                <div class="f4-item" id="f4-i4"><span class="f4-bullet">▸</span><span>能定的自己定</span></div>
+                <div class="f4-item" id="f4-i5"><span class="f4-bullet">▸</span><span>理由写进决策日志</span></div>
+              </div>
+            </div>
+
+            <div class="f4-panel" id="f4-right" style="flex: 1; border-color: #d29922">
+              <span class="f4-head" style="color: #d29922">只有这些才问你</span>
+              <div style="display: flex; flex-direction: column; gap: 22px">
+                <span class="f4-fork" id="f4-f1">取舍</span>
+                <span class="f4-fork" id="f4-f2">优先级</span>
+                <span class="f4-fork" id="f4-f3">风险</span>
+              </div>
+              <span id="f4-once" style="display: block; font-size: 25px; color: #7d8590; margin-top: 30px; line-height: 1.6">一次问清 · 不做填表式骚扰</span>
+            </div>
+          </div>
+
+          <div id="f4-quote">
+            <span id="f4-quote-text">
+              <span style="color: #f85149; font-family: 'DejaVu Sans Mono', monospace">诚实，包括说“不”</span>
+              —— 想法被证据否掉时，它直接说不行并给出理由，而不是顺着你写一份<span style="color: #f85149">注定返工</span>的规格。
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+
+          // Scene 1 (0–2.5s): the claim, alone
+          tl.fromTo("#f4-title", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.1);
+
+          // Scene 2 (2.5–8s): the AI column builds density, line by line
+          tl.fromTo("#f4-left", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 2.5);
+          tl.fromTo("#f4-lh", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 2.9);
+          ["#f4-i1", "#f4-i2", "#f4-i3", "#f4-i4", "#f4-i5"].forEach(function (s, i) {
+            tl.fromTo(s, { opacity: 0, x: -34 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 3.2 + i * 0.55);
+          });
+
+          // Scene 3 (8–13s): the human column — three words, one per spoken beat, deliberately sparse
+          tl.fromTo("#f4-right", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 8.1);
+          ["#f4-f1", "#f4-f2", "#f4-f3"].forEach(function (s, i) {
+            tl.fromTo(s, { opacity: 0, scale: 0.88 }, { opacity: 1, scale: 1, duration: 0.55, ease: "back.out(1.6)" }, 8.9 + i * 0.75);
+          });
+
+          // Scene 4 (13–16s): the "asked once" promise
+          tl.fromTo("#f4-once", { opacity: 0 }, { opacity: 1, duration: 0.6 }, 12.9);
+
+          // Scene 5 (16–18s): saying NO — the sharpest beat, then stillness
+          tl.fromTo("#f4-quote", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.75, ease: "power3.out" }, 15.4);
+
+          window.__timelines["04-collab"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>
