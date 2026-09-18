@@ -25,6 +25,12 @@ jobs:
           cut -d'|' -f2 scripts/distributable-files.txt | zip "$ZIP" -@
           sha256sum "$ZIP" > "$ZIP.sha256"
 
+          # A stable-named copy, so `releases/latest/download/spec-skills.zip`
+          # always resolves to the newest release and no doc has to be edited
+          # each time a tag is cut. The tagged name stays for pinned installs.
+          cp "$ZIP" spec-skills.zip
+          sha256sum spec-skills.zip > spec-skills.zip.sha256
+
           # Verify zip contents
           echo "=== ZIP contents ==="
           unzip -l "$ZIP"
@@ -81,5 +87,8 @@ jobs:
             SPEC_INSTALL_SOURCE="$tmp" bash "$tmp/scripts/install.sh" <project>
             ```
 
-            Verify `spec-skills-<tag>.zip.sha256`, extract, then run `/spec` in Claude Code.' \
-            "$ZIP" "$ZIP.sha256"
+            Verify `spec-skills-<tag>.zip.sha256`, extract, then run `/spec` in Claude Code.
+
+            `spec-skills.zip` is a byte-identical copy under a stable name, so
+            `releases/latest/download/spec-skills.zip` always points at the newest release.' \
+            "$ZIP" "$ZIP.sha256" spec-skills.zip spec-skills.zip.sha256

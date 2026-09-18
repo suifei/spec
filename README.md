@@ -120,10 +120,11 @@ no burden.
 把下面这行发给它，让它自己装：
 
 ```
-安装skill https://github.com/suifei/spec/releases/download/v2026-09-10/spec-skills-v2026-09-10.zip
+安装skill https://github.com/suifei/spec/releases/latest/download/spec-skills.zip
 ```
 
 它会把 zip 取下来、解进项目的 `.claude/`，然后你就能用 `/spec`、`/build`、`/yolo` 了。
+这个地址固定指向最新发布，不随版本变化。
 
 装进去的东西只有 `.claude/skills/{spec,build,yolo}/`、`.claude/commands/{spec,build,yolo}.md`
 和 `.claude/spec-install.manifest` —— 你的 `CLAUDE.md`、`SPEC.md`、`.spec/` 一个都不碰
@@ -154,8 +155,10 @@ Then open Claude Code in that directory and run `/spec`.
 
 Prefer a **pinned, offline copy**? Every tagged release ships a
 `spec-skills-<tag>.zip` on the [Releases](https://github.com/suifei/spec/releases)
-page. Verify its `.sha256`, extract to a temporary directory, then invoke the same
-transactional installer with that directory as the source; do not unzip over a project:
+page (plus `spec-skills.zip`, a byte-identical copy under a stable name that
+`releases/latest/download/` resolves to). Verify the `.sha256`, extract to a temporary
+directory, then invoke the same transactional installer with that directory as the
+source; do not unzip over a project:
 
 ```bash
 tmp=$(mktemp -d)
